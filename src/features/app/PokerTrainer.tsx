@@ -885,6 +885,7 @@ export function PokerTrainer() {
   const [aiBusy, setAiBusy] = useState(false);
   const [aiTags, setAiTags] = useState<Record<string, string[]>>({});
   const savedHand = useRef<string | null>(null);
+  const actionBarRef = useRef<HTMLElement>(null);
 
   const persist = useCallback((next: PersistedData) => {
     setData(next);
@@ -1110,30 +1111,31 @@ export function PokerTrainer() {
     try {
       const next = act(game, HERO_ID, action);
       const grade: TrainingRecord["grade"] =
-        (action.type === "bet" || action.type === "raise") && (action.amount ?? 0) > pot * 2.25 + game.currentBet
+        (action.type === "bet" || action.type === "raise") &&
+        (action.amount ?? 0) > pot * 2.25 + game.currentBet
           ? "尺度异常"
           : action.type === "fold" && priorToCall === 0
-          ? "偏紧"
-          : action.type === "call" &&
-              pot > 0 &&
-              priorToCall / (pot + priorToCall) >
-                (assessment?.equityEstimate ?? 0) + 0.08
-            ? "偏松"
-            : action.type === "all-in" &&
-                game.street !== "river" &&
-                (assessment?.equityEstimate ?? 0) < 0.55
-              ? "高风险"
-              : "合理";
+            ? "偏紧"
+            : action.type === "call" &&
+                pot > 0 &&
+                priorToCall / (pot + priorToCall) >
+                  (assessment?.equityEstimate ?? 0) + 0.08
+              ? "偏松"
+              : action.type === "all-in" &&
+                  game.street !== "river" &&
+                  (assessment?.equityEstimate ?? 0) < 0.55
+                ? "高风险"
+                : "合理";
       const message =
         grade === "尺度异常"
           ? "尺度异常：该下注显著超过当前底池，通常需要很强的特定理由。"
           : grade === "偏紧"
-          ? "偏紧：无需跟注时弃牌通常损失了免费看牌机会。"
-          : grade === "偏松"
-            ? "偏松：粗略胜率低于当前底池赔率门槛。"
-            : grade === "高风险"
-              ? "高风险：深街前全押会显著放大方差。"
-              : "合理：该动作处于可辩护范围；扑克决策通常不存在唯一答案。";
+            ? "偏紧：无需跟注时弃牌通常损失了免费看牌机会。"
+            : grade === "偏松"
+              ? "偏松：粗略胜率低于当前底池赔率门槛。"
+              : grade === "高风险"
+                ? "高风险：深街前全押会显著放大方差。"
+                : "合理：该动作处于可辩护范围；扑克决策通常不存在唯一答案。";
       setGame(next);
       setError("");
       setFeedback(data.settings.hintStrength === "off" ? "" : message);
@@ -1160,11 +1162,17 @@ export function PokerTrainer() {
   const recommendedAction = !assessment
     ? "—"
     : assessment.equityEstimate > 0.62
-      ? game?.currentBet === 0 ? "Bet" : "Raise"
+      ? game?.currentBet === 0
+        ? "Bet"
+        : "Raise"
       : toCall === 0
         ? "Check"
-        : assessment.equityEstimate + 0.04 >= potOdds ? "Call" : "Fold";
-  const recommendedSizing = game ? Math.min(maxRaiseTo, Math.max(minRaiseTo, game.currentBet + pot * 0.66)) : 0;
+        : assessment.equityEstimate + 0.04 >= potOdds
+          ? "Call"
+          : "Fold";
+  const recommendedSizing = game
+    ? Math.min(maxRaiseTo, Math.max(minRaiseTo, game.currentBet + pot * 0.66))
+    : 0;
   const quickSizes = !game
     ? []
     : game.street === "preflop"
@@ -1172,6 +1180,57 @@ export function PokerTrainer() {
       : [0.25, 0.33, 0.5, 0.66, 0.75, 1].map(
           (value) => game.currentBet + Math.max(game.bigBlind, pot * value),
         );
+  const humanActionRef = useRef(humanAction);
+  useEffect(() => {
+    humanActionRef.current = humanAction;
+  });
+
+  useEffect(() => {
+    if (
+      !game ||
+      game.settled ||
+      game.actingPlayerId !== HERO_ID ||
+      !window.matchMedia("(max-width: 760px)").matches
+    )
+      return;
+    const frame = window.requestAnimationFrame(() => {
+      actionBarRef.current?.scrollIntoView({
+        behavior: data.settings.animations ? "smooth" : "auto",
+        block: "end",
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [data.settings.animations, game]);
+
+  useEffect(() => {
+    if (!game || game.settled || game.actingPlayerId !== HERO_ID) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.matches("input, select, textarea, [contenteditable='true']") ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey
+      )
+        return;
+      const actionByKey: Record<string, PokerAction> = {
+        f: { type: "fold" },
+        k: { type: "check" },
+        c: { type: "call" },
+        r: {
+          type: game.currentBet === 0 ? "bet" : "raise",
+          amount: betAmount,
+        },
+        a: { type: "all-in" },
+      };
+      const action = actionByKey[event.key.toLowerCase()];
+      if (!action) return;
+      event.preventDefault();
+      humanActionRef.current(action);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [betAmount, game]);
   const nextHand = () => {
     if (!game) return;
     const stacks = Object.fromEntries(
@@ -1194,7 +1253,9 @@ export function PokerTrainer() {
   const replaceData = (next: PersistedData) => persist(next);
 
   return (
-    <main className={`app-shell ${data.settings.animations ? `speed-${data.settings.animationSpeed}` : "animations-off"}`}>
+    <main
+      className={`app-shell ${data.settings.animations ? `speed-${data.settings.animationSpeed}` : "animations-off"}`}
+    >
       <header className="topbar">
         <button className="brand" onClick={() => setView("table")}>
           <span>R</span>
@@ -1206,19 +1267,20 @@ export function PokerTrainer() {
         <nav aria-label="主导航">
           {(
             [
-              ["table", "训练桌"],
-              ["scenario", "单手牌"],
-              ["history", "历史与复盘"],
-              ["stats", "统计"],
-              ["settings", "设置"],
-            ] as [View, string][]
-          ).map(([id, label]) => (
+              ["table", "训练桌", "牌桌"],
+              ["scenario", "单手牌", "场景"],
+              ["history", "历史与复盘", "复盘"],
+              ["stats", "统计", "统计"],
+              ["settings", "设置", "设置"],
+            ] as [View, string, string][]
+          ).map(([id, label, shortLabel]) => (
             <button
               key={id}
               className={view === id ? "active" : ""}
               onClick={() => setView(id)}
             >
-              {label}
+              <span className="nav-label-full">{label}</span>
+              <span className="nav-label-short">{shortLabel}</span>
             </button>
           ))}
         </nav>
@@ -1320,8 +1382,8 @@ export function PokerTrainer() {
               )}
               {data.settings.showOuts && assessment && (
                 <span>
-                  <small>估算 Outs</small>
-                  ≈ {Math.round(assessment.drawStrength * 16)}
+                  <small>估算 Outs</small>≈{" "}
+                  {Math.round(assessment.drawStrength * 16)}
                 </span>
               )}
               {data.settings.showRecommendedAction && (
@@ -1336,12 +1398,14 @@ export function PokerTrainer() {
                   {formatChips(recommendedSizing)} BB
                 </span>
               )}
-              {data.settings.showBoardWarnings && assessment && assessment.boardDanger > 0.58 && (
-                <span>
-                  <small>牌面提示</small>
-                  危险度较高
-                </span>
-              )}
+              {data.settings.showBoardWarnings &&
+                assessment &&
+                assessment.boardDanger > 0.58 && (
+                  <span>
+                    <small>牌面提示</small>
+                    危险度较高
+                  </span>
+                )}
             </section>
             {game.settled ? (
               <section className="action-bar complete-bar">
@@ -1358,8 +1422,15 @@ export function PokerTrainer() {
                 </button>
               </section>
             ) : (
-              <section className="action-bar">
-                <div className="decision-status">
+              <section
+                ref={actionBarRef}
+                className={
+                  "action-bar " +
+                  (game.actingPlayerId === HERO_ID ? "is-hero-turn" : "")
+                }
+                aria-label="玩家操作区"
+              >
+                <div className="decision-status" aria-live="polite">
                   <span
                     className={
                       game.actingPlayerId === HERO_ID
@@ -1370,6 +1441,10 @@ export function PokerTrainer() {
                   {game.actingPlayerId === HERO_ID
                     ? "轮到你行动"
                     : `${game.players.find((player) => player.id === game.actingPlayerId)?.name ?? "牌桌"} 行动中`}
+                  <span className="decision-context">
+                    底池 {formatChips(pot)} · 跟注 {formatChips(toCall)} ·{" "}
+                    {hero?.positionLabel || "—"}
+                  </span>
                   {feedback && <small>{feedback}</small>}
                   {error && <small className="error-message">{error}</small>}
                 </div>
@@ -1428,7 +1503,7 @@ export function PokerTrainer() {
                     }
                     onClick={() => humanAction({ type: "fold" })}
                   >
-                    Fold
+                    Fold <kbd aria-hidden="true">F</kbd>
                   </button>
                   <button
                     disabled={
@@ -1436,7 +1511,7 @@ export function PokerTrainer() {
                     }
                     onClick={() => humanAction({ type: "check" })}
                   >
-                    Check
+                    Check <kbd aria-hidden="true">K</kbd>
                   </button>
                   <button
                     disabled={
@@ -1444,7 +1519,7 @@ export function PokerTrainer() {
                     }
                     onClick={() => humanAction({ type: "call" })}
                   >
-                    Call {formatChips(toCall)}
+                    Call {formatChips(toCall)} <kbd aria-hidden="true">C</kbd>
                   </button>
                   <button
                     disabled={
@@ -1458,7 +1533,8 @@ export function PokerTrainer() {
                       })
                     }
                   >
-                    {game.currentBet === 0 ? "Bet" : "Raise"}
+                    {game.currentBet === 0 ? "Bet" : "Raise"}{" "}
+                    <kbd aria-hidden="true">R</kbd>
                   </button>
                   <button
                     disabled={
@@ -1467,7 +1543,7 @@ export function PokerTrainer() {
                     }
                     onClick={() => humanAction({ type: "all-in" })}
                   >
-                    All-in
+                    All-in <kbd aria-hidden="true">A</kbd>
                   </button>
                 </div>
               </section>

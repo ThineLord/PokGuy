@@ -152,3 +152,365 @@ button:disabled { cursor: not-allowed; opacity: 0.38; }
   .poker-table { min-height: 650px; border-radius: 18px; }.poker-table::before { inset: 90px 2% 95px; }.seat { width: 118px; padding: 7px; }.seat-topline strong { font-size: 10px; }.seat-meta { font-size: 7px; }.hole-cards .playing-card { width: 27px; height: 38px; }.seat-1-6,.seat-2-6 { right: 0; }.seat-4-6,.seat-5-6 { left: 0; }.seat-2-6,.seat-4-6 { top: 120px; }.seat-1-6,.seat-5-6 { bottom: 115px; }
   .playing-card { width: 37px; height: 53px; }.table-center { width: 100%; }.action-bar { position: relative; bottom: auto; grid-template-columns: 1fr; }.decision-status { grid-column: auto; }.action-buttons { grid-template-columns: repeat(3, 1fr); }.quick-sizes { overflow-x: auto; }.quick-sizes button { min-width: 45px; }.content-grid { grid-template-columns: 1fr; }.stats-grid { grid-template-columns: repeat(2, 1fr); }.scenario-grid, .form-grid { grid-template-columns: 1fr; }.toggle-grid { grid-template-columns: repeat(2, 1fr); }.ai-picker { grid-template-columns: 1fr; }.range-row { grid-template-columns: 110px 1fr 28px; }.position-row { grid-template-columns: repeat(5, minmax(65px, 1fr)); overflow-x: auto; }.table-toolbar { align-items: flex-start; }.toolbar-actions { justify-content: flex-end; }
 }
+
+/* Cross-device playability pass */
+html {
+  min-width: 320px;
+  background: var(--background);
+}
+
+body {
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-shell {
+  min-height: 100svh;
+}
+
+.topbar {
+  padding-right: max(28px, env(safe-area-inset-right));
+  padding-left: max(28px, env(safe-area-inset-left));
+}
+
+.nav-label-short {
+  display: none;
+}
+
+.app-content {
+  padding-right: max(28px, calc(env(safe-area-inset-right) + 16px));
+  padding-bottom: max(40px, calc(env(safe-area-inset-bottom) + 24px));
+  padding-left: max(28px, calc(env(safe-area-inset-left) + 16px));
+}
+
+.poker-table {
+  height: clamp(460px, calc(100svh - 400px), 560px);
+  min-height: 0;
+}
+
+.seat.is-acting::before {
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  border-radius: 999px;
+  background: #45c998;
+  padding: 2px 7px;
+  color: #04110d;
+  content: "行动";
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.seat-0-6,
+.seat-0-5,
+.seat-0-4,
+.seat-0-3,
+.seat-0-2 {
+  border-color: #ffffff24;
+}
+
+.info-strip {
+  scrollbar-color: #385b51 transparent;
+  scrollbar-width: thin;
+}
+
+.action-bar {
+  position: relative;
+  bottom: auto;
+  grid-template-columns: minmax(190px, 0.7fr) minmax(300px, 1.2fr) minmax(
+      410px,
+      1.45fr
+    );
+  gap: 16px;
+}
+
+.action-bar.is-hero-turn {
+  border-color: #4bd1a044;
+  box-shadow:
+    0 16px 52px #0009,
+    0 0 0 1px #4bd1a00f;
+}
+
+.decision-context {
+  width: 100%;
+  color: #718398;
+  font-size: 10px;
+}
+
+.quick-sizes {
+  margin-bottom: 8px;
+}
+
+.quick-sizes button {
+  min-height: 32px;
+  font-size: 9px;
+}
+
+.sizing-input {
+  grid-template-columns: 1fr 84px;
+}
+
+.sizing-input input {
+  min-height: 42px;
+}
+
+.action-buttons button,
+.primary-button {
+  min-height: 48px;
+  font-size: 12px;
+}
+
+.action-buttons kbd {
+  margin-left: 4px;
+  border: 1px solid #ffffff19;
+  border-radius: 4px;
+  background: #ffffff0a;
+  padding: 2px 5px;
+  color: #8998aa;
+  font: 9px/1 var(--font-mono);
+}
+
+.toolbar-actions button,
+.button-grid button,
+.scenario-actions button,
+.replay-controls button,
+.profile-editor-heading button {
+  min-height: 44px;
+}
+
+@media (max-width: 1100px) {
+  .action-bar {
+    grid-template-columns: minmax(250px, 0.8fr) minmax(430px, 1.2fr);
+  }
+
+  .decision-status {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 1050px) {
+  .poker-table {
+    height: clamp(540px, calc(100svh - 480px), 600px);
+    min-height: 0;
+  }
+}
+
+@media (max-width: 1050px) and (orientation: landscape) {
+  .poker-table {
+    height: 460px;
+  }
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    min-height: 58px;
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding: env(safe-area-inset-top) max(10px, env(safe-area-inset-right)) 0
+      max(10px, env(safe-area-inset-left));
+  }
+
+  .brand {
+    flex: 0 0 auto;
+    gap: 7px;
+  }
+
+  .brand > span {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+  }
+
+  .brand strong {
+    font-size: 14px;
+  }
+
+  .brand small,
+  .local-badge,
+  .nav-label-full {
+    display: none;
+  }
+
+  .nav-label-short {
+    display: inline;
+  }
+
+  .topbar nav {
+    order: initial;
+    width: auto;
+    min-width: 0;
+    flex: 1;
+    align-self: stretch;
+    justify-content: flex-end;
+    gap: 0;
+    overflow: visible;
+  }
+
+  .topbar nav button {
+    min-width: 0;
+    min-height: 58px;
+    flex: 0 1 auto;
+    padding: 0 7px;
+    font-size: 11px;
+  }
+
+  .topbar nav button.active::after {
+    right: 7px;
+    left: 7px;
+  }
+
+  .app-content {
+    padding: 12px max(10px, env(safe-area-inset-right))
+      max(20px, calc(env(safe-area-inset-bottom) + 14px))
+      max(10px, env(safe-area-inset-left));
+  }
+
+  .table-view {
+    gap: 12px;
+  }
+
+  .table-toolbar {
+    align-items: center;
+    gap: 10px;
+  }
+
+  .table-toolbar h1 {
+    font-size: 18px;
+  }
+
+  .toolbar-actions {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .toolbar-actions button {
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+
+  .poker-table {
+    height: clamp(500px, calc(100svh - 320px), 560px);
+    min-height: 0;
+  }
+
+  .poker-table::before {
+    inset: 70px 2% 82px;
+  }
+
+  .table-center {
+    gap: 9px;
+  }
+
+  .seat-2-6,
+  .seat-4-6 {
+    top: 98px;
+  }
+
+  .seat-1-6,
+  .seat-5-6 {
+    bottom: 88px;
+  }
+
+  .info-strip {
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+  }
+
+  .info-strip > span {
+    min-width: 112px;
+    min-height: 60px;
+    flex: 0 0 112px;
+    scroll-snap-align: start;
+  }
+
+  .action-bar {
+    scroll-margin-bottom: max(10px, env(safe-area-inset-bottom));
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .decision-status {
+    grid-column: auto;
+  }
+
+  .quick-sizes {
+    gap: 5px;
+    margin-right: -12px;
+    margin-left: -12px;
+    padding: 0 12px 4px;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+  }
+
+  .quick-sizes button {
+    min-width: 58px;
+    min-height: 38px;
+    flex: 0 0 58px;
+    scroll-snap-align: start;
+    font-size: 9px;
+  }
+
+  .sizing-input {
+    grid-template-columns: minmax(0, 1fr) 84px;
+  }
+
+  .sizing-input input {
+    min-height: 44px;
+  }
+
+  .sizing-input input[type="number"],
+  .form-grid input,
+  .form-grid select,
+  .scenario-grid input,
+  .scenario-grid select,
+  .note-field textarea {
+    font-size: 16px;
+  }
+
+  .action-buttons {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .action-buttons button {
+    min-height: 48px;
+    font-size: 12px;
+  }
+
+  .action-buttons kbd {
+    display: none;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .profile-editor-heading {
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 370px) {
+  .brand strong {
+    display: none;
+  }
+
+  .topbar nav button {
+    padding: 0 6px;
+  }
+
+  .seat {
+    width: 112px;
+  }
+}
