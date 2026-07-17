@@ -1,5 +1,6 @@
 import { createDeck } from "@/src/engine/deck/deck";
-import { act, startHand } from "@/src/engine/state/gameState";
+import { cardId, parseCards } from "@/src/engine/cards/cards";
+import { act, startHand, startTrainingScenario } from "@/src/engine/state/gameState";
 
 const headsUpPlayers = [
   { id: "hero", name: "Hero", seat: 0, stack: 100, kind: "human" as const },
@@ -74,5 +75,39 @@ describe("game state machine", () => {
     expect(game.street).toBe("complete");
     expect(game.board).toHaveLength(5);
     expect(game.outcome?.reason).toBe("showdown");
+  });
+
+  it("does not deadlock when only the big blind has chips behind", () => {
+    const complete = startHand({
+      players: [
+        { ...headsUpPlayers[0], stack: 0.5 },
+        { ...headsUpPlayers[1], stack: 10 },
+      ],
+      dealerSeat: 0,
+      smallBlind: 0.5,
+      bigBlind: 1,
+      deck: createDeck(),
+    });
+    expect(complete.street).toBe("complete");
+    expect(complete.board).toHaveLength(5);
+    expect(complete.settled).toBe(true);
+  });
+
+  it("builds a scenario without duplicating specified or hidden cards", () => {
+    const scenario = startTrainingScenario({
+      players: headsUpPlayers,
+      dealerSeat: 0,
+      smallBlind: 0.5,
+      bigBlind: 1,
+      heroId: "hero",
+      heroHoleCards: parseCards("AS AH") as [ReturnType<typeof parseCards>[number], ReturnType<typeof parseCards>[number]],
+      board: parseCards("2C 7D 9S JC"),
+      startStreet: "turn",
+      seed: 42,
+    });
+    const cards = [...scenario.players.flatMap((player) => player.holeCards), ...scenario.board, ...scenario.deck];
+    expect(new Set(cards.map(cardId)).size).toBe(cards.length);
+    expect(scenario.players.find((player) => player.id === "hero")?.holeCards).toEqual(parseCards("AS AH"));
+    expect(scenario.board).toHaveLength(4);
   });
 });

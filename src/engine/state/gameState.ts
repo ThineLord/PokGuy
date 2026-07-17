@@ -1,4 +1,5 @@
 import { assertUniqueCards, type Card } from "../cards/cards";
+import { amountToCall } from "../betting/actionValidator";
 import {
   applyBettingAction,
   beginNextStreet,
@@ -212,7 +213,7 @@ export function startHand(options: StartHandOptions): PokerGameState {
     activeSeats(options.players),
     options.dealerSeat,
   );
-  return {
+  const initial: PokerGameState = {
     handId: options.handId ?? `hand-${seed}`,
     dealerSeat: positions.button.seat,
     smallBlind: options.smallBlind,
@@ -235,6 +236,7 @@ export function startHand(options: StartHandOptions): PokerGameState {
     outcome: null,
     settled: false,
   };
+  return advance(initial);
 }
 
 export function startTrainingScenario(
@@ -449,6 +451,9 @@ function advance(state: PokerGameState): PokerGameState {
   const actionable = remaining.filter(
     (player) => player.status === "active" && player.stack > 0,
   );
+  if (actionable.length === 0) return autoRunout(state);
+  if (actionable.length === 1 && amountToCall(state, actionable[0]) === 0)
+    return autoRunout(state);
   if (actionable.length <= 1 && isRoundComplete(state))
     return autoRunout(state);
   if (!isRoundComplete(state)) return state;

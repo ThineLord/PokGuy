@@ -144,7 +144,7 @@ button:disabled { cursor: not-allowed; opacity: 0.38; }
 .scenario-panel { max-width: 900px; margin: 30px auto; }.scenario-grid { grid-template-columns: repeat(3, 1fr); }.scenario-actions { justify-content: flex-end; margin-top: 20px; }.panel-copy code { border-radius: 4px; background: #ffffff0b; padding: 2px 5px; color: #a8d9c6; }
 
 @media (max-width: 1050px) {
-  .action-bar { grid-template-columns: 1fr 1.7fr; }.decision-status { grid-column: 1 / -1; }.stats-grid { grid-template-columns: repeat(3, 1fr); }.settings-layout { grid-template-columns: 1fr; }.settings-section:last-child { grid-column: auto; }
+  .action-bar { position: relative; bottom: auto; grid-template-columns: 1fr 1.7fr; }.decision-status { grid-column: 1 / -1; }.stats-grid { grid-template-columns: repeat(3, 1fr); }.settings-layout { grid-template-columns: 1fr; }.settings-section:last-child { grid-column: auto; }
   .poker-table { min-height: 600px; }.poker-table::before { inset: 65px 6%; }.seat { width: 145px; }.seat-1-6,.seat-2-6 { right: 2%; }.seat-4-6,.seat-5-6 { left: 2%; }
 }
 @media (max-width: 760px) {

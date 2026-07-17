@@ -2,10 +2,10 @@
 
 ## 当前状态
 
-- 当前阶段：Phase 3–4 已完成，准备收尾 Phase 5–7
-- 可运行状态：标准现金桌和单手牌场景可玩；历史、复盘、统计和设置已接入
+- 当前阶段：Phase 7 完成，第一版达到本地交付状态
+- 可运行状态：可安装、启动、连续游戏、训练、复盘、统计和导出
 - 当前分支：`main`
-- 当前稳定提交：`e9fd98c`（Phase 1 基线）；Phase 2 提交见最新 `git log`
+- 当前稳定提交：`486b6bc`（Phase 3–4）；最终验收提交见最新 `git log`
 
 ## 已完成模块
 
@@ -27,12 +27,13 @@
 
 ## 已通过测试
 
-- 50 项 Vitest 测试通过
+- 52 项 Vitest 测试通过
 - ESLint 通过
 - TypeScript strict typecheck 通过
 - vinext/Vite production build 通过
 - 4 项 Chromium E2E 通过
-- 390×844 移动端实际截图检查通过
+- 1440×1000 桌面、1024×768 平板、390×844 移动端实际截图检查通过
+- 新浏览器会话控制台无产品错误
 
 ## 已知问题
 
@@ -45,3 +46,12 @@
 - 核心扑克规则使用纯 TypeScript 函数，与 React UI 解耦
 - 单一权威牌局状态；所有用户和 AI 动作经过统一验证器
 - 随机源可注入 seed，以便测试与复现
+
+## 恢复命令
+
+```bash
+cd "/Users/hanzhiyou/Documents/New project"
+npm install
+npm run check
+npm run dev
+```

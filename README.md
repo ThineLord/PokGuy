@@ -1,98 +1,98 @@
-# vinext-starter
+# RiverLab Poker Trainer
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+RiverLab 是一个完全在浏览器本地运行的单机德州扑克训练应用。它面向个人练习和复盘，不包含真钱、充值、提款、真人匹配或在线赌场功能。
 
-## Prerequisites
+## 功能
 
-- Node.js `>=22.13.0`
+- 2–6 人无上限德州扑克现金桌，默认 6-max、100BB、0.5/1BB；
+- 完整 fold、check、call、bet、raise、all-in 与合法尺度验证；
+- heads-up 特殊顺序、大盲 option、完整/不足完整加注、多人 all-in、主池和多个边池；
+- 最佳五张牌评估、公共牌成牌、A2345、全部标准牌型、多人平局和奇数筹码；
+- TAG、LAG、Rock、Calling Station、Recreational、Maniac、Grinder、Trapper 八种稳定 AI；
+- AI 个性编辑、实际习惯统计、受限用户适应和不读取隐藏牌的 Monte Carlo 胜率估算；
+- 单手牌训练：指定或随机底牌、位置、有效筹码、对手数、公共牌与起始街；
+- 底池赔率、粗略胜率、outs、建议动作/尺度和危险牌面提示均可独立开关；
+- 最近 100 手牌局、逐步/自动复盘、AI 决策摘要、玩家笔记和训练评价；
+- 盈亏、BB/100、VPIP、PFR、3-bet、c-bet、摊牌及位置统计；
+- 设置与牌局 JSON 导入/导出，全部数据保存在版本化 LocalStorage；
+- 深色响应式桌面，支持桌面、平板横屏和基础移动端，提供键盘 focus 与 reduced-motion 支持。
 
-## Quick Start
+## 环境要求
+
+- Node.js 22.13 或更高版本；
+- npm；
+- E2E 首次运行需要安装 Playwright Chromium。
+
+## 安装与启动
 
 ```bash
 npm install
 npm run dev
+```
+
+终端会打印本地地址，默认是 `http://localhost:3000`。
+
+## 测试与质量检查
+
+```bash
+npm run lint
+npm run typecheck
+npm run test
 npm run build
+npm run check
 ```
 
-This starter does not use `wrangler.jsonc`.
+首次运行 E2E：
 
-## Included Shape
-
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-OpenAI workspace sites can read the current user's email from
-`oai-authenticated-user-email`.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
+```bash
+npx playwright install chromium
+npm run test:e2e
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+`npm run check` 依次执行 ESLint、TypeScript、Vitest 和 production build。E2E 独立执行，以便没有浏览器运行时的环境仍能完成核心检查。
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
+## 项目结构
 
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
+```text
+app/                         页面入口与全局样式
+src/engine/                  与 UI 解耦的扑克规则引擎
+  cards/ deck/ evaluator/    牌、随机源、洗牌和最佳五张评估
+  betting/ pots/ showdown/   动作验证、下注轮、边池与摊牌
+  state/                     单一权威牌局状态和位置顺序
+src/ai/                      个性、评估、Monte Carlo、适应和决策
+src/features/app/            客户端产品界面与动作编排
+src/storage/                 LocalStorage schema、迁移和统计更新
+tests/engine/ tests/ai/      规则与 AI 单元测试
+tests/storage/               持久化迁移测试
+tests/e2e/                   Playwright 核心流程
+docs/                        实施状态与安全恢复入口
+```
 
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
+详细设计见 [ARCHITECTURE.md](ARCHITECTURE.md)、[POKER_RULES.md](POKER_RULES.md)、[AI_DESIGN.md](AI_DESIGN.md) 和 [TESTING.md](TESTING.md)。
 
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
+## 数据与隐私
 
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
+应用不需要账号或后端。设置、AI 配置、统计、牌局、训练记录和笔记只写入当前浏览器的 LocalStorage。清除浏览器站点数据会移除这些记录；建议定期使用设置页导出 JSON。
 
-## Useful Commands
+AI 决策接口只接收自己的底牌和公开信息。牌局结束前，其他玩家底牌不会传入 AI 观察对象。
 
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
+## 当前限制
 
-## Learn More
+- Monte Carlo 使用均匀随机未知范围，不是求解器或 GTO 输出；
+- outs、危险度和动作反馈属于训练级启发式，不代表唯一正确答案；
+- 单手牌场景第一版不提供自定义已形成底池或逐个对手范围；
+- AI 的 tilt 参数尚未形成完整的连续输赢状态机；
+- 数据只在当前浏览器设备保存，不跨设备同步；
+- 没有声音素材，声音开关为后续扩展预留。
 
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+## 后续路线
+
+1. 将 Monte Carlo 批次迁移到 Web Worker，并加入范围加权缓存；
+2. 完善每位置命名、三下注机会和 fold-to-cbet 事件采集；
+3. 增加可分享但不含隐藏信息的手牌文本格式；
+4. 扩展单手牌场景的底池、前序行动与对手范围编辑；
+5. 增加更细的键盘快捷键和无障碍公告。
+
+## 免责声明
+
+RiverLab 仅用于规则学习和个人娱乐训练，不提供赌博服务，也不宣传为获利工具。扑克决策具有不确定性，少量样本统计不稳定。

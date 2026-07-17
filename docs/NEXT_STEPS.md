@@ -2,31 +2,25 @@
 
 ## 下一项具体任务
 
-完成 Phase 5–7 收尾：补全架构、测试与使用文档；增加边界回归；进行第二轮浏览器手检和最终全量验证。
+第一版没有未完成的必需任务。下一项可选增强是把 Monte Carlo 分批计算迁移到 Web Worker，并加入按公共牌/人数缓存。
 
 ## 相关文件
 
-- `README.md`
-- `ARCHITECTURE.md`
-- `TESTING.md`
-- `CHANGELOG.md`
-- `docs/IMPLEMENTATION_STATUS.md`
-- `tests/engine/`
-- `tests/e2e/`
+- `src/ai/equity/monteCarlo.ts`
+- `src/workers/`
+- `src/ai/assessment/assessHand.ts`
+- `tests/ai/ai.test.ts`
 
 ## 验收标准
 
-- `npm run check` 连续通过
-- `npm run test:e2e` 连续通过
-- 桌面、平板和移动宽度无操作遮挡
-- 所有要求文档存在且与实际命令一致
-- Git 工作树干净且最新提交可构建、可测试、可启动
+- 主线程决策期间保持可交互
+- 相同输入与 seed 仍可复现
+- Worker 不接收对手隐藏底牌
+- 现有 52 项测试和 4 项 E2E 继续通过
 
 ## 推荐执行命令
 
 ```bash
-npm run test
-npm run typecheck
-npm run lint
-npm run build
+npm run check
+npm run test:e2e
 ```
