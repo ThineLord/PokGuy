@@ -1,0 +1,8 @@
+node_modules
+.next
+.vinext
+coverage
+playwright-report
+test-results
+.wrangler
+package-lock.json
