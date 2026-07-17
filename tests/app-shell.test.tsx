@@ -4,6 +4,8 @@ import Home from "@/app/page";
 describe("application shell", () => {
   it("renders the RiverLab identity", () => {
     render(<Home />);
-    expect(screen.getByText("训练桌正在就位")).toBeInTheDocument();
+    expect(screen.getByText("RiverLab")).toBeInTheDocument();
+    expect(screen.getByRole("navigation", { name: "主导航" })).toBeInTheDocument();
+    expect(screen.getByLabelText("德州扑克牌桌")).toBeInTheDocument();
   });
 });

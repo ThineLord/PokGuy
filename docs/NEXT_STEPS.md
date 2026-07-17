@@ -2,26 +2,25 @@
 
 ## 下一项具体任务
 
-实现 Phase 3–4：接入可玩牌桌、统一人类/AI 动作循环、8 类稳定 AI 个性、Monte Carlo 胜率与受限适应。
+完成 Phase 5–7 收尾：补全架构、测试与使用文档；增加边界回归；进行第二轮浏览器手检和最终全量验证。
 
 ## 相关文件
 
-- `src/features/game/`
-- `src/features/table/`
-- `src/features/betting/`
-- `src/ai/personalities/`
-- `src/ai/equity/`
-- `src/ai/adaptation/`
-- `src/ai/decision/`
-- `tests/ai/`
+- `README.md`
+- `ARCHITECTURE.md`
+- `TESTING.md`
+- `CHANGELOG.md`
+- `docs/IMPLEMENTATION_STATUS.md`
+- `tests/engine/`
+- `tests/e2e/`
 
 ## 验收标准
 
-- 用户可完成多街行动并连续开始下一手
-- 至少 8 种 AI 个性具有可观察的稳定差异
-- AI 决策输入不包含其他玩家未公开底牌
-- Monte Carlo 排除全部已知牌且相同 seed 可复现
-- AI 自动行动不会卡住或重复提交
+- `npm run check` 连续通过
+- `npm run test:e2e` 连续通过
+- 桌面、平板和移动宽度无操作遮挡
+- 所有要求文档存在且与实际命令一致
+- Git 工作树干净且最新提交可构建、可测试、可启动
 
 ## 推荐执行命令
 
