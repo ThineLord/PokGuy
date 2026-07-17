@@ -2,10 +2,10 @@
 
 ## 当前状态
 
-- 当前阶段：Phase 7 完成，第一版达到本地交付状态
-- 可运行状态：可安装、启动、连续游戏、训练、复盘、统计和导出
+- 当前阶段：Phase 7.1 跨设备可玩性修复完成
+- 可运行状态：可安装、启动、连续游戏、训练、复盘、统计、导出和可信局域网访问
 - 当前分支：`main`
-- 当前稳定提交：`84c7c38`（完整实现与最终验收）
+- 当前稳定代码提交：`a2c1c10`（跨设备布局、触控、键盘、回归测试与局域网访问）
 
 ## 已完成模块
 
@@ -24,6 +24,10 @@
 - 不读取隐藏牌的 Monte Carlo 胜率估算
 - 版本化 LocalStorage、最近 100 手、玩家笔记和训练记录
 - 逐步复盘、基础统计、设置导入导出和牌局导出
+- Mac 自适应视口牌桌与 `F/K/C/R/A` 键盘操作
+- iPad 横/竖屏零覆盖布局与 iPhone 自动行动区定位
+- iOS 安全区、动态视口、44px+ 触控目标与输入防缩放
+- `npm run dev:lan` 同一可信 Wi-Fi 访问入口
 
 ## 已通过测试
 
@@ -31,14 +35,17 @@
 - ESLint 通过
 - TypeScript strict typecheck 通过
 - vinext/Vite production build 通过
-- 4 项 Chromium E2E 通过
-- 1440×1000 桌面、1024×768 平板、390×844 移动端实际截图检查通过
+- 7 项 Chromium E2E 通过
+- 1440×900 Mac、1194×834 iPad 横屏、834×1194 iPad 竖屏、393×852 iPhone 实际截图检查通过
+- iPad 信息区/操作区重叠为 0；iPhone 动作按钮实测高度 48px
+- `npm run dev:lan` 绑定 `*:3000`，局域网地址 HTTP smoke 通过
 - 新浏览器会话控制台无产品错误
 
 ## 已知问题
 
 - 精细范围加权、完整 tilt 状态和求解器级建议不在第一版范围
 - 当前 UI 为单路由客户端导航；不含账户、后端或跨设备同步
+- Playwright WebKit 浏览器二进制尚未安装，当前 Safari 引擎未纳入自动化矩阵
 
 ## 重要架构决定
 
@@ -55,3 +62,14 @@ npm install
 npm run check
 npm run dev
 ```
+
+同一可信 Wi-Fi 的移动设备访问：
+
+```bash
+npm run dev:lan
+```
+
+## 目录说明
+
+- 实际项目仓库仍位于 `/Users/hanzhiyou/Documents/New project`。
+- `/Users/hanzhiyou/Documents/PokGuy` 于本轮开始时是一个无提交、无项目文件的空 Git 仓库；本轮没有擅自移动或覆盖两个仓库。
