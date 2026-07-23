@@ -11,12 +11,16 @@ RiverLab 是一个完全在浏览器本地运行的单机德州扑克训练应�
 - TAG、LAG、Rock、Calling Station、Recreational、Maniac、Grinder、Trapper 八种稳定 AI；
 - AI 个性编辑、实际习惯统计、受限用户适应和不读取隐藏牌的 Monte Carlo 胜率估算；
 - 稳定的同牌面胜率 seed、多人平局 equity 分摊，以及 120 手种子化规则压力验证；
+- 小数筹码余额带精度归零保护，避免 0 BB 玩家因浮点残量重新进入行动队列；
 - 单手牌训练：指定或随机底牌、位置、有效筹码、对手数、公共牌与起始街；
 - 底池赔率、粗略胜率、outs、建议动作/尺度和危险牌面提示均可独立开关；
 - 最近 100 手牌局、逐步/自动复盘、AI 决策摘要、玩家笔记和训练评价；
 - 盈亏、BB/100、VPIP、PFR、3-bet、c-bet、摊牌及位置统计；
 - 设置与牌局 JSON 导入/导出，全部数据保存在版本化 LocalStorage；
-- 深色响应式桌面，针对 Mac、iPad 横/竖屏和 iPhone 竖屏优化，提供安全区、44px+ 触控目标、键盘 focus 与 reduced-motion 支持；
+- 具有桌沿厚度、亚麻桌布、纸张纹理、筹码层次和克制光影的 3D 深色牌桌；
+- 洗牌/发牌、翻牌成组揭示、转牌/河牌揭示、下注、弃牌与底池结算短动画，支持三档速度、关闭动画和 reduced-motion；
+- 三套原创写实牌背（深海流纹、酒红编织、石墨构造），设置会安全持久化且不影响发牌概率；
+- 响应式桌面针对 Mac、iPad 横/竖屏和 iPhone 竖屏优化，提供安全区、44px+ 触控目标、键盘 focus 与 reduced-motion 支持；
 - 移动端轮到用户时自动定位到操作区，并把关键动作按钮前置；Mac 可使用 `F/K/C/R/A` 快捷执行 Fold/Check/Call/Raise/All-in。
 
 ## 环境要求
@@ -76,6 +80,7 @@ src/engine/                  与 UI 解耦的扑克规则引擎
 src/ai/                      个性、评估、Monte Carlo、适应和决策
 src/features/app/            客户端产品界面与动作编排
 src/storage/                 LocalStorage schema、迁移和统计更新
+public/assets/card-backs/     原创压缩牌背素材
 tests/engine/ tests/ai/      规则与 AI 单元测试
 tests/storage/               持久化迁移测试
 tests/e2e/                   Playwright 核心流程

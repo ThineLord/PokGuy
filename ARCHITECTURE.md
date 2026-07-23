@@ -57,6 +57,15 @@ AI 的输出只是建议动作及 `reasoningTags`。控制层再次调用规则�
 
 座位、公共牌和操作栏都是状态的只读投影。AI 定时回调在提交前比较 `handId` 和 `actionSequence`，防止旧定时器向新牌局提交动作。
 
+### 视觉与动画边界
+
+- 牌面、筹码、公共牌和获胜者信息只读取 `PokerGameState`，视觉层不推进街道、不延迟引擎，也不复制筹码状态；
+- 洗牌层是临时覆盖层，CSS 动画结束后还会由 React 定时卸载，避免 Safari 动画终态异常遮挡真实牌面；
+- 发牌、公共牌揭示和筹码动画只作用于包装层；核心 `.playing-card` 的最终可见性不依赖动画成功；
+- 动画关闭和 `prefers-reduced-motion` 会移除所有装饰运动，但不会改变合法动作、AI 定时器或结算；
+- 牌面等级和花色继续由规则引擎的 `rankLabel` 与 `Card` 数据渲染，生成图片只用于无信息的牌背纹理；
+- `deckTheme` 是版本化本地设置，未知或损坏值在迁移时回退到 `river-current`。
+
 ## 持久化
 
 LocalStorage key 为 `riverlab-poker-v2`。数据包括：

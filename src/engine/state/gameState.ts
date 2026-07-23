@@ -27,6 +27,8 @@ import {
   type SeatRef,
 } from "./positions";
 
+const CHIP_EPSILON = 1e-9;
+
 export interface TablePlayerInput {
   id: string;
   name: string;
@@ -334,7 +336,9 @@ function nextActionable(
   fromSeat: number,
 ): string | null {
   const refs = players
-    .filter((player) => player.status === "active" && player.stack > 0)
+    .filter(
+      (player) => player.status === "active" && player.stack > CHIP_EPSILON,
+    )
     .map((player) => ({ id: player.id, seat: player.seat }));
   if (refs.length === 0) return null;
   return nextSeat(refs, fromSeat).id;
@@ -461,7 +465,7 @@ function advance(state: PokerGameState): PokerGameState {
   const remaining = contenders(state.players);
   if (remaining.length === 1) return finishByFolds(state);
   const actionable = remaining.filter(
-    (player) => player.status === "active" && player.stack > 0,
+    (player) => player.status === "active" && player.stack > CHIP_EPSILON,
   );
   if (actionable.length === 0) return autoRunout(state);
   if (actionable.length === 1 && amountToCall(state, actionable[0]) === 0)

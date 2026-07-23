@@ -124,4 +124,41 @@ describe("action validator", () => {
     expect(round.currentBet).toBe(15);
     expect(round.minRaiseIncrement).toBe(10);
   });
+
+  it("normalizes floating-point dust to zero after an all-in sized bet", () => {
+    const round = state({
+      currentBet: 0,
+      minRaiseIncrement: 0.1,
+      bigBlind: 0.1,
+      players: [
+        {
+          id: "a",
+          seat: 0,
+          stack: 0.1 + 0.2,
+          streetContribution: 0,
+          totalContribution: 0,
+          status: "active",
+          acted: false,
+          lastActedBet: 0,
+        },
+        {
+          id: "b",
+          seat: 1,
+          stack: 1,
+          streetContribution: 0,
+          totalContribution: 0,
+          status: "active",
+          acted: false,
+          lastActedBet: 0,
+        },
+      ],
+    });
+    const next = applyBettingAction(round, "a", {
+      type: "bet",
+      amount: 0.3,
+    });
+    expect(next.players[0].stack).toBe(0);
+    expect(next.players[0].status).toBe("all-in");
+    expect(next.actingPlayerId).toBe("b");
+  });
 });

@@ -27,8 +27,10 @@ npx playwright install chromium
 - 非法 check/call、最小加注、短码 all-in 和累计重新开放；
 - 多人与 heads-up 盲注、翻前/翻后顺序、大盲 option 和按钮轮转；
 - all-in 自动 runout、弃牌结算、摊牌和重复结算保护；
+- 小数筹码 all-in 后的浮点余量归零，0 BB 玩家不会重新进入行动队列；
 - AI 人格差异、seed 复现、隐藏牌隔离、已知牌排除和适应上限；
 - LocalStorage v1→v2、损坏 JSON 回退和 adapter round-trip。
+- 牌背设置的旧数据补全、未知主题回退和 adapter round-trip；
 - 120 组不同 seed 的六人桌连续状态迁移，逐动作验证 52 张牌唯一性、筹码守恒和无死锁；
 - 多人公共牌平局按实际人数分摊 equity，AI 人格在固定观察下保持可观察差异。
 
@@ -40,7 +42,7 @@ npx playwright install chromium
 2. 使用 call 和 raise/bet 尺度控件；
 3. 连续完成 6 手并覆盖 fold/call/raise，验证位置轮转、无死锁和弃牌 AI 不亮牌；
 4. 创建带 `10` 的指定河牌场景，验证完整位置列表、下注输入同步并进入摊牌；
-5. 修改设置、刷新验证持久化、导出牌局记录。
+5. 修改玩家名称与牌背主题、刷新验证持久化、导出牌局记录。
 
 `tests/e2e/responsive.spec.ts` 覆盖：
 
@@ -58,6 +60,7 @@ npx playwright install chromium
 - 390/393×844/852 iPhone：关键动作按钮位于移动操作区最前，轮到用户时自动显示下半牌桌与操作区；
 - macOS Safari 真实窗口：启用动画时牌面可见，数字框中的快捷键不破坏下注额；
 - macOS Safari 真实实玩：加注、跟注、66% pot 下注、键盘 check、fold、showdown、复盘和单手牌场景；
+- macOS Safari 3D 视觉实玩：洗牌层自动卸载、三套牌背切换、翻牌/河牌牌面、筹码投入和摊牌结算；
 - 键盘 Tab：主导航、输入和所有动作按钮有可见 focus；
 - reduced-motion / 动画关闭：发牌动画关闭；
 - 设置、单手牌、历史、复盘、统计空状态；
@@ -70,4 +73,4 @@ npx playwright install chromium
 
 vinext/Node 可能打印 `module.register()` deprecation、代理环境和 jsdom LocalStorage experimental warning。这些是当前工具链提示，不代表测试失败。验收以命令退出码和断言结果为准。
 
-当前自动化使用 Playwright Chromium 的设备尺寸回归；本机尚未安装 Playwright WebKit 浏览器二进制。macOS Safari 已通过直接页面操控完成实玩复核，iOS 安全区与动态视口也已做真实布局检查；Safari/WebKit 自动化矩阵仍属于后续验证项。
+当前自动化使用 Playwright Chromium 的设备尺寸回归；本机尚未安装 Playwright WebKit 浏览器二进制。macOS Safari 已通过直接页面操控完成现金桌、牌背切换、河牌场景和摊牌视觉复核，iPhone/iPad 精确尺寸也通过真实浏览器渲染检查；Safari/WebKit 自动化矩阵仍属于后续验证项。
