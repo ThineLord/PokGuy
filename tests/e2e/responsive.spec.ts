@@ -80,9 +80,11 @@ test("desktop keyboard shortcut can fold without stealing input keystrokes", asy
   await page.goto("/");
   await waitForHeroTurn(page);
   const amount = page.getByLabel("下注总额");
+  const amountBeforeShortcut = await amount.inputValue();
   await amount.focus();
   await page.keyboard.press("f");
   await expect(page.getByRole("button", { name: "下一手" })).toHaveCount(0);
+  await expect(amount).toHaveValue(amountBeforeShortcut);
   await amount.evaluate((element) => (element as HTMLInputElement).blur());
   await page.keyboard.press("f");
   await expect(

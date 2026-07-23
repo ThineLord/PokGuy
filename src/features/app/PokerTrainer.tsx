@@ -246,7 +246,7 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
       <div className="panel-heading">
         <div>
           <p className="eyebrow">逐街复盘</p>
-          <h2>{hand.id}</h2>
+          <h2>{new Date(hand.completedAt).toLocaleString("zh-CN")}</h2>
         </div>
         <span className={hand.heroProfitBb >= 0 ? "positive" : "negative"}>
           {hand.heroProfitBb >= 0 ? "+" : ""}
@@ -974,6 +974,7 @@ export function PokerTrainer() {
   }, [aiTags, data, game, persist]);
 
   const hero = game?.players.find((player) => player.id === HERO_ID);
+  const isScenarioHand = game?.handId.startsWith("scenario-") ?? false;
   const pot = game ? tablePot(game) : 0;
   const toCall = game && hero ? amountToCall(game, hero) : 0;
   const liveOpponentCount = game
@@ -1358,30 +1359,44 @@ export function PokerTrainer() {
           <div className="table-view">
             <section className="table-toolbar">
               <div>
-                <p className="eyebrow">标准现金桌训练</p>
+                <p className="eyebrow">
+                  {isScenarioHand ? "单手牌训练" : "标准现金桌训练"}
+                </p>
                 <h1>
-                  {data.settings.seatCount}-max ·{" "}
-                  {data.settings.startingStackBb} BB
+                  {game.players.length}-max ·{" "}
+                  {formatChips(
+                    (hero?.startingStack ?? data.settings.startingStackBb) /
+                      game.bigBlind,
+                  )}{" "}
+                  BB
                 </h1>
               </div>
               <div className="toolbar-actions">
-                <button onClick={() => startCashHand(data)}>重新开局</button>
-                <button
-                  onClick={() => {
-                    const stacks = Object.fromEntries(
-                      game.players.map((player) => [
-                        player.id,
-                        player.id === HERO_ID
-                          ? data.settings.startingStackBb *
-                            data.settings.bigBlind
-                          : player.stack,
-                      ]),
-                    );
-                    startCashHand(data, stacks, game.dealerSeat);
-                  }}
-                >
-                  重新买入
-                </button>
+                {isScenarioHand ? (
+                  <button onClick={() => setView("scenario")}>调整场景</button>
+                ) : (
+                  <>
+                    <button onClick={() => startCashHand(data)}>
+                      重新开局
+                    </button>
+                    <button
+                      onClick={() => {
+                        const stacks = Object.fromEntries(
+                          game.players.map((player) => [
+                            player.id,
+                            player.id === HERO_ID
+                              ? data.settings.startingStackBb *
+                                data.settings.bigBlind
+                              : player.stack,
+                          ]),
+                        );
+                        startCashHand(data, stacks, game.dealerSeat);
+                      }}
+                    >
+                      重新买入
+                    </button>
+                  </>
+                )}
               </div>
             </section>
             <PokerTable game={game} aiBusy={aiBusy} />
@@ -1509,8 +1524,13 @@ export function PokerTrainer() {
                       : "弃牌获胜"}
                   </strong>
                 </div>
-                <button className="primary-button" onClick={nextHand}>
-                  下一手
+                <button
+                  className="primary-button"
+                  onClick={
+                    isScenarioHand ? () => setView("scenario") : nextHand
+                  }
+                >
+                  {isScenarioHand ? "新场景" : "下一手"}
                 </button>
               </section>
             ) : (
@@ -1571,9 +1591,11 @@ export function PokerTrainer() {
                       max={maxRaiseTo}
                       step={0.01}
                       value={Math.min(maxRaiseTo, Math.max(0, betAmount))}
-                      onChange={(event) =>
-                        setBetAmount(Number(event.target.value))
-                      }
+                      onChange={(event) => {
+                        const nextAmount = event.currentTarget.valueAsNumber;
+                        if (Number.isFinite(nextAmount))
+                          setBetAmount(nextAmount);
+                      }}
                     />
                     <input
                       aria-label="下注总额"
@@ -1586,9 +1608,11 @@ export function PokerTrainer() {
                         game.actingPlayerId === HERO_ID &&
                         sizedActionValidation?.legal === false
                       }
-                      onChange={(event) =>
-                        setBetAmount(Number(event.target.value))
-                      }
+                      onChange={(event) => {
+                        const nextAmount = event.currentTarget.valueAsNumber;
+                        if (Number.isFinite(nextAmount))
+                          setBetAmount(nextAmount);
+                      }}
                     />
                   </div>
                   {game.actingPlayerId === HERO_ID &&

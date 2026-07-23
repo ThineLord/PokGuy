@@ -153,6 +153,11 @@ test("enter a deterministic river scenario and reach showdown", async ({
   await page.getByLabel("公共牌").fill("2C 7D 9S JC 3H");
   await page.getByLabel("位置").selectOption("BB");
   await page.getByRole("button", { name: "开始此训练" }).click();
+  await expect(page.getByText("单手牌训练", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "2-max · 100 BB" }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "调整场景" })).toBeVisible();
   await expect(page.getByText("RIVER", { exact: true })).toBeVisible();
   await expect(page.getByLabel("10 hearts")).toBeVisible();
   await expect(page.getByLabel("下注滑杆")).toHaveValue(
@@ -169,6 +174,10 @@ test("enter a deterministic river scenario and reach showdown", async ({
   if (!(await check.isDisabled())) await check.click();
   else await call.click();
   await expect(page.getByText("摊牌完成")).toBeVisible();
+  await page.getByRole("button", { name: "新场景" }).click();
+  await expect(
+    page.getByRole("heading", { name: "构建一个决策节点" }),
+  ).toBeVisible();
 });
 
 test("edit AI settings, persist after reload, and export hands", async ({
