@@ -6,8 +6,8 @@ RiverLab 是一个完全在浏览器本地运行的单机德州扑克训练应�
 
 - 2–6 人无上限德州扑克现金桌，默认 6-max、100BB、0.5/1BB；
 - 完整 fold、check、call、bet、raise、all-in 与合法尺度验证；
-- heads-up 特殊顺序、大盲 option、完整/不足完整加注、多人 all-in、主池和多个边池；
-- 最佳五张牌评估、公共牌成牌、A2345、全部标准牌型、多人平局和奇数筹码；
+- heads-up 特殊顺序、大盲 option、完整/不足完整加注、多人 all-in、主池、多个边池和无人跟注筹码退回；
+- 最佳五张牌评估、公共牌成牌、A2345、全部标准牌型、多人平局和奇数筹码，并在摊牌后逐人展示比较依据；
 - TAG、LAG、Rock、Calling Station、Recreational、Maniac、Grinder、Trapper 八种稳定 AI；
 - AI 个性编辑、实际习惯统计、受限用户适应和不读取隐藏牌的 Monte Carlo 胜率估算；
 - 稳定的同牌面胜率 seed、多人平局 equity 分摊，以及 120 手种子化规则压力验证；
