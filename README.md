@@ -10,13 +10,14 @@ RiverLab 是一个完全在浏览器本地运行的单机德州扑克训练应�
 - 最佳五张牌评估、公共牌成牌、A2345、全部标准牌型、多人平局和奇数筹码；
 - TAG、LAG、Rock、Calling Station、Recreational、Maniac、Grinder、Trapper 八种稳定 AI；
 - AI 个性编辑、实际习惯统计、受限用户适应和不读取隐藏牌的 Monte Carlo 胜率估算；
+- 稳定的同牌面胜率 seed、多人平局 equity 分摊，以及 120 手种子化规则压力验证；
 - 单手牌训练：指定或随机底牌、位置、有效筹码、对手数、公共牌与起始街；
 - 底池赔率、粗略胜率、outs、建议动作/尺度和危险牌面提示均可独立开关；
 - 最近 100 手牌局、逐步/自动复盘、AI 决策摘要、玩家笔记和训练评价；
 - 盈亏、BB/100、VPIP、PFR、3-bet、c-bet、摊牌及位置统计；
 - 设置与牌局 JSON 导入/导出，全部数据保存在版本化 LocalStorage；
 - 深色响应式桌面，针对 Mac、iPad 横/竖屏和 iPhone 竖屏优化，提供安全区、44px+ 触控目标、键盘 focus 与 reduced-motion 支持；
-- 移动端轮到用户时自动定位到操作区；Mac 可使用 `F/K/C/R/A` 快捷执行 Fold/Check/Call/Raise/All-in。
+- 移动端轮到用户时自动定位到操作区，并把关键动作按钮前置；Mac 可使用 `F/K/C/R/A` 快捷执行 Fold/Check/Call/Raise/All-in。
 
 ## 环境要求
 
