@@ -13,7 +13,7 @@ import type {
 } from "../betting/types";
 import { createDeck, shuffleDeck } from "../deck/deck";
 import { SeededRandom, systemRandom, type RandomSource } from "../deck/random";
-import { calculateSidePots, type SidePot } from "../pots/sidePots";
+import { calculatePotStructure, type SidePot } from "../pots/sidePots";
 import {
   awardUncontestedPot,
   resolveShowdown,
@@ -62,6 +62,7 @@ export interface HandOutcome {
   reason: "folds" | "showdown";
   payouts: Record<string, number>;
   pots: SidePot[];
+  uncalledReturns?: Record<string, number>;
   showdown?: ShowdownResult;
 }
 
@@ -418,10 +419,12 @@ function finishByFolds(state: PokerGameState): PokerGameState {
     amount: player.totalContribution,
     folded: player.status === "folded",
   }));
+  const { pots, uncalledReturns } = calculatePotStructure(contributions);
   return settle(state, {
     reason: "folds",
     payouts: awardUncontestedPot(winner.id, contributions),
-    pots: calculateSidePots(contributions),
+    pots,
+    uncalledReturns,
   });
 }
 
@@ -443,6 +446,7 @@ function finishShowdown(state: PokerGameState): PokerGameState {
     reason: "showdown",
     payouts: showdown.payouts,
     pots: showdown.awards.map((award) => award.pot),
+    uncalledReturns: showdown.uncalledReturns,
     showdown,
   });
 }

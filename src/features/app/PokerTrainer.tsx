@@ -1,7 +1,14 @@
 "use client";
 /* eslint-disable react-hooks/set-state-in-effect, react-hooks/preserve-manual-memoization */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { assessHand } from "../../ai/assessment/assessHand";
 import { decideAIAction } from "../../ai/decision/decide";
 import { getPersonality } from "../../ai/personalities/presets";
@@ -13,6 +20,7 @@ import {
 } from "../../engine/betting/actionValidator";
 import type { PokerAction, PokerActionType } from "../../engine/betting/types";
 import { parseCards, rankLabel, type Card } from "../../engine/cards/cards";
+import type { HandEvaluation } from "../../engine/evaluator/evaluator";
 import {
   act,
   startHand,
@@ -35,6 +43,7 @@ import type {
   StoredHand,
   TrainingRecord,
 } from "../../storage/types";
+import { LanguageProvider, useI18n } from "./i18n";
 
 type View = "table" | "scenario" | "history" | "stats" | "settings";
 const HERO_ID = "hero";
@@ -54,9 +63,13 @@ function CardView({
   hidden?: boolean;
   className?: string;
 }) {
+  const { suitLabel, t } = useI18n();
   if (hidden)
     return (
-      <span className={`playing-card card-back ${className}`} aria-label="牌背">
+      <span
+        className={`playing-card card-back ${className}`}
+        aria-label={t("牌背")}
+      >
         <span className="card-back-pattern" aria-hidden="true" />
       </span>
     );
@@ -64,7 +77,7 @@ function CardView({
     return (
       <span
         className={`playing-card card-placeholder ${className}`}
-        aria-label="尚未发出的公共牌"
+        aria-label={t("尚未发出的公共牌")}
       />
     );
   const red = card.suit === "hearts" || card.suit === "diamonds";
@@ -73,7 +86,7 @@ function CardView({
   return (
     <span
       className={`playing-card card-face ${red ? "red-card" : ""} ${className}`}
-      aria-label={`${label} ${card.suit}`}
+      aria-label={`${label} ${suitLabel(card.suit)}`}
     >
       <span className="card-corner card-corner-top" aria-hidden="true">
         <strong>{label}</strong>
@@ -92,6 +105,10 @@ function CardView({
 
 function formatChips(value: number) {
   return Number(value.toFixed(2)).toString();
+}
+
+function roundChips(value: number) {
+  return Number(value.toFixed(2));
 }
 
 function buildPlayers(
@@ -139,10 +156,67 @@ function exportJson(filename: string, value: unknown) {
 }
 
 function tablePot(game: PokerGameState) {
+  if (game.settled && game.outcome) {
+    return game.outcome.pots
+      .filter((pot) => pot.contributors.length > 1)
+      .reduce((sum, pot) => sum + pot.amount, 0);
+  }
   return game.players.reduce(
     (sum, player) => sum + player.totalContribution,
     0,
   );
+}
+
+function handEvaluationDetail(
+  evaluation: HandEvaluation,
+  locale: "zh-CN" | "en",
+): string {
+  const ranks = evaluation.tiebreakers.map((rank) =>
+    rankLabel(rank as Card["rank"]),
+  );
+  const kickers =
+    locale === "zh-CN"
+      ? `踢脚 ${ranks.slice(1).join(" · ")}`
+      : `kickers ${ranks.slice(1).join(" · ")}`;
+
+  switch (evaluation.category) {
+    case "high-card":
+      return locale === "zh-CN"
+        ? `${ranks[0]} 高牌 · ${kickers}`
+        : `${ranks[0]}-high · ${kickers}`;
+    case "pair":
+      return locale === "zh-CN"
+        ? `${ranks[0]} 对 · ${kickers}`
+        : `Pair of ${ranks[0]} · ${kickers}`;
+    case "two-pair":
+      return locale === "zh-CN"
+        ? `${ranks[0]} 与 ${ranks[1]} 两对 · 踢脚 ${ranks[2]}`
+        : `${ranks[0]} and ${ranks[1]} · kicker ${ranks[2]}`;
+    case "three-of-a-kind":
+      return locale === "zh-CN"
+        ? `${ranks[0]} 三条 · ${kickers}`
+        : `Trip ${ranks[0]} · ${kickers}`;
+    case "straight":
+      return locale === "zh-CN"
+        ? `${ranks[0]} 高顺子`
+        : `${ranks[0]}-high straight`;
+    case "flush":
+      return locale === "zh-CN"
+        ? `${ranks.join(" · ")} 同花`
+        : `${ranks.join(" · ")} flush`;
+    case "full-house":
+      return locale === "zh-CN"
+        ? `${ranks[0]} 带 ${ranks[1]} 葫芦`
+        : `${ranks[0]} full of ${ranks[1]}`;
+    case "four-of-a-kind":
+      return locale === "zh-CN"
+        ? `${ranks[0]} 四条 · 踢脚 ${ranks[1]}`
+        : `Quad ${ranks[0]} · kicker ${ranks[1]}`;
+    case "straight-flush":
+      return locale === "zh-CN"
+        ? `${ranks[0]} 高同花顺`
+        : `${ranks[0]}-high straight flush`;
+  }
 }
 
 function positionScore(positionLabel: string): number {
@@ -183,9 +257,29 @@ function PokerTable({
   game: PokerGameState;
   aiBusy: boolean;
 }) {
+  const { actionLabel, aiName, locale, statusLabel, streetLabel, t } =
+    useI18n();
+  const displayName = (player: PokerGameState["players"][number]) =>
+    player.kind === "ai"
+      ? aiName(player.personalityId, player.name)
+      : player.name;
   const reveal = game.settled && game.outcome?.reason === "showdown";
   const lastRecord = game.actions.at(-1);
   const lastActorId = lastRecord?.playerId;
+  const dealSeats = [...game.players]
+    .filter((player) => player.status !== "busted")
+    .sort((left, right) => left.seat - right.seat);
+  const firstDealIndex = dealSeats.findIndex(
+    (player) => player.seat > game.dealerSeat,
+  );
+  const dealStart = firstDealIndex >= 0 ? firstDealIndex : 0;
+  const clockwiseDealOrder = [
+    ...dealSeats.slice(dealStart),
+    ...dealSeats.slice(0, dealStart),
+  ];
+  const dealOrderByPlayer = new Map(
+    clockwiseDealOrder.map((player, order) => [player.id, order]),
+  );
   const sidePotCount =
     game.outcome?.pots
       .slice(1)
@@ -202,21 +296,48 @@ function PokerTable({
         .filter(([, amount]) => amount > 0)
         .map(([id]) => id);
   const winnerNames = winnerIds
-    .map((id) => game.players.find((player) => player.id === id)?.name)
+    .map((id) => {
+      const player = game.players.find((candidate) => candidate.id === id);
+      return player ? displayName(player) : undefined;
+    })
     .filter(Boolean)
     .join(" / ");
   const [showShuffle, setShowShuffle] = useState(true);
   useEffect(() => {
     setShowShuffle(true);
-    const timer = window.setTimeout(() => setShowShuffle(false), 1500);
+    const timer = window.setTimeout(() => setShowShuffle(false), 720);
     return () => window.clearTimeout(timer);
   }, [game.handId]);
   return (
     <div
       className={`poker-table street-${game.street} ${game.settled ? "is-settled" : ""}`}
-      aria-label="德州扑克牌桌"
+      aria-label={t("德州扑克牌桌")}
     >
       <div className="table-rail" aria-hidden="true" />
+      <div
+        className="table-flow-ring"
+        aria-label={`${t("顺时针行动")}。${t("从庄家左侧开始发牌")}`}
+      >
+        <i className="flow-arrow flow-arrow-top" aria-hidden="true">
+          ›
+        </i>
+        <i className="flow-arrow flow-arrow-right" aria-hidden="true">
+          ⌄
+        </i>
+        <i className="flow-arrow flow-arrow-bottom" aria-hidden="true">
+          ‹
+        </i>
+        <i className="flow-arrow flow-arrow-left" aria-hidden="true">
+          ⌃
+        </i>
+      </div>
+      <div className="table-flow-legend">
+        <span aria-hidden="true">↻</span>
+        <div>
+          <strong>{t("顺时针行动")}</strong>
+          <small>{t("从庄家左侧开始发牌")}</small>
+        </div>
+      </div>
       {showShuffle && (
         <div
           className="shuffle-theater"
@@ -227,7 +348,9 @@ function PokerTable({
           <span />
           <span />
           <span />
-          <i>洗牌</i>
+          <i>
+            {t("洗牌")} · {t("准备发牌")}
+          </i>
         </div>
       )}
       <div className="table-center">
@@ -238,11 +361,20 @@ function PokerTable({
             <i />
           </span>
           <span>
-            底池 <strong>{formatChips(tablePot(game))} BB</strong>
+            {t("底池")} <strong>{formatChips(tablePot(game))} BB</strong>
           </span>
-          {sidePotCount > 0 && <small>{sidePotCount} 个边池</small>}
+          {sidePotCount > 0 && (
+            <small>
+              {sidePotCount}{" "}
+              {locale === "en"
+                ? sidePotCount === 1
+                  ? "side pot"
+                  : t("个边池")
+                : t("个边池")}
+            </small>
+          )}
         </div>
-        <div className="community-cards" aria-label="公共牌">
+        <div className="community-cards" aria-label={t("公共牌")}>
           {Array.from({ length: 5 }, (_, index) => {
             const card = game.board[index];
             return (
@@ -256,62 +388,116 @@ function PokerTable({
             );
           })}
         </div>
-        <p className="street-label">
-          {game.street === "complete" ? "本手结束" : game.street.toUpperCase()}
-        </p>
+        <p className="street-label">{streetLabel(game.street).toUpperCase()}</p>
         {game.settled && game.outcome && (
           <div className="pot-award" key={`award-${game.handId}`} role="status">
             <span aria-hidden="true">● ● ●</span>
             {winnerNames ? `${winnerNames} · ` : ""}
-            {game.outcome.reason === "showdown" ? "摊牌结算" : "弃牌获胜"}
+            {game.outcome.reason === "showdown" ? t("摊牌结算") : t("弃牌获胜")}
           </div>
         )}
       </div>
       {game.players.map((player, index) => {
         const active = game.actingPlayerId === player.id;
-        const seatClass = `seat seat-${index}-${game.players.length}`;
+        const visualIndex =
+          (game.players.length - player.seat) % game.players.length;
+        const seatClass = `seat seat-${visualIndex}-${game.players.length}`;
         const isLastActor = lastActorId === player.id;
+        const lastActionType = isLastActor
+          ? lastRecord?.action.type
+          : undefined;
+        const actionClass = lastActionType ? `action-${lastActionType}` : "";
+        const isSmallBlind = player.positionLabel.includes("SB");
+        const isBigBlind = player.positionLabel === "BB";
+        const blindClass = isSmallBlind
+          ? "small-blind"
+          : isBigBlind
+            ? "big-blind"
+            : "";
+        const playerName = displayName(player);
         return (
           <article
             key={player.id}
-            className={`${seatClass} ${active ? "is-acting" : ""} ${isLastActor ? "is-last-actor" : ""} ${player.status === "folded" ? "is-folded" : ""}`}
-            aria-label={`${player.name}，筹码 ${formatChips(player.stack)}`}
+            className={`${seatClass} ${active ? "is-acting" : ""} ${isLastActor ? "is-last-actor" : ""} ${actionClass} ${player.status === "folded" ? "is-folded" : ""}`}
+            aria-label={
+              locale === "zh-CN"
+                ? `${playerName}，${t("筹码")} ${formatChips(player.stack)}`
+                : `${playerName}, ${t("筹码")} ${formatChips(player.stack)}`
+            }
+            data-acting-label={t("当前行动")}
+            data-deal-order={dealOrderByPlayer.get(player.id)}
+            data-last-action={lastActionType}
+            data-seat={player.seat}
           >
             {player.positionLabel.startsWith("BTN") && (
-              <span className="dealer-button" aria-label="庄家按钮">
+              <span className="dealer-button" aria-label={t("庄家按钮")}>
                 D
               </span>
             )}
             <div className="seat-topline">
-              <strong>{player.name}</strong>
-              <span>{player.positionLabel}</span>
+              <strong>{playerName}</strong>
+              <span
+                className={`seat-position ${blindClass}`}
+                aria-label={
+                  isSmallBlind
+                    ? `${t("小盲")}，${formatChips(game.smallBlind)} BB`
+                    : isBigBlind
+                      ? `${t("大盲")}，${formatChips(game.bigBlind)} BB`
+                      : player.positionLabel
+                }
+              >
+                {isSmallBlind ? (
+                  <>
+                    <b>{t("小盲")}</b>
+                    <small>SB · {formatChips(game.smallBlind)}</small>
+                  </>
+                ) : isBigBlind ? (
+                  <>
+                    <b>{t("大盲")}</b>
+                    <small>BB · {formatChips(game.bigBlind)}</small>
+                  </>
+                ) : (
+                  player.positionLabel
+                )}
+              </span>
             </div>
             <div className="hole-cards">
-              {player.holeCards.map((card, cardIndex) => (
-                <span
-                  className="dealt-card"
-                  key={`${game.handId}-${cardIndex}`}
-                  style={{
-                    animationDelay: `${110 + (cardIndex * game.players.length + index) * 42}ms`,
-                  }}
-                >
-                  <CardView
-                    card={card}
-                    hidden={
-                      player.kind === "ai" &&
-                      !(reveal && player.status !== "folded")
+              {player.holeCards.map((card, cardIndex) => {
+                const dealOrder = dealOrderByPlayer.get(player.id) ?? index;
+                const dealStep = cardIndex * dealSeats.length + dealOrder;
+                return (
+                  <span
+                    className="dealt-card"
+                    data-deal-step={dealStep}
+                    key={`${game.handId}-${player.id}-${cardIndex}`}
+                    style={
+                      {
+                        animationDelay: `${620 + dealStep * 105}ms`,
+                        "--deal-step": dealStep,
+                      } as CSSProperties
                     }
-                  />
-                </span>
-              ))}
+                  >
+                    <CardView
+                      card={card}
+                      hidden={
+                        player.kind === "ai" &&
+                        !(reveal && player.status !== "folded")
+                      }
+                    />
+                  </span>
+                );
+              })}
             </div>
             <div className="seat-meta">
               <span>{formatChips(player.stack)} BB</span>
               <span>
                 {player.status === "all-in"
-                  ? "ALL-IN"
-                  : (player.lastAction ??
-                    (active && aiBusy ? "思考中…" : player.status))}
+                  ? actionLabel("all-in").toUpperCase()
+                  : player.lastAction
+                    ? actionLabel(player.lastAction)
+                    : active && aiBusy
+                      ? t("思考中")
+                      : statusLabel(player.status)}
               </span>
             </div>
             {player.streetContribution > 0 && (
@@ -324,16 +510,28 @@ function PokerTable({
                   <i />
                   <i />
                 </span>
-                <span>投入 {formatChips(player.streetContribution)}</span>
+                <span>
+                  {t("投入")} {formatChips(player.streetContribution)}
+                </span>
               </span>
             )}
             {isLastActor && player.lastAction && (
               <span
-                className="action-callout"
+                className={`action-callout action-callout-${lastActionType}`}
                 key={`${game.actionSequence}-${player.id}`}
                 aria-hidden="true"
               >
-                {player.lastAction}
+                {actionLabel(player.lastAction)}
+              </span>
+            )}
+            {isLastActor && lastActionType && (
+              <span
+                className={`action-effect action-effect-${lastActionType}`}
+                key={`effect-${game.actionSequence}-${player.id}`}
+                aria-hidden="true"
+              >
+                <i />
+                <i />
               </span>
             )}
           </article>
@@ -343,7 +541,131 @@ function PokerTable({
   );
 }
 
+function ShowdownBreakdown({ game }: { game: PokerGameState }) {
+  const { aiName, categoryLabel, locale, t } = useI18n();
+  const showdown = game.outcome?.showdown;
+  if (!showdown) return null;
+
+  const playerName = (id: string) => {
+    const player = game.players.find((candidate) => candidate.id === id);
+    if (!player) return id;
+    return player.kind === "ai"
+      ? aiName(player.personalityId, player.name)
+      : player.name;
+  };
+  const winnerIds = new Set(
+    showdown.awards.flatMap((award) => award.winnerIds),
+  );
+  const winnings = Object.fromEntries(
+    Object.keys(showdown.evaluations).map((id) => [
+      id,
+      showdown.awards.reduce((sum, award) => sum + (award.shares[id] ?? 0), 0),
+    ]),
+  );
+  const evaluatedPlayers = game.players
+    .filter((player) => showdown.evaluations[player.id])
+    .sort((left, right) => {
+      const winnerDifference =
+        Number(winnerIds.has(right.id)) - Number(winnerIds.has(left.id));
+      return winnerDifference || left.seat - right.seat;
+    });
+  const uncalledReturns = Object.entries(
+    showdown.uncalledReturns ?? game.outcome?.uncalledReturns ?? {},
+  ).filter(([, amount]) => amount > 0);
+
+  return (
+    <section className="showdown-breakdown" aria-label={t("正式牌型比较")}>
+      <div className="showdown-breakdown-heading">
+        <div>
+          <p className="eyebrow">{t("正式牌型比较")}</p>
+          <strong>{t("只比较最佳五张牌")}</strong>
+        </div>
+        <small>{t("同牌型按比较项逐级决定胜负")}</small>
+      </div>
+      <div className="showdown-player-grid">
+        {evaluatedPlayers.map((player) => {
+          const evaluation = showdown.evaluations[player.id];
+          const won = winnerIds.has(player.id);
+          return (
+            <article
+              className={`showdown-player ${won ? "is-winner" : ""}`}
+              key={player.id}
+            >
+              <div className="showdown-player-title">
+                <span>
+                  {won ? t("获胜") : t("摊牌")}
+                  {won && winnings[player.id] > 0
+                    ? ` +${formatChips(winnings[player.id])} BB`
+                    : ""}
+                </span>
+                <strong>{playerName(player.id)}</strong>
+              </div>
+              <div className="showdown-card-line">
+                <div aria-label={t("底牌")}>
+                  {player.holeCards.map((card) => (
+                    <CardView
+                      card={card}
+                      className="showdown-mini-card"
+                      key={`${card.rank}-${card.suit}`}
+                    />
+                  ))}
+                </div>
+                <i aria-hidden="true">→</i>
+                <div aria-label={t("最佳五张")}>
+                  {evaluation.cards.map((card) => (
+                    <CardView
+                      card={card}
+                      className="showdown-mini-card"
+                      key={`${card.rank}-${card.suit}`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="showdown-hand-label">
+                <strong>{categoryLabel(evaluation.category)}</strong>
+                <span>{handEvaluationDetail(evaluation, locale)}</span>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+      <div className="showdown-pot-ledger">
+        {showdown.awards.map((award, index) => (
+          <span key={award.pot.id}>
+            <small>{index === 0 ? t("主池") : `${t("边池")} ${index}`}</small>
+            <strong>{formatChips(award.pot.amount)} BB</strong>
+            <i aria-hidden="true">→</i>
+            {award.winnerIds.map((id) => (
+              <b key={id}>
+                {playerName(id)} +{formatChips(award.shares[id])}
+              </b>
+            ))}
+          </span>
+        ))}
+        {uncalledReturns.map(([id, amount]) => (
+          <span className="uncalled-return" key={id}>
+            <small>{t("无人跟注退回")}</small>
+            <strong>{formatChips(amount)} BB</strong>
+            <i aria-hidden="true">→</i>
+            <b>{playerName(id)}</b>
+          </span>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function ReplayPanel({ hand }: { hand: StoredHand }) {
+  const {
+    actionLabel,
+    aiName,
+    categoryLabel,
+    decisionTagLabel,
+    formatDate,
+    locale,
+    streetLabel,
+    t,
+  } = useI18n();
   const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(false);
   const actions = hand.game.actions;
@@ -367,8 +689,8 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
     <section className="panel replay-panel">
       <div className="panel-heading">
         <div>
-          <p className="eyebrow">逐街复盘</p>
-          <h2>{new Date(hand.completedAt).toLocaleString("zh-CN")}</h2>
+          <p className="eyebrow">{t("逐街复盘")}</p>
+          <h2>{formatDate(hand.completedAt)}</h2>
         </div>
         <span className={hand.heroProfitBb >= 0 ? "positive" : "negative"}>
           {hand.heroProfitBb >= 0 ? "+" : ""}
@@ -384,35 +706,42 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
         {current ? (
           <>
             <strong>
-              {
-                hand.game.players.find(
+              {(() => {
+                const player = hand.game.players.find(
                   (player) => player.id === current.playerId,
-                )?.name
-              }
+                );
+                return player?.kind === "ai"
+                  ? aiName(player.personalityId, player.name)
+                  : player?.name;
+              })()}
             </strong>{" "}
-            · {current.street} · {current.action.type}
-            {current.action.amount ? ` 到 ${current.action.amount}` : ""}
+            · {streetLabel(current.street)} · {actionLabel(current.action.type)}
+            {current.action.amount
+              ? ` ${t("到")} ${current.action.amount}`
+              : ""}
             <small>
-              底池 {formatChips(current.potBefore)} →{" "}
+              {t("底池")} {formatChips(current.potBefore)} →{" "}
               {formatChips(current.potAfter)}
             </small>
           </>
         ) : (
           <>
-            <strong>起始状态</strong>
+            <strong>{t("起始状态")}</strong>
             <small>
-              盲注 {hand.game.smallBlind}/{hand.game.bigBlind}
+              {t("盲注")} {hand.game.smallBlind}/{hand.game.bigBlind}
             </small>
           </>
         )}
       </div>
       <div className="replay-controls">
-        <button onClick={() => setStep(Math.max(0, step - 1))}>上一步</button>
+        <button onClick={() => setStep(Math.max(0, step - 1))}>
+          {t("上一步")}
+        </button>
         <button onClick={() => setPlaying((value) => !value)}>
-          {playing ? "暂停" : "自动播放"}
+          {playing ? t("暂停") : t("自动播放")}
         </button>
         <button onClick={() => setStep(Math.min(actions.length, step + 1))}>
-          下一步
+          {t("下一步")}
         </button>
         <span>
           {step}/{actions.length}
@@ -420,11 +749,21 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
       </div>
       {hand.game.outcome?.showdown && (
         <div className="showdown-summary">
-          <strong>摊牌</strong>
+          <strong>{t("摊牌")}</strong>
           {Object.keys(hand.game.outcome.showdown.evaluations).map((id) => (
             <span key={id}>
-              {hand.game.players.find((player) => player.id === id)?.name}：
-              {hand.game.outcome?.showdown?.evaluations[id].category}
+              {(() => {
+                const player = hand.game.players.find(
+                  (candidate) => candidate.id === id,
+                );
+                return player?.kind === "ai"
+                  ? aiName(player.personalityId, player.name)
+                  : player?.name;
+              })()}
+              {locale === "zh-CN" ? "：" : ": "}
+              {categoryLabel(
+                hand.game.outcome?.showdown?.evaluations[id].category ?? "",
+              )}
             </span>
           ))}
         </div>
@@ -434,7 +773,7 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
           .flat()
           .slice(0, 12)
           .map((tag, index) => (
-            <span key={`${tag}-${index}`}>{tag}</span>
+            <span key={`${tag}-${index}`}>{decisionTagLabel(tag)}</span>
           ))}
       </div>
     </section>
@@ -448,6 +787,7 @@ function HistoryView({
   data: PersistedData;
   onNote: (id: string, note: string) => void;
 }) {
+  const { formatDate, t } = useI18n();
   const [selected, setSelected] = useState(data.recentHands[0]?.id ?? "");
   const hand =
     data.recentHands.find((candidate) => candidate.id === selected) ??
@@ -457,13 +797,13 @@ function HistoryView({
       <section className="panel history-list">
         <div className="panel-heading">
           <div>
-            <p className="eyebrow">最近牌局</p>
+            <p className="eyebrow">{t("最近牌局")}</p>
             <h2>{data.recentHands.length} / 100</h2>
           </div>
         </div>
         {data.recentHands.length === 0 ? (
           <p className="empty-state">
-            完成一手牌后，行动和底池变化会保存在这里。
+            {t("完成一手牌后，行动和底池变化会保存在这里。")}
           </p>
         ) : (
           data.recentHands.map((item) => (
@@ -474,7 +814,7 @@ function HistoryView({
               key={item.id}
               onClick={() => setSelected(item.id)}
             >
-              <span>{new Date(item.completedAt).toLocaleString("zh-CN")}</span>
+              <span>{formatDate(item.completedAt)}</span>
               <strong
                 className={item.heroProfitBb >= 0 ? "positive" : "negative"}
               >
@@ -489,11 +829,11 @@ function HistoryView({
         <div>
           <ReplayPanel hand={hand} />
           <label className="note-field">
-            玩家笔记
+            {t("玩家笔记")}
             <textarea
               value={data.playerNotes[hand.id] ?? ""}
               onChange={(event) => onNote(hand.id, event.target.value)}
-              placeholder="记录对手习惯、自己的思路或下次要复查的节点…"
+              placeholder={t("记录对手习惯、自己的思路或下次要复查的节点…")}
             />
           </label>
         </div>
@@ -503,13 +843,14 @@ function HistoryView({
 }
 
 function StatsView({ data }: { data: PersistedData }) {
+  const { t } = useI18n();
   const stats = data.stats;
   const rate = (value: number, total: number) =>
     total ? `${((value / total) * 100).toFixed(1)}%` : "—";
   const items = [
-    ["总手数", stats.hands],
+    [t("总手数"), stats.hands],
     [
-      "盈亏",
+      t("盈亏"),
       `${stats.profitBb >= 0 ? "+" : ""}${formatChips(stats.profitBb)} BB`,
     ],
     [
@@ -519,19 +860,19 @@ function StatsView({ data }: { data: PersistedData }) {
     ["VPIP", rate(stats.vpipHands, stats.vpipOpportunities)],
     ["PFR", rate(stats.pfrHands, stats.pfrOpportunities)],
     ["3-bet", rate(stats.threeBets, stats.threeBetOpportunities)],
-    ["翻牌持续下注", rate(stats.cbets, stats.cbetOpportunities)],
-    ["到摊牌率", rate(stats.showdowns, stats.hands)],
-    ["摊牌胜率", rate(stats.showdownWins, stats.showdowns)],
+    [t("翻牌持续下注"), rate(stats.cbets, stats.cbetOpportunities)],
+    [t("到摊牌率"), rate(stats.showdowns, stats.hands)],
+    [t("摊牌胜率"), rate(stats.showdownWins, stats.showdowns)],
   ];
   return (
     <div className="stack">
       <section className="panel">
         <div className="panel-heading">
           <div>
-            <p className="eyebrow">长期统计</p>
-            <h2>训练概览</h2>
+            <p className="eyebrow">{t("长期统计")}</p>
+            <h2>{t("训练概览")}</h2>
           </div>
-          <span className="sample-warning">少量样本统计不稳定</span>
+          <span className="sample-warning">{t("少量样本统计不稳定")}</span>
         </div>
         <div className="stats-grid">
           {items.map(([label, value]) => (
@@ -545,15 +886,15 @@ function StatsView({ data }: { data: PersistedData }) {
       <section className="panel">
         <div className="panel-heading">
           <div>
-            <p className="eyebrow">位置表现</p>
-            <h2>按位置拆分</h2>
+            <p className="eyebrow">{t("位置表现")}</p>
+            <h2>{t("按位置拆分")}</h2>
           </div>
         </div>
         <div className="position-table">
           <div className="position-row header">
-            <span>位置</span>
-            <span>手数</span>
-            <span>盈亏</span>
+            <span>{t("位置")}</span>
+            <span>{t("手数")}</span>
+            <span>{t("盈亏")}</span>
             <span>VPIP</span>
             <span>PFR</span>
           </div>
@@ -583,6 +924,7 @@ function SettingsView({
   updateProfile: (id: string, patch: Partial<PokerPersonality>) => void;
   replaceData: (data: PersistedData) => void;
 }) {
+  const { aiDescription, aiName, profileLabel, t } = useI18n();
   const [editingId, setEditingId] = useState(
     data.settings.selectedAiIds[0] ?? "tag",
   );
@@ -594,15 +936,15 @@ function SettingsView({
   const numberSetting = (key: keyof AppSettings, value: string) =>
     updateSettings({ [key]: Number(value) } as Partial<AppSettings>);
   const toggles: [keyof AppSettings, string][] = [
-    ["animations", "短动画"],
-    ["autoAi", "自动 AI 行动"],
-    ["showEquity", "显示粗略胜率"],
-    ["showPotOdds", "显示底池赔率"],
-    ["showOuts", "显示 outs"],
-    ["showRecommendedAction", "推荐动作"],
-    ["showRecommendedSizing", "推荐尺度"],
-    ["showBoardWarnings", "危险牌面提示"],
-    ["sound", "声音"],
+    ["animations", t("短动画")],
+    ["autoAi", t("自动 AI 行动")],
+    ["showEquity", t("显示粗略胜率")],
+    ["showPotOdds", t("显示底池赔率")],
+    ["showOuts", t("显示 outs")],
+    ["showRecommendedAction", t("推荐动作")],
+    ["showRecommendedSizing", t("推荐尺度")],
+    ["showBoardWarnings", t("危险牌面提示")],
+    ["sound", t("声音")],
   ];
   const profileKeys = [
     "vpip",
@@ -625,18 +967,18 @@ function SettingsView({
   }[] = [
     {
       id: "river-current",
-      name: "深海流纹",
-      description: "蓝绿雕版 · 默认",
+      name: t("深海流纹"),
+      description: t("蓝绿雕版 · 默认"),
     },
     {
       id: "burgundy-weave",
-      name: "酒红编织",
-      description: "经典亚麻纹理",
+      name: t("酒红编织"),
+      description: t("经典亚麻纹理"),
     },
     {
       id: "graphite",
-      name: "石墨构造",
-      description: "现代碳纤几何",
+      name: t("石墨构造"),
+      description: t("现代碳纤几何"),
     },
   ];
 
@@ -645,13 +987,13 @@ function SettingsView({
       <section className="panel settings-section">
         <div className="panel-heading">
           <div>
-            <p className="eyebrow">牌桌</p>
-            <h2>基础设置</h2>
+            <p className="eyebrow">{t("牌桌")}</p>
+            <h2>{t("基础设置")}</h2>
           </div>
         </div>
         <div className="form-grid">
           <label>
-            玩家名称
+            {t("玩家名称")}
             <input
               value={data.settings.playerName}
               onChange={(event) =>
@@ -660,7 +1002,7 @@ function SettingsView({
             />
           </label>
           <label>
-            桌面人数
+            {t("桌面人数")}
             <select
               value={data.settings.seatCount}
               onChange={(event) =>
@@ -673,7 +1015,7 @@ function SettingsView({
             </select>
           </label>
           <label>
-            初始筹码（BB）
+            {t("初始筹码（BB）")}
             <input
               type="number"
               min="20"
@@ -685,7 +1027,7 @@ function SettingsView({
             />
           </label>
           <label>
-            小盲
+            {t("小盲")}
             <input
               type="number"
               min="0.01"
@@ -697,7 +1039,7 @@ function SettingsView({
             />
           </label>
           <label>
-            大盲
+            {t("大盲")}
             <input
               type="number"
               min="0.02"
@@ -709,7 +1051,7 @@ function SettingsView({
             />
           </label>
           <label>
-            AI 思考延迟（ms）
+            {t("AI 思考延迟（ms）")}
             <input
               type="number"
               min="0"
@@ -720,9 +1062,12 @@ function SettingsView({
                 numberSetting("aiDelayMs", event.target.value)
               }
             />
+            <small className="form-helper">
+              {t("开启动画时，机器人会至少留出约一秒观察时间。")}
+            </small>
           </label>
           <label>
-            动画速度
+            {t("动画速度")}
             <select
               value={data.settings.animationSpeed}
               onChange={(event) =>
@@ -732,13 +1077,13 @@ function SettingsView({
                 })
               }
             >
-              <option value="fast">快速</option>
-              <option value="normal">标准</option>
-              <option value="slow">舒缓</option>
+              <option value="fast">{t("快速")}</option>
+              <option value="normal">{t("标准")}</option>
+              <option value="slow">{t("舒缓")}</option>
             </select>
           </label>
           <label>
-            训练提示强度
+            {t("训练提示强度")}
             <select
               value={data.settings.hintStrength}
               onChange={(event) =>
@@ -748,9 +1093,9 @@ function SettingsView({
                 })
               }
             >
-              <option value="off">关闭</option>
-              <option value="light">轻提示</option>
-              <option value="full">完整</option>
+              <option value="off">{t("关闭")}</option>
+              <option value="light">{t("轻提示")}</option>
+              <option value="full">{t("完整")}</option>
             </select>
           </label>
         </div>
@@ -772,10 +1117,14 @@ function SettingsView({
         </div>
         <div className="deck-theme-setting">
           <div>
-            <strong>牌背收藏</strong>
-            <small>仅改变视觉，不影响发牌与概率</small>
+            <strong>{t("牌背收藏")}</strong>
+            <small>{t("仅改变视觉，不影响发牌与概率")}</small>
           </div>
-          <div className="deck-theme-grid" role="group" aria-label="选择牌背">
+          <div
+            className="deck-theme-grid"
+            role="group"
+            aria-label={t("选择牌背")}
+          >
             {deckThemes.map((theme) => (
               <button
                 type="button"
@@ -802,8 +1151,8 @@ function SettingsView({
       <section className="panel settings-section">
         <div className="panel-heading">
           <div>
-            <p className="eyebrow">对手池</p>
-            <h2>AI 个性</h2>
+            <p className="eyebrow">{t("对手池")}</p>
+            <h2>{t("AI 个性")}</h2>
           </div>
         </div>
         <div className="ai-picker">
@@ -815,9 +1164,9 @@ function SettingsView({
                 className={`${editingId === item.id ? "editing" : ""} ${selected ? "selected" : ""}`}
                 onClick={() => setEditingId(item.id)}
               >
-                <strong>{item.name}</strong>
-                <span>{item.description}</span>
-                <small>{selected ? "已上桌" : "未选择"}</small>
+                <strong>{aiName(item.id, item.name)}</strong>
+                <span>{aiDescription(item.id, item.description)}</span>
+                <small>{selected ? t("已上桌") : t("未选择")}</small>
               </button>
             );
           })}
@@ -826,11 +1175,12 @@ function SettingsView({
           <div className="profile-editor">
             <div className="profile-editor-heading">
               <div>
-                <h3>{profile.name}</h3>
+                <h3>{aiName(profile.id, profile.name)}</h3>
                 {habit && (
                   <small>
-                    实际 {habit.hands} 手 · VPIP {(habit.vpip * 100).toFixed(0)}
-                    % · PFR {(habit.pfr * 100).toFixed(0)}% · AF{" "}
+                    {t("实际")} {habit.hands} {t("手")} · VPIP{" "}
+                    {(habit.vpip * 100).toFixed(0)}% · PFR{" "}
+                    {(habit.pfr * 100).toFixed(0)}% · AF{" "}
                     {habit.aggressionFactor.toFixed(1)}
                   </small>
                 )}
@@ -849,13 +1199,13 @@ function SettingsView({
                 }
               >
                 {data.settings.selectedAiIds.includes(profile.id)
-                  ? "移出对手池"
-                  : "加入对手池"}
+                  ? t("移出对手池")
+                  : t("加入对手池")}
               </button>
             </div>
             {profileKeys.map((key) => (
               <label className="range-row" key={key}>
-                <span>{key}</span>
+                <span>{profileLabel(key)}</span>
                 <input
                   type="range"
                   min="0"
@@ -877,8 +1227,8 @@ function SettingsView({
       <section className="panel settings-section">
         <div className="panel-heading">
           <div>
-            <p className="eyebrow">本地数据</p>
-            <h2>导入与导出</h2>
+            <p className="eyebrow">{t("本地数据")}</p>
+            <h2>{t("导入与导出")}</h2>
           </div>
         </div>
         <div className="button-grid">
@@ -891,14 +1241,16 @@ function SettingsView({
               })
             }
           >
-            导出设置
+            {t("导出设置")}
           </button>
           <button
             onClick={() => exportJson("riverlab-hands.json", data.recentHands)}
           >
-            导出牌局记录
+            {t("导出牌局记录")}
           </button>
-          <button onClick={() => importRef.current?.click()}>导入设置</button>
+          <button onClick={() => importRef.current?.click()}>
+            {t("导入设置")}
+          </button>
           <input
             ref={importRef}
             hidden
@@ -917,30 +1269,30 @@ function SettingsView({
                   }),
                 );
               } catch {
-                window.alert("无法读取该设置文件");
+                window.alert(t("无法读取该设置文件"));
               }
             }}
           />
           <button
             className="danger-button"
             onClick={() => {
-              if (window.confirm("确定重置所有统计？牌局历史不会删除。"))
+              if (window.confirm(t("确定重置所有统计？牌局历史不会删除。")))
                 replaceData({
                   ...data,
                   stats: { ...EMPTY_STATS, byPosition: {} },
                 });
             }}
           >
-            重置统计
+            {t("重置统计")}
           </button>
           <button
             className="danger-button"
             onClick={() => {
-              if (window.confirm("确定清除全部历史牌局？此操作无法撤销。"))
+              if (window.confirm(t("确定清除全部历史牌局？此操作无法撤销。")))
                 replaceData({ ...data, recentHands: [], playerNotes: {} });
             }}
           >
-            清除历史牌局
+            {t("清除历史牌局")}
           </button>
         </div>
       </section>
@@ -955,6 +1307,7 @@ function ScenarioView({
   data: PersistedData;
   onStart: (game: PokerGameState) => void;
 }) {
+  const { locale, runtimeMessage, t } = useI18n();
   const [hole, setHole] = useState("AS KH");
   const [board, setBoard] = useState("");
   const [street, setStreet] = useState<"preflop" | "flop" | "turn" | "river">(
@@ -964,6 +1317,7 @@ function ScenarioView({
   const [stack, setStack] = useState(100);
   const [opponents, setOpponents] = useState(2);
   const [error, setError] = useState("");
+  useEffect(() => setError(""), [locale]);
   const positionOptions = availableScenarioPositions(opponents + 1);
   const effectivePosition = positionOptions.includes(position)
     ? position
@@ -972,7 +1326,7 @@ function ScenarioView({
     try {
       const heroCards = hole.trim() ? parseCards(hole) : undefined;
       if (heroCards && heroCards.length !== 2)
-        throw new Error("底牌必须正好两张");
+        throw new Error(t("底牌必须正好两张"));
       const boardCards = board.trim() ? parseCards(board) : [];
       const count = opponents + 1;
       const dealerSeat = dealerSeatForPosition(effectivePosition, count);
@@ -996,44 +1350,48 @@ function ScenarioView({
       });
       onStart(game);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "无法创建训练场景");
+      setError(
+        reason instanceof Error
+          ? runtimeMessage(reason.message)
+          : t("无法创建训练场景"),
+      );
     }
   };
   return (
     <section className="panel scenario-panel">
       <div className="panel-heading">
         <div>
-          <p className="eyebrow">单手牌训练</p>
-          <h2>构建一个决策节点</h2>
+          <p className="eyebrow">{t("单手牌训练")}</p>
+          <h2>{t("构建一个决策节点")}</h2>
         </div>
       </div>
       <p className="panel-copy">
-        牌使用简写输入，例如 <code>AS KH</code>
-        。未指定的公共牌会从剩余牌堆随机补齐。
+        {t("牌使用简写输入，例如")} <code>AS KH</code>
+        {t("。未指定的公共牌会从剩余牌堆随机补齐。")}
       </p>
       <div className="scenario-grid">
         <label>
-          你的底牌
+          {t("你的底牌")}
           <input
             value={hole}
             onChange={(event) => setHole(event.target.value)}
-            placeholder="AS KH；留空为随机"
+            placeholder={`AS KH${t("；留空为随机")}`}
           />
         </label>
         <label>
-          起始街
+          {t("起始街")}
           <select
             value={street}
             onChange={(event) => setStreet(event.target.value as typeof street)}
           >
-            <option value="preflop">翻牌前</option>
-            <option value="flop">翻牌</option>
-            <option value="turn">转牌</option>
-            <option value="river">河牌</option>
+            <option value="preflop">{t("翻牌前")}</option>
+            <option value="flop">{t("翻牌")}</option>
+            <option value="turn">{t("转牌")}</option>
+            <option value="river">{t("河牌")}</option>
           </select>
         </label>
         <label>
-          公共牌
+          {t("公共牌")}
           <input
             value={board}
             onChange={(event) => setBoard(event.target.value)}
@@ -1041,7 +1399,7 @@ function ScenarioView({
           />
         </label>
         <label>
-          位置
+          {t("位置")}
           <select
             value={effectivePosition}
             onChange={(event) => setPosition(event.target.value)}
@@ -1052,7 +1410,7 @@ function ScenarioView({
           </select>
         </label>
         <label>
-          有效筹码（BB）
+          {t("有效筹码（BB）")}
           <input
             type="number"
             min="5"
@@ -1062,7 +1420,7 @@ function ScenarioView({
           />
         </label>
         <label>
-          对手数量
+          {t("对手数量")}
           <input
             type="number"
             min="1"
@@ -1074,16 +1432,25 @@ function ScenarioView({
       </div>
       {error && <p className="error-message">{error}</p>}
       <div className="scenario-actions">
-        <button onClick={() => setHole("")}>随机底牌</button>
+        <button onClick={() => setHole("")}>{t("随机底牌")}</button>
         <button className="primary-button" onClick={start}>
-          开始此训练
+          {t("开始此训练")}
         </button>
       </div>
     </section>
   );
 }
 
-export function PokerTrainer() {
+function PokerTrainerApp() {
+  const {
+    actionLabel,
+    aiName,
+    locale,
+    runtimeMessage,
+    streetLabel,
+    t,
+    toggleLocale,
+  } = useI18n();
   const [data, setData] = useState<PersistedData>(() => defaultData());
   const [view, setView] = useState<View>("table");
   const [game, setGame] = useState<PokerGameState | null>(null);
@@ -1095,6 +1462,11 @@ export function PokerTrainer() {
   const [aiTags, setAiTags] = useState<Record<string, string[]>>({});
   const savedHand = useRef<string | null>(null);
   const actionBarRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    setError("");
+    setFeedback("");
+  }, [locale]);
 
   const persist = useCallback((next: PersistedData) => {
     setData(next);
@@ -1184,10 +1556,23 @@ export function PokerTrainer() {
       getPersonality(actor.personalityId ?? "tag");
     const speedFactor =
       actorProfile.thinkingSpeed === "fast"
-        ? 0.65
+        ? 0.88
         : actorProfile.thinkingSpeed === "slow"
-          ? 1.45
+          ? 1.42
           : 1;
+    const baseDelay = data.settings.animations
+      ? (() => {
+          const heroFolded =
+            game.players.find((player) => player.id === HERO_ID)?.status ===
+            "folded";
+          if (!heroFolded) return Math.max(900, data.settings.aiDelayMs);
+          const lastAction = game.actions.at(-1);
+          return lastAction?.playerId === HERO_ID &&
+            lastAction.action.type === "fold"
+            ? 760
+            : 90;
+        })()
+      : data.settings.aiDelayMs;
     setAiBusy(true);
     const timer = window.setTimeout(() => {
       try {
@@ -1293,13 +1678,13 @@ export function PokerTrainer() {
       } catch (reason) {
         setError(
           reason instanceof Error
-            ? `AI 行动失败：${reason.message}`
-            : "AI 行动失败",
+            ? `${t("AI 行动失败")}${locale === "zh-CN" ? "：" : ": "}${runtimeMessage(reason.message)}`
+            : t("AI 行动失败"),
         );
       } finally {
         setAiBusy(false);
       }
-    }, data.settings.aiDelayMs * speedFactor);
+    }, baseDelay * speedFactor);
     return () => {
       window.clearTimeout(timer);
       setAiBusy(false);
@@ -1307,10 +1692,14 @@ export function PokerTrainer() {
   }, [
     data.aiProfiles,
     data.settings.aiDelayMs,
+    data.settings.animations,
     data.settings.autoAi,
     data.stats,
     game,
+    locale,
     pot,
+    runtimeMessage,
+    t,
   ]);
 
   const humanAction = (action: PokerAction) => {
@@ -1318,10 +1707,16 @@ export function PokerTrainer() {
     const validation = validateAction(game, HERO_ID, action);
     if (!validation.legal) {
       setError(
-        `${validation.reason}${validation.nearestLegalAmount !== undefined ? `；最近合法值为 ${validation.nearestLegalAmount}` : ""}`,
+        `${runtimeMessage(validation.reason ?? "")}${
+          validation.nearestLegalAmount !== undefined
+            ? locale === "zh-CN"
+              ? `；${t("最近合法值")}为 ${formatChips(validation.nearestLegalAmount)}`
+              : ` ${t("最近合法值")}: ${formatChips(validation.nearestLegalAmount)}`
+            : ""
+        }`,
       );
       if (validation.nearestLegalAmount !== undefined)
-        setBetAmount(validation.nearestLegalAmount);
+        setBetAmount(roundChips(validation.nearestLegalAmount));
       return;
     }
     const priorToCall = toCall;
@@ -1345,14 +1740,14 @@ export function PokerTrainer() {
                 : "合理";
       const message =
         grade === "尺度异常"
-          ? "尺度异常：该下注显著超过当前底池，通常需要很强的特定理由。"
+          ? t("尺度异常：该下注显著超过当前底池，通常需要很强的特定理由。")
           : grade === "偏紧"
-            ? "偏紧：无需跟注时弃牌通常损失了免费看牌机会。"
+            ? t("偏紧：无需跟注时弃牌通常损失了免费看牌机会。")
             : grade === "偏松"
-              ? "偏松：粗略胜率低于当前底池赔率门槛。"
+              ? t("偏松：粗略胜率低于当前底池赔率门槛。")
               : grade === "高风险"
-                ? "高风险：深街前全押会显著放大方差。"
-                : "合理：该动作处于可辩护范围；扑克决策通常不存在唯一答案。";
+                ? t("高风险：深街前全押会显著放大方差。")
+                : t("合理：该动作处于可辩护范围；扑克决策通常不存在唯一答案。");
       setGame(next);
       setError("");
       setFeedback(data.settings.hintStrength === "off" ? "" : message);
@@ -1364,17 +1759,25 @@ export function PokerTrainer() {
         ].slice(0, 500),
       });
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "动作失败");
+      setError(
+        reason instanceof Error
+          ? runtimeMessage(reason.message)
+          : t("动作失败"),
+      );
     }
   };
 
   const legal = game && hero ? legalActionsFor(game, HERO_ID) : null;
-  const minRaiseTo = game
-    ? game.currentBet === 0
-      ? game.bigBlind
-      : game.currentBet + game.minRaiseIncrement
-    : 0;
-  const maxRaiseTo = hero ? hero.streetContribution + hero.stack : 0;
+  const minRaiseTo = roundChips(
+    game
+      ? game.currentBet === 0
+        ? game.bigBlind
+        : game.currentBet + game.minRaiseIncrement
+      : 0,
+  );
+  const maxRaiseTo = roundChips(
+    hero ? hero.streetContribution + hero.stack : 0,
+  );
   const sizedActionType =
     game?.currentBet === 0 ? ("bet" as const) : ("raise" as const);
   const sizedActionValidation =
@@ -1386,17 +1789,19 @@ export function PokerTrainer() {
       : null;
   useEffect(() => {
     if (!game || !hero || game.settled) return;
-    const minimum = Math.min(
-      hero.streetContribution + hero.stack,
-      game.currentBet === 0
-        ? game.bigBlind
-        : game.currentBet + game.minRaiseIncrement,
+    const minimum = roundChips(
+      Math.min(
+        hero.streetContribution + hero.stack,
+        game.currentBet === 0
+          ? game.bigBlind
+          : game.currentBet + game.minRaiseIncrement,
+      ),
     );
-    const maximum = hero.streetContribution + hero.stack;
+    const maximum = roundChips(hero.streetContribution + hero.stack);
     setBetAmount((current) =>
       !Number.isFinite(current) || current < minimum || current > maximum
         ? minimum
-        : current,
+        : roundChips(current),
     );
   }, [game, hero]);
   const potOdds = toCall > 0 ? toCall / (pot + toCall) : 0;
@@ -1404,22 +1809,22 @@ export function PokerTrainer() {
     ? "—"
     : assessment.equityEstimate > 0.62
       ? game?.currentBet === 0
-        ? "Bet"
-        : "Raise"
+        ? actionLabel("bet")
+        : actionLabel("raise")
       : toCall === 0
-        ? "Check"
+        ? actionLabel("check")
         : assessment.equityEstimate + 0.04 >= potOdds
-          ? "Call"
-          : "Fold";
+          ? actionLabel("call")
+          : actionLabel("fold");
   const recommendedSizing = game
     ? Math.min(maxRaiseTo, Math.max(minRaiseTo, game.currentBet + pot * 0.66))
     : 0;
   const quickSizes = !game
     ? []
     : game.street === "preflop"
-      ? [2, 2.2, 2.5, 3].map((value) => value * game.bigBlind)
-      : [0.25, 0.33, 0.5, 0.66, 0.75, 1].map(
-          (value) => game.currentBet + Math.max(game.bigBlind, pot * value),
+      ? [2, 2.2, 2.5, 3].map((value) => roundChips(value * game.bigBlind))
+      : [0.25, 0.33, 0.5, 0.66, 0.75, 1].map((value) =>
+          roundChips(game.currentBet + Math.max(game.bigBlind, pot * value)),
         );
   const humanActionRef = useRef(humanAction);
   useEffect(() => {
@@ -1502,17 +1907,17 @@ export function PokerTrainer() {
           <span>R</span>
           <div>
             <strong>RiverLab</strong>
-            <small>POKER TRAINER</small>
+            <small>{t("德州扑克训练台")}</small>
           </div>
         </button>
-        <nav aria-label="主导航">
+        <nav aria-label={t("主导航")}>
           {(
             [
-              ["table", "训练桌", "牌桌"],
-              ["scenario", "单手牌", "场景"],
-              ["history", "历史与复盘", "复盘"],
-              ["stats", "统计", "统计"],
-              ["settings", "设置", "设置"],
+              ["table", t("训练桌"), t("牌桌")],
+              ["scenario", t("单手牌"), t("场景")],
+              ["history", t("历史与复盘"), t("复盘")],
+              ["stats", t("统计"), t("统计")],
+              ["settings", t("设置"), t("设置")],
             ] as [View, string, string][]
           ).map(([id, label, shortLabel]) => (
             <button
@@ -1525,7 +1930,19 @@ export function PokerTrainer() {
             </button>
           ))}
         </nav>
-        <span className="local-badge">仅本地 · 非真钱</span>
+        <div className="topbar-meta">
+          <span className="local-badge">{t("仅本地 · 非真钱")}</span>
+          <button
+            type="button"
+            className="language-toggle"
+            onClick={toggleLocale}
+            aria-label={t(locale === "zh-CN" ? "切换到英文" : "切换到中文")}
+            title={t(locale === "zh-CN" ? "切换到英文" : "切换到中文")}
+          >
+            <span aria-hidden="true">🌐</span>
+            {t(locale === "zh-CN" ? "英文" : "中文")}
+          </button>
+        </div>
       </header>
       <div className="app-content">
         {view === "table" && game && (
@@ -1533,10 +1950,13 @@ export function PokerTrainer() {
             <section className="table-toolbar">
               <div>
                 <p className="eyebrow">
-                  {isScenarioHand ? "单手牌训练" : "标准现金桌训练"}
+                  {isScenarioHand ? t("单手牌训练") : t("标准现金桌训练")}
                 </p>
                 <h1>
-                  {game.players.length}-max ·{" "}
+                  {locale === "zh-CN"
+                    ? `${game.players.length} ${t("人桌")}`
+                    : `${game.players.length}${t("人桌")}`}{" "}
+                  ·{" "}
                   {formatChips(
                     (hero?.startingStack ?? data.settings.startingStackBb) /
                       game.bigBlind,
@@ -1549,17 +1969,17 @@ export function PokerTrainer() {
                   !game.settled && (
                     <>
                       <button onClick={() => setView("scenario")}>
-                        调整场景
+                        {t("调整场景")}
                       </button>
                       <button onClick={() => startCashHand(data)}>
-                        返回现金桌
+                        {t("返回现金桌")}
                       </button>
                     </>
                   )
                 ) : (
                   <>
                     <button onClick={() => startCashHand(data)}>
-                      重新开局
+                      {t("重新开局")}
                     </button>
                     <button
                       onClick={() => {
@@ -1575,30 +1995,31 @@ export function PokerTrainer() {
                         startCashHand(data, stacks, game.dealerSeat);
                       }}
                     >
-                      重新买入
+                      {t("重新买入")}
                     </button>
                   </>
                 )}
               </div>
             </section>
             <PokerTable game={game} aiBusy={aiBusy} />
+            {game.settled && <ShowdownBreakdown game={game} />}
             <section className="info-strip">
               <span>
-                <small>底池</small>
+                <small>{t("底池")}</small>
                 {formatChips(pot)} BB
               </span>
               {!game.settled && (
                 <>
                   <span>
-                    <small>跟注</small>
+                    <small>{t("跟注")}</small>
                     {formatChips(toCall)} BB
                   </span>
                   <span>
-                    <small>最小加注到</small>
+                    <small>{t("最小加注到")}</small>
                     {formatChips(minRaiseTo)} BB
                   </span>
                   <span>
-                    <small>有效筹码</small>
+                    <small>{t("有效筹码")}</small>
                     {formatChips(
                       Math.min(
                         hero?.stack ?? 0,
@@ -1623,11 +2044,11 @@ export function PokerTrainer() {
                 </>
               )}
               <span>
-                <small>位置 / 街</small>
-                {hero?.positionLabel || "—"} · {game.street}
+                <small>{t("位置 / 街")}</small>
+                {hero?.positionLabel || "—"} · {streetLabel(game.street)}
               </span>
               <span>
-                <small>剩余玩家</small>
+                <small>{t("剩余玩家")}</small>
                 {
                   game.players.filter(
                     (player) =>
@@ -1638,11 +2059,13 @@ export function PokerTrainer() {
               {game.settled && (
                 <>
                   <span>
-                    <small>结果</small>
-                    {game.outcome?.reason === "showdown" ? "摊牌" : "弃牌结束"}
+                    <small>{t("结果")}</small>
+                    {game.outcome?.reason === "showdown"
+                      ? t("摊牌")
+                      : t("弃牌结束")}
                   </span>
                   <span>
-                    <small>本手盈亏</small>
+                    <small>{t("本手盈亏")}</small>
                     {(hero?.stack ?? 0) - (hero?.startingStack ?? 0) >= 0
                       ? "+"
                       : ""}
@@ -1656,7 +2079,7 @@ export function PokerTrainer() {
               )}
               {!game.settled && data.settings.showPotOdds && (
                 <span>
-                  <small>底池赔率</small>
+                  <small>{t("底池赔率")}</small>
                   {toCall
                     ? `${((toCall / (pot + toCall)) * 100).toFixed(1)}%`
                     : "0%"}
@@ -1664,25 +2087,25 @@ export function PokerTrainer() {
               )}
               {!game.settled && data.settings.showEquity && assessment && (
                 <span>
-                  <small>粗略胜率</small>≈{" "}
+                  <small>{t("粗略胜率")}</small>≈{" "}
                   {(assessment.equityEstimate * 100).toFixed(0)}%
                 </span>
               )}
               {!game.settled && data.settings.showOuts && assessment && (
                 <span>
-                  <small>估算 Outs</small>≈{" "}
+                  <small>{t("估算补牌张数")}</small>≈{" "}
                   {Math.round(assessment.drawStrength * 16)}
                 </span>
               )}
               {!game.settled && data.settings.showRecommendedAction && (
                 <span>
-                  <small>可选建议</small>
+                  <small>{t("可选建议")}</small>
                   {recommendedAction}
                 </span>
               )}
               {!game.settled && data.settings.showRecommendedSizing && (
                 <span>
-                  <small>参考尺度</small>
+                  <small>{t("参考尺度")}</small>
                   {formatChips(recommendedSizing)} BB
                 </span>
               )}
@@ -1691,19 +2114,19 @@ export function PokerTrainer() {
                 assessment &&
                 assessment.boardDanger > 0.58 && (
                   <span>
-                    <small>牌面提示</small>
-                    危险度较高
+                    <small>{t("牌面提示")}</small>
+                    {t("危险度较高")}
                   </span>
                 )}
             </section>
             {game.settled ? (
               <section className="action-bar complete-bar">
                 <div>
-                  <p className="eyebrow">本手已结算</p>
+                  <p className="eyebrow">{t("本手已结算")}</p>
                   <strong>
                     {game.outcome?.reason === "showdown"
-                      ? "摊牌完成"
-                      : "弃牌获胜"}
+                      ? t("摊牌完成")
+                      : t("弃牌获胜")}
                   </strong>
                 </div>
                 <button
@@ -1712,11 +2135,11 @@ export function PokerTrainer() {
                     isScenarioHand ? () => setView("scenario") : nextHand
                   }
                 >
-                  {isScenarioHand ? "新场景" : "下一手"}
+                  {isScenarioHand ? t("新场景") : t("下一手")}
                 </button>
                 {isScenarioHand && (
                   <button onClick={() => startCashHand(data)}>
-                    返回现金桌
+                    {t("返回现金桌")}
                   </button>
                 )}
               </section>
@@ -1727,7 +2150,7 @@ export function PokerTrainer() {
                   "action-bar " +
                   (game.actingPlayerId === HERO_ID ? "is-hero-turn" : "")
                 }
-                aria-label="玩家操作区"
+                aria-label={t("玩家操作区")}
               >
                 <div className="decision-status" aria-live="polite">
                   <span
@@ -1738,11 +2161,21 @@ export function PokerTrainer() {
                     }
                   />
                   {game.actingPlayerId === HERO_ID
-                    ? "轮到你行动"
-                    : `${game.players.find((player) => player.id === game.actingPlayerId)?.name ?? "牌桌"} 行动中`}
+                    ? t("轮到你行动")
+                    : (() => {
+                        const actor = game.players.find(
+                          (player) => player.id === game.actingPlayerId,
+                        );
+                        const actorName = actor
+                          ? actor.kind === "ai"
+                            ? aiName(actor.personalityId, actor.name)
+                            : actor.name
+                          : t("牌桌");
+                        return `${actorName} ${t("行动中")}`;
+                      })()}
                   <span className="decision-context">
-                    底池 {formatChips(pot)} · 跟注 {formatChips(toCall)} ·{" "}
-                    {hero?.positionLabel || "—"}
+                    {t("底池")} {formatChips(pot)} · {t("跟注")}{" "}
+                    {formatChips(toCall)} · {hero?.positionLabel || "—"}
                   </span>
                   {feedback && <small>{feedback}</small>}
                   {error && <small className="error-message">{error}</small>}
@@ -1767,12 +2200,12 @@ export function PokerTrainer() {
                       </button>
                     ))}
                     <button onClick={() => setBetAmount(maxRaiseTo)}>
-                      All-in
+                      {actionLabel("all-in")}
                     </button>
                   </div>
                   <div className="sizing-input">
                     <input
-                      aria-label="下注滑杆"
+                      aria-label={t("下注滑杆")}
                       type="range"
                       min={Math.min(minRaiseTo, maxRaiseTo)}
                       max={maxRaiseTo}
@@ -1781,11 +2214,11 @@ export function PokerTrainer() {
                       onChange={(event) => {
                         const nextAmount = event.currentTarget.valueAsNumber;
                         if (Number.isFinite(nextAmount))
-                          setBetAmount(nextAmount);
+                          setBetAmount(roundChips(nextAmount));
                       }}
                     />
                     <input
-                      aria-label="下注总额"
+                      aria-label={t("下注总额")}
                       type="number"
                       min={Math.min(minRaiseTo, maxRaiseTo)}
                       max={maxRaiseTo}
@@ -1798,16 +2231,18 @@ export function PokerTrainer() {
                       onChange={(event) => {
                         const nextAmount = event.currentTarget.valueAsNumber;
                         if (Number.isFinite(nextAmount))
-                          setBetAmount(nextAmount);
+                          setBetAmount(roundChips(nextAmount));
                       }}
                     />
                   </div>
                   {game.actingPlayerId === HERO_ID &&
                     sizedActionValidation?.legal === false && (
                       <small className="sizing-error" role="status">
-                        {sizedActionValidation.reason}
+                        {runtimeMessage(sizedActionValidation.reason ?? "")}
                         {sizedActionValidation.nearestLegalAmount !== undefined
-                          ? `；最近合法值 ${formatChips(sizedActionValidation.nearestLegalAmount)} BB`
+                          ? locale === "zh-CN"
+                            ? `；${t("最近合法值")} ${formatChips(sizedActionValidation.nearestLegalAmount)} BB`
+                            : `; ${t("最近合法值")}: ${formatChips(sizedActionValidation.nearestLegalAmount)} BB`
                           : ""}
                       </small>
                     )}
@@ -1819,7 +2254,7 @@ export function PokerTrainer() {
                     }
                     onClick={() => humanAction({ type: "fold" })}
                   >
-                    Fold <kbd aria-hidden="true">F</kbd>
+                    {actionLabel("fold")} <kbd aria-hidden="true">F</kbd>
                   </button>
                   <button
                     disabled={
@@ -1827,7 +2262,7 @@ export function PokerTrainer() {
                     }
                     onClick={() => humanAction({ type: "check" })}
                   >
-                    Check <kbd aria-hidden="true">K</kbd>
+                    {actionLabel("check")} <kbd aria-hidden="true">K</kbd>
                   </button>
                   <button
                     disabled={
@@ -1835,7 +2270,8 @@ export function PokerTrainer() {
                     }
                     onClick={() => humanAction({ type: "call" })}
                   >
-                    Call {formatChips(toCall)} <kbd aria-hidden="true">C</kbd>
+                    {actionLabel("call")} {formatChips(toCall)}{" "}
+                    <kbd aria-hidden="true">C</kbd>
                   </button>
                   <button
                     disabled={
@@ -1849,7 +2285,7 @@ export function PokerTrainer() {
                       })
                     }
                   >
-                    {sizedActionType === "bet" ? "Bet" : "Raise"}{" "}
+                    {actionLabel(sizedActionType)}{" "}
                     <kbd aria-hidden="true">R</kbd>
                   </button>
                   <button
@@ -1859,7 +2295,7 @@ export function PokerTrainer() {
                     }
                     onClick={() => humanAction({ type: "all-in" })}
                   >
-                    All-in <kbd aria-hidden="true">A</kbd>
+                    {actionLabel("all-in")} <kbd aria-hidden="true">A</kbd>
                   </button>
                 </div>
               </section>
@@ -1906,5 +2342,13 @@ export function PokerTrainer() {
         )}
       </div>
     </main>
+  );
+}
+
+export function PokerTrainer() {
+  return (
+    <LanguageProvider>
+      <PokerTrainerApp />
+    </LanguageProvider>
   );
 }

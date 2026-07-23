@@ -22,7 +22,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   animationSpeed: "normal",
   deckTheme: "river-current",
   autoAi: true,
-  aiDelayMs: 420,
+  aiDelayMs: 1000,
   showEquity: false,
   showPotOdds: true,
   showOuts: false,
@@ -313,7 +313,11 @@ export function appendCompletedHand(
     game.outcome.reason === "showdown" &&
     game.outcome.showdown?.evaluations[heroId] !== undefined;
   const wonShowdown =
-    reachedShowdown && (game.outcome.payouts[heroId] ?? 0) > 0;
+    reachedShowdown &&
+    (game.outcome.showdown?.awards.some((award) =>
+      award.winnerIds.includes(heroId),
+    ) ??
+      false);
   const stats: AggregateStats = {
     ...data.stats,
     hands: data.stats.hands + 1,

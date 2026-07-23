@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 async function waitForHeroOrSettlement(page: Page) {
-  const fold = page.getByRole("button", { name: "Fold" });
+  const fold = page.getByRole("button", { name: "弃牌" });
   const nextHand = page.getByRole("button", { name: "下一手" });
   await expect
     .poll(
@@ -25,10 +25,10 @@ async function finishHand(
     await waitForHeroOrSettlement(page);
     if (await nextHand.isVisible().catch(() => false)) return;
 
-    const check = page.getByRole("button", { name: "Check" });
-    const call = page.getByRole("button", { name: /^Call/ });
-    const raise = page.getByRole("button", { name: /^(Raise|Bet)$/ });
-    const fold = page.getByRole("button", { name: "Fold" });
+    const check = page.getByRole("button", { name: "过牌" });
+    const call = page.getByRole("button", { name: /^跟注/ });
+    const raise = page.getByRole("button", { name: /^(加注|下注)$/ });
+    const fold = page.getByRole("button", { name: "弃牌" });
 
     if (
       !usedPreferredAction &&
@@ -65,12 +65,18 @@ test.beforeEach(async ({ page }) => {
 
 test("start a hand, fold, open history and replay", async ({ page }) => {
   await page
-    .getByRole("button", { name: "Fold" })
+    .getByRole("button", { name: "弃牌" })
     .waitFor({ state: "visible" });
-  while (await page.getByRole("button", { name: "Fold" }).isDisabled()) {
+  while (await page.getByRole("button", { name: "弃牌" }).isDisabled()) {
     await page.waitForTimeout(100);
   }
-  await page.getByRole("button", { name: "Fold" }).click();
+  await page.getByRole("button", { name: "弃牌" }).click();
+  const foldedHero = page.locator('.seat[data-seat="0"].action-fold');
+  await expect(foldedHero).toBeVisible();
+  await expect(foldedHero.locator(".action-effect-fold i").first()).toHaveCSS(
+    "animation-name",
+    "fold-card-to-muck",
+  );
   await expect(page.getByRole("button", { name: "下一手" })).toBeVisible({
     timeout: 20_000,
   });
@@ -81,14 +87,51 @@ test("start a hand, fold, open history and replay", async ({ page }) => {
 });
 
 test("use call and raise controls", async ({ page }) => {
-  const call = page.getByRole("button", { name: /^Call/ });
+  const call = page.getByRole("button", { name: /^跟注/ });
   while (await call.isDisabled()) await page.waitForTimeout(100);
   await call.click();
+  await expect(
+    page.locator('.seat[data-seat="0"][data-last-action="call"]'),
+  ).toBeVisible();
+  await expect(
+    page.locator('.seat[data-seat="0"] .action-callout-call'),
+  ).toBeVisible();
   await page.waitForTimeout(700);
   await page.getByLabel("下注总额").fill("3");
-  const raise = page.getByRole("button", { name: /^(Raise|Bet)$/ });
+  const raise = page.getByRole("button", { name: /^(加注|下注)$/ });
   if (!(await raise.isDisabled())) await raise.click();
   await expect(page.getByLabel("德州扑克牌桌")).toBeVisible();
+});
+
+test("show blind roles and clockwise dealing order", async ({ page }) => {
+  const smallBlind = page.locator(".seat-position.small-blind");
+  const bigBlind = page.locator(".seat-position.big-blind");
+  await expect(smallBlind).toHaveCount(1);
+  await expect(bigBlind).toHaveCount(1);
+  await expect(smallBlind).toContainText("小盲");
+  await expect(bigBlind).toContainText("大盲");
+  await expect(page.getByText("顺时针行动")).toBeVisible();
+
+  const clockwiseSeats = await page.locator(".seat").evaluateAll((seats) =>
+    seats
+      .map((seat) => ({
+        seat: Number(seat.getAttribute("data-seat")),
+        dealOrder: Number(seat.getAttribute("data-deal-order")),
+        className: seat.className,
+      }))
+      .sort((left, right) => left.dealOrder - right.dealOrder),
+  );
+  expect(clockwiseSeats.map((seat) => seat.seat)).toEqual([1, 2, 3, 4, 5, 0]);
+  expect(clockwiseSeats[0].className).toContain("seat-5-6");
+
+  const dealSteps = await page
+    .locator(".dealt-card")
+    .evaluateAll((cards) =>
+      cards
+        .map((card) => Number(card.getAttribute("data-deal-step")))
+        .sort((left, right) => left - right),
+    );
+  expect(dealSteps).toEqual(Array.from({ length: 12 }, (_, index) => index));
 });
 
 test("play consecutive hands without deadlocks, blank positions, or revealed folded cards", async ({
@@ -124,7 +167,7 @@ test("play consecutive hands without deadlocks, blank positions, or revealed fol
 
     const foldedAiSeats = page
       .locator('article:not([aria-label^="Hero，"])')
-      .filter({ hasText: "fold" });
+      .filter({ hasText: "弃牌" });
     for (let seat = 0; seat < (await foldedAiSeats.count()); seat += 1) {
       await expect(foldedAiSeats.nth(seat).getByLabel("牌背")).toHaveCount(2);
     }
@@ -155,16 +198,18 @@ test("enter a deterministic river scenario and reach showdown", async ({
   await page.getByRole("button", { name: "开始此训练" }).click();
   await expect(page.getByText("单手牌训练", { exact: true })).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "2-max · 100 BB" }),
+    page.getByRole("heading", { name: "2 人桌 · 100 BB" }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "调整场景" })).toBeVisible();
-  await expect(page.getByText("RIVER", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("10 hearts")).toBeVisible();
+  await expect(page.getByText("河牌", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("10 红桃")).toBeVisible();
+  const wagerInput = page.getByLabel("下注总额");
   await expect(page.getByLabel("下注滑杆")).toHaveValue(
-    await page.getByLabel("下注总额").inputValue(),
+    await wagerInput.inputValue(),
   );
-  const check = page.getByRole("button", { name: "Check" });
-  const call = page.getByRole("button", { name: /^Call/ });
+  expect(await wagerInput.inputValue()).toMatch(/^\d+(?:\.\d{1,2})?$/);
+  const check = page.getByRole("button", { name: "过牌" });
+  const call = page.getByRole("button", { name: /^跟注/ });
   await expect
     .poll(
       async () => !(await check.isDisabled()) || !(await call.isDisabled()),
@@ -174,6 +219,12 @@ test("enter a deterministic river scenario and reach showdown", async ({
   if (!(await check.isDisabled())) await check.click();
   else await call.click();
   await expect(page.getByText("摊牌完成")).toBeVisible();
+  await expect(page.getByLabel("正式牌型比较")).toBeVisible();
+  await expect(page.getByText("只比较最佳五张牌")).toBeVisible();
+  await expect(page.locator(".showdown-player")).toHaveCount(2);
+  await expect(page.locator(".showdown-player.is-winner")).toHaveCount(1);
+  await expect(page.getByLabel("最佳五张").first()).toBeVisible();
+  await expect(page.getByText("主池")).toBeVisible();
   await page.getByRole("button", { name: "新场景" }).click();
   await expect(
     page.getByRole("heading", { name: "构建一个决策节点" }),
@@ -202,4 +253,38 @@ test("edit AI settings, persist after reload, and export hands", async ({
   await expect((await download).suggestedFilename()).toBe(
     "riverlab-hands.json",
   );
+});
+
+test("switch the entire interface to English and keep it after reload", async ({
+  page,
+}) => {
+  await expect(page.getByRole("button", { name: "弃牌" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Fold/ })).toHaveCount(0);
+  await page.getByRole("button", { name: "切换到英文" }).click();
+  await expect(
+    page.getByRole("navigation", { name: "Main navigation" }),
+  ).toBeVisible();
+  await expect(page.getByLabel("Texas Hold'em table")).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Fold/ })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.getByText("Standard cash-game training")).toBeVisible();
+  expect(await page.locator("body").innerText()).not.toMatch(/[\u3400-\u9fff]/);
+
+  await page.getByRole("button", { name: "Settings" }).click();
+  await expect(page.getByLabel("Player name")).toBeVisible();
+  await expect(page.getByText("AI player profiles")).toBeVisible();
+  expect(await page.locator("body").innerText()).not.toMatch(/[\u3400-\u9fff]/);
+
+  for (const destination of ["Single hand", "History & replay", "Stats"]) {
+    await page.getByRole("button", { name: destination }).click();
+    expect(await page.locator("body").innerText()).not.toMatch(
+      /[\u3400-\u9fff]/,
+    );
+  }
+
+  await page.reload();
+  await expect(
+    page.getByRole("navigation", { name: "Main navigation" }),
+  ).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });

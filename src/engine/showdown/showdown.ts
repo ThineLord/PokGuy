@@ -5,7 +5,7 @@ import {
   type HandEvaluation,
 } from "../evaluator/evaluator";
 import {
-  calculateSidePots,
+  calculatePotStructure,
   inferChipUnit,
   splitPot,
   type PotContribution,
@@ -26,6 +26,7 @@ export interface ShowdownResult {
   evaluations: Record<string, HandEvaluation>;
   awards: PotAward[];
   payouts: Record<string, number>;
+  uncalledReturns: Record<string, number>;
 }
 
 export function resolveShowdown(
@@ -33,21 +34,39 @@ export function resolveShowdown(
   board: Card[],
   dealerSeat: number,
 ): ShowdownResult {
-  if (board.length !== 5) throw new Error("Showdown requires a complete five-card board");
-  const seats = Object.fromEntries(players.map((player) => [player.playerId, player.seat]));
+  if (board.length !== 5)
+    throw new Error("Showdown requires a complete five-card board");
+  const seats = Object.fromEntries(
+    players.map((player) => [player.playerId, player.seat]),
+  );
   const evaluations = Object.fromEntries(
     players
       .filter((player) => !player.folded)
-      .map((player) => [player.playerId, evaluateBestHand([...player.holeCards, ...board])]),
+      .map((player) => [
+        player.playerId,
+        evaluateBestHand([...player.holeCards, ...board]),
+      ]),
   );
-  const payouts: Record<string, number> = Object.fromEntries(players.map((player) => [player.playerId, 0]));
+  const { pots, uncalledReturns } = calculatePotStructure(players);
+  const payouts: Record<string, number> = Object.fromEntries(
+    players.map((player) => [
+      player.playerId,
+      uncalledReturns[player.playerId] ?? 0,
+    ]),
+  );
   const chipUnit = inferChipUnit(players.map((player) => player.amount));
-  const awards = calculateSidePots(players).map((pot): PotAward => {
-    const eligible = pot.eligiblePlayerIds.filter((playerId) => evaluations[playerId]);
-    if (eligible.length === 0) throw new Error(`Pot ${pot.id} has no eligible player`);
+  const awards = pots.map((pot): PotAward => {
+    const eligible = pot.eligiblePlayerIds.filter(
+      (playerId) => evaluations[playerId],
+    );
+    if (eligible.length === 0)
+      throw new Error(`Pot ${pot.id} has no eligible player`);
     let winners = [eligible[0]];
     for (const playerId of eligible.slice(1)) {
-      const comparison = compareEvaluations(evaluations[playerId], evaluations[winners[0]]);
+      const comparison = compareEvaluations(
+        evaluations[playerId],
+        evaluations[winners[0]],
+      );
       if (comparison > 0) winners = [playerId];
       else if (comparison === 0) winners.push(playerId);
     }
@@ -57,12 +76,14 @@ export function resolveShowdown(
     });
     return { pot, winnerIds: winners, shares };
   });
-  return { evaluations, awards, payouts };
+  return { evaluations, awards, payouts, uncalledReturns };
 }
 
 export function awardUncontestedPot(
   winnerId: string,
   contributions: PotContribution[],
 ): Record<string, number> {
-  return { [winnerId]: contributions.reduce((sum, entry) => sum + entry.amount, 0) };
+  return {
+    [winnerId]: contributions.reduce((sum, entry) => sum + entry.amount, 0),
+  };
 }

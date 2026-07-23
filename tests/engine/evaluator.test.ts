@@ -44,4 +44,35 @@ describe("hand evaluator", () => {
     expect(result.category).toBe("full-house");
     expect(result.tiebreakers).toEqual([14, 13]);
   });
+
+  it("uses the higher trip when seven cards contain two sets", () => {
+    const result = evaluateBestHand(parseCards("AH AD AC KH KD KC 2S"));
+    expect(result.category).toBe("full-house");
+    expect(result.tiebreakers).toEqual([14, 13]);
+  });
+
+  it("uses only the highest two pairs and the best remaining kicker", () => {
+    const result = evaluateBestHand(parseCards("AH AD KH KD QH QD JS"));
+    expect(result.category).toBe("two-pair");
+    expect(result.tiebreakers).toEqual([14, 13, 12]);
+  });
+
+  it("does not let a lower hole-card kicker replace the five-card board", () => {
+    const boardPlays = evaluateBestHand(parseCards("2C 3D AH KD QS JC 9S"));
+    const lowerHoleCards = evaluateBestHand(parseCards("8C 7D AH KD QS JC 9S"));
+    expect(boardPlays.tiebreakers).toEqual([14, 13, 12, 11, 9]);
+    expect(compareEvaluations(boardPlays, lowerHoleCards)).toBe(0);
+  });
+
+  it("ranks a six-high straight above the ace-to-five wheel", () => {
+    const wheel = evaluateBestHand(parseCards("AS 2D 3H 4C 5S KD QH"));
+    const sixHigh = evaluateBestHand(parseCards("2S 3D 4H 5C 6S KD QH"));
+    expect(compareEvaluations(sixHigh, wheel)).toBe(1);
+  });
+
+  it("compares flushes by all five cards in descending order", () => {
+    const aceQueen = evaluateBestHand(parseCards("AH QH 9H 5H 2H 3C 4D"));
+    const aceJack = evaluateBestHand(parseCards("AS JS 9S 5S 2S 3C 4D"));
+    expect(compareEvaluations(aceQueen, aceJack)).toBe(1);
+  });
 });
