@@ -74,7 +74,7 @@
 ## 恢复命令
 
 ```bash
-cd "/Users/hanzhiyou/Documents/New project"
+cd "/Users/hanzhiyou/Documents/PokGuy"
 npm install
 npm run check
 npm run dev
@@ -88,5 +88,6 @@ npm run dev:lan
 
 ## 目录说明
 
-- 实际项目仓库仍位于 `/Users/hanzhiyou/Documents/New project`。
-- `/Users/hanzhiyou/Documents/PokGuy` 于本轮开始时是一个无提交、无项目文件的空 Git 仓库；本轮没有擅自移动或覆盖两个仓库。
+- 项目的规范位置为 `/Users/hanzhiyou/Documents/PokGuy`。
+- 旧路径 `/Users/hanzhiyou/Documents/New project` 保留为指向规范位置的兼容符号链接，因此旧对话和旧命令仍可继续访问同一仓库。
+- 原先位于 `PokGuy` 的空 Git 仓库已完整保存在 `/Users/hanzhiyou/Documents/PokGuy.empty-repo-backup-20260724`，未删除任何内容。
