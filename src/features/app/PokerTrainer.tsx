@@ -501,11 +501,11 @@ function PokerTable({
                   ? t("筹码归零")
                   : player.status === "all-in"
                     ? actionLabel("all-in").toUpperCase()
-                  : player.lastAction
-                    ? actionLabel(player.lastAction)
-                    : active && aiBusy
-                      ? t("思考中")
-                      : statusLabel(player.status)}
+                    : player.lastAction
+                      ? actionLabel(player.lastAction)
+                      : active && aiBusy
+                        ? t("思考中")
+                        : statusLabel(player.status)}
               </span>
             </div>
             {player.streetContribution > 0 && (
@@ -1471,6 +1471,7 @@ function PokerTrainerApp() {
   const [feedback, setFeedback] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [aiTags, setAiTags] = useState<Record<string, string[]>>({});
+  const [isReady, setIsReady] = useState(false);
   const savedHand = useRef<string | null>(null);
   const actionBarRef = useRef<HTMLElement>(null);
 
@@ -1514,6 +1515,7 @@ function PokerTrainerApp() {
     );
     setData(loaded);
     startCashHand(loaded, undefined, 0);
+    setIsReady(true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -1932,7 +1934,11 @@ function PokerTrainerApp() {
       className={`app-shell deck-${data.settings.deckTheme} ${data.settings.animations ? `speed-${data.settings.animationSpeed}` : "animations-off"}`}
     >
       <header className="topbar">
-        <button className="brand" onClick={() => setView("table")}>
+        <button
+          className="brand"
+          disabled={!isReady}
+          onClick={() => setView("table")}
+        >
           <span>R</span>
           <div>
             <strong>RiverLab</strong>
@@ -1952,6 +1958,7 @@ function PokerTrainerApp() {
             <button
               key={id}
               className={view === id ? "active" : ""}
+              disabled={!isReady}
               onClick={() => setView(id)}
             >
               <span className="nav-label-full">{label}</span>
@@ -1964,6 +1971,7 @@ function PokerTrainerApp() {
           <button
             type="button"
             className="language-toggle"
+            disabled={!isReady}
             onClick={toggleLocale}
             aria-label={t(locale === "zh-CN" ? "切换到英文" : "切换到中文")}
             title={t(locale === "zh-CN" ? "切换到英文" : "切换到中文")}

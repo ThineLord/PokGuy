@@ -32,11 +32,24 @@ betting engine → game state transition → street / runout / showdown
 - `deck`：52 张牌、Fisher-Yates 和 `RandomSource`；
 - `evaluator`：枚举 5–7 张牌的所有五张组合，返回类别和逐项 tiebreaker；
 - `betting`：跟注额、最小 raise-to、下注是否重新开放、动作应用和下注轮完成判断；
+- `chips`：以 `0.01BB` 为单位规范小数筹码，集中处理浮点比较与守恒边界；
 - `pots`：按投入上限分层，保留弃牌筹码但排除其获奖资格；
 - `showdown`：逐池确定赢家、平分和按钮左侧开始的奇数筹码；
-- `state`：发牌、盲注、行动顺序、烧牌、街道推进、自动 runout 和一次性结算。
+- `state`：发牌、盲注、行动顺序、烧牌、街道推进、自动 runout、结束原因和一次性结算；
+- `cashTable`：在完整结算后判断下一手能否发出、Hero 是否需要手动重新买入，以及哪些归零座位不再参与按钮轮转。
 
 `PokerGameState` 扩展下注轮状态，玩家数组只存在一份。下注引擎返回的基础玩家字段会合并回同一 `HandPlayer`，React 不保留第二套筹码或投入状态。
+
+### 正式结算边界
+
+`HandOutcome.termination` 只允许 `uncontested`、`river-showdown` 或 `all-in-runout`。状态进入 `complete` 前必须同时满足：
+
+- 主池、边池和无人跟注退回的总额与累计投入守恒；
+- 写回所有玩家的支付总额与累计投入守恒；
+- 不存在待行动玩家；
+- 不产生零金额池、零金额退回或浮点残量玩家。
+
+UI 只根据完成态显示结果，不能通过动画结束、河牌出现或按钮点击自行宣布一手结束。从翻牌后开始的训练场景会建立已经匹配的起始投入，避免把不存在的盲注差额带入结算。
 
 ## AI 边界
 
