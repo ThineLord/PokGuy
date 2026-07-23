@@ -139,8 +139,10 @@ function runningRate(
   previous: number,
   hands: number,
   observed: boolean,
+  priorWeight = 20,
 ): number {
-  return (previous * hands + Number(observed)) / (hands + 1);
+  const weightedHands = hands + priorWeight;
+  return (previous * weightedHands + Number(observed)) / (weightedHands + 1);
 }
 
 function updateAiHabits(
@@ -227,9 +229,9 @@ function updateAiHabits(
         ),
         foldToContinuationBet: previous.foldToContinuationBet,
         aggressionFactor:
-          (previous.aggressionFactor * hands +
+          (previous.aggressionFactor * (hands + 20) +
             aggressive / Math.max(1, calls)) /
-          (hands + 1),
+          (hands + 21),
         showdownFrequency: runningRate(
           previous.showdownFrequency,
           hands,

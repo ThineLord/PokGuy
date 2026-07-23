@@ -1,6 +1,10 @@
 import { createDeck } from "@/src/engine/deck/deck";
 import { cardId, parseCards } from "@/src/engine/cards/cards";
-import { act, startHand, startTrainingScenario } from "@/src/engine/state/gameState";
+import {
+  act,
+  startHand,
+  startTrainingScenario,
+} from "@/src/engine/state/gameState";
 
 const headsUpPlayers = [
   { id: "hero", name: "Hero", seat: 0, stack: 100, kind: "human" as const },
@@ -36,8 +40,12 @@ describe("game state machine", () => {
     });
     const complete = act(initial, "hero", { type: "fold" });
     expect(complete.outcome?.reason).toBe("folds");
-    expect(complete.players.find((player) => player.id === "villain")?.stack).toBe(100.5);
-    expect(() => act(complete, "villain", { type: "check" })).toThrow("already complete");
+    expect(
+      complete.players.find((player) => player.id === "villain")?.stack,
+    ).toBe(100.5);
+    expect(() => act(complete, "villain", { type: "check" })).toThrow(
+      "already complete",
+    );
   });
 
   it("plays through every street and reaches showdown", () => {
@@ -58,11 +66,16 @@ describe("game state machine", () => {
     expect(game.street).toBe("complete");
     expect(game.board).toHaveLength(5);
     expect(game.outcome?.reason).toBe("showdown");
-    expect(Object.values(game.outcome?.payouts ?? {}).reduce((a, b) => a + b, 0)).toBe(2);
+    expect(
+      Object.values(game.outcome?.payouts ?? {}).reduce((a, b) => a + b, 0),
+    ).toBe(2);
   });
 
   it("runs out the board after all players are all-in", () => {
-    const shortPlayers = headsUpPlayers.map((player) => ({ ...player, stack: 5 }));
+    const shortPlayers = headsUpPlayers.map((player) => ({
+      ...player,
+      stack: 5,
+    }));
     let game = startHand({
       players: shortPlayers,
       dealerSeat: 0,
@@ -100,14 +113,52 @@ describe("game state machine", () => {
       smallBlind: 0.5,
       bigBlind: 1,
       heroId: "hero",
-      heroHoleCards: parseCards("AS AH") as [ReturnType<typeof parseCards>[number], ReturnType<typeof parseCards>[number]],
+      heroHoleCards: parseCards("AS AH") as [
+        ReturnType<typeof parseCards>[number],
+        ReturnType<typeof parseCards>[number],
+      ],
       board: parseCards("2C 7D 9S JC"),
       startStreet: "turn",
       seed: 42,
     });
-    const cards = [...scenario.players.flatMap((player) => player.holeCards), ...scenario.board, ...scenario.deck];
+    const cards = [
+      ...scenario.players.flatMap((player) => player.holeCards),
+      ...scenario.board,
+      ...scenario.deck,
+    ];
     expect(new Set(cards.map(cardId)).size).toBe(cards.length);
-    expect(scenario.players.find((player) => player.id === "hero")?.holeCards).toEqual(parseCards("AS AH"));
+    expect(
+      scenario.players.find((player) => player.id === "hero")?.holeCards,
+    ).toEqual(parseCards("AS AH"));
     expect(scenario.board).toHaveLength(4);
+  });
+
+  it("labels every six-max position after the button rotates", () => {
+    const players = Array.from({ length: 6 }, (_, seat) => ({
+      id: `p${seat}`,
+      name: `P${seat}`,
+      seat,
+      stack: 100,
+      kind: seat === 0 ? ("human" as const) : ("ai" as const),
+    }));
+    const game = startHand({
+      players,
+      dealerSeat: 1,
+      smallBlind: 0.5,
+      bigBlind: 1,
+      deck: createDeck(),
+    });
+    expect(
+      Object.fromEntries(
+        game.players.map((player) => [player.seat, player.positionLabel]),
+      ),
+    ).toEqual({
+      0: "CO",
+      1: "BTN",
+      2: "SB",
+      3: "BB",
+      4: "UTG",
+      5: "HJ",
+    });
   });
 });

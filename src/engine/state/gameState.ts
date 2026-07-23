@@ -112,12 +112,24 @@ function labelPositions(
     seats,
     dealerSeat,
   );
-  const labels: Record<string, string> = {};
-  seats.forEach(
-    (seat) => (labels[seat.id] = seat.id === button.id ? "BTN" : ""),
-  );
+  const labels: Record<string, string> = {
+    [button.id]: seats.length === 2 ? "BTN / SB" : "BTN",
+  };
   labels[smallBlind.id] = smallBlind.id === button.id ? "BTN / SB" : "SB";
   labels[bigBlind.id] = "BB";
+  if (seats.length > 3) {
+    const middleLabels =
+      seats.length === 4
+        ? ["CO"]
+        : seats.length === 5
+          ? ["UTG", "CO"]
+          : ["UTG", "HJ", "CO"];
+    let cursor = nextSeat(seats, bigBlind.seat);
+    middleLabels.forEach((label) => {
+      labels[cursor.id] = label;
+      cursor = nextSeat(seats, cursor.seat);
+    });
+  }
   return labels;
 }
 

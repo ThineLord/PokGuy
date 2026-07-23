@@ -45,11 +45,14 @@ const suitGlyph: Record<Card["suit"], string> = {
 };
 
 function CardView({ card, hidden = false }: { card?: Card; hidden?: boolean }) {
-  if (hidden || !card)
+  if (hidden)
+    return <span className="playing-card card-back" aria-label="牌背" />;
+  if (!card)
     return (
-      <span className="playing-card card-back" aria-label="隐藏的牌">
-        R
-      </span>
+      <span
+        className="playing-card card-placeholder"
+        aria-label="尚未发出的公共牌"
+      />
     );
   const red = card.suit === "hearts" || card.suit === "diamonds";
   return (
@@ -118,6 +121,37 @@ function tablePot(game: PokerGameState) {
   );
 }
 
+function positionScore(positionLabel: string): number {
+  if (positionLabel.startsWith("BTN")) return 1;
+  return (
+    {
+      CO: 0.78,
+      HJ: 0.52,
+      UTG: 0.18,
+      SB: 0.12,
+      BB: 0.28,
+    }[positionLabel] ?? 0.5
+  );
+}
+
+function availableScenarioPositions(playerCount: number): string[] {
+  if (playerCount <= 2) return ["BTN", "BB"];
+  if (playerCount === 3) return ["BTN", "SB", "BB"];
+  if (playerCount === 4) return ["BTN", "SB", "BB", "CO"];
+  if (playerCount === 5) return ["BTN", "SB", "BB", "UTG", "CO"];
+  return ["BTN", "SB", "BB", "UTG", "HJ", "CO"];
+}
+
+function dealerSeatForPosition(position: string, playerCount: number): number {
+  if (position === "BTN") return 0;
+  if (position === "SB") return playerCount - 1;
+  if (position === "BB") return playerCount - 2;
+  if (position === "UTG") return playerCount - 3;
+  if (position === "HJ") return playerCount - 4;
+  if (position === "CO") return 1;
+  return 0;
+}
+
 function PokerTable({
   game,
   aiBusy,
@@ -159,7 +193,10 @@ function PokerTable({
                 <CardView
                   key={cardIndex}
                   card={card}
-                  hidden={player.kind === "ai" && !reveal}
+                  hidden={
+                    player.kind === "ai" &&
+                    !(reveal && player.status !== "folded")
+                  }
                 />
               ))}
             </div>
@@ -754,6 +791,10 @@ function ScenarioView({
   const [stack, setStack] = useState(100);
   const [opponents, setOpponents] = useState(2);
   const [error, setError] = useState("");
+  const positionOptions = availableScenarioPositions(opponents + 1);
+  const effectivePosition = positionOptions.includes(position)
+    ? position
+    : "BTN";
   const start = () => {
     try {
       const heroCards = hole.trim() ? parseCards(hole) : undefined;
@@ -761,12 +802,7 @@ function ScenarioView({
         throw new Error("底牌必须正好两张");
       const boardCards = board.trim() ? parseCards(board) : [];
       const count = opponents + 1;
-      const dealerSeat =
-        position === "BTN"
-          ? 0
-          : position === "SB"
-            ? count - 1
-            : Math.max(0, count - 2);
+      const dealerSeat = dealerSeatForPosition(effectivePosition, count);
       const settings = {
         ...data.settings,
         seatCount: count,
@@ -834,12 +870,12 @@ function ScenarioView({
         <label>
           位置
           <select
-            value={position}
+            value={effectivePosition}
             onChange={(event) => setPosition(event.target.value)}
           >
-            <option>BTN</option>
-            <option>SB</option>
-            <option>BB</option>
+            {positionOptions.map((option) => (
+              <option key={option}>{option}</option>
+            ))}
           </select>
         </label>
         <label>
@@ -940,23 +976,26 @@ export function PokerTrainer() {
   const hero = game?.players.find((player) => player.id === HERO_ID);
   const pot = game ? tablePot(game) : 0;
   const toCall = game && hero ? amountToCall(game, hero) : 0;
+  const liveOpponentCount = game
+    ? Math.max(
+        1,
+        game.players.filter(
+          (player) => player.id !== HERO_ID && player.status !== "folded",
+        ).length,
+      )
+    : 1;
   const assessment = useMemo(
     () =>
-      game && hero && hero.holeCards.length === 2
+      game && !game.settled && hero && hero.holeCards.length === 2
         ? assessHand(
             hero.holeCards as [Card, Card],
             game.board,
-            Math.max(
-              1,
-              game.players.filter(
-                (player) => player.id !== HERO_ID && player.status !== "folded",
-              ).length,
-            ),
-            game.seed + game.actionSequence,
-            48,
+            liveOpponentCount,
+            game.seed + game.board.length * 997 + liveOpponentCount * 37,
+            240,
           )
         : null,
-    [game, hero],
+    [game, hero, liveOpponentCount],
   );
 
   useEffect(() => {
@@ -987,6 +1026,13 @@ export function PokerTrainer() {
             (player) => player.id !== actor.id && player.status !== "folded",
           )
           .map((player) => player.stack);
+        const preflopAggressorId = [...game.actions]
+          .reverse()
+          .find(
+            (record) =>
+              record.street === "preflop" &&
+              ["bet", "raise", "all-in"].includes(record.action.type),
+          )?.playerId;
         const userHands = data.stats.hands;
         const decision = decideAIAction(
           {
@@ -1007,10 +1053,7 @@ export function PokerTrainer() {
               actor.stack,
               Math.max(0, ...opponentStacks),
             ),
-            position:
-              game.players.length <= 1
-                ? 0.5
-                : actor.seat / (game.players.length - 1),
+            position: positionScore(actor.positionLabel),
             opponents: Math.max(
               1,
               game.players.filter(
@@ -1022,7 +1065,7 @@ export function PokerTrainer() {
               (player) => player.id !== actor.id && player.status === "all-in",
             ).length,
             legalActions,
-            wasPreflopAggressor: game.lastAggressorId === actor.id,
+            wasPreflopAggressor: preflopAggressorId === actor.id,
             userProfile: {
               sampleSize: userHands,
               foldRate: userHands
@@ -1158,6 +1201,30 @@ export function PokerTrainer() {
       : game.currentBet + game.minRaiseIncrement
     : 0;
   const maxRaiseTo = hero ? hero.streetContribution + hero.stack : 0;
+  const sizedActionType =
+    game?.currentBet === 0 ? ("bet" as const) : ("raise" as const);
+  const sizedActionValidation =
+    game && hero
+      ? validateAction(game, HERO_ID, {
+          type: sizedActionType,
+          amount: betAmount,
+        })
+      : null;
+  useEffect(() => {
+    if (!game || !hero || game.settled) return;
+    const minimum = Math.min(
+      hero.streetContribution + hero.stack,
+      game.currentBet === 0
+        ? game.bigBlind
+        : game.currentBet + game.minRaiseIncrement,
+    );
+    const maximum = hero.streetContribution + hero.stack;
+    setBetAmount((current) =>
+      !Number.isFinite(current) || current < minimum || current > maximum
+        ? minimum
+        : current,
+    );
+  }, [game, hero]);
   const potOdds = toCall > 0 ? toCall / (pot + toCall) : 0;
   const recommendedAction = !assessment
     ? "—"
@@ -1323,39 +1390,44 @@ export function PokerTrainer() {
                 <small>底池</small>
                 {formatChips(pot)} BB
               </span>
-              <span>
-                <small>跟注</small>
-                {formatChips(toCall)} BB
-              </span>
-              <span>
-                <small>最小加注到</small>
-                {formatChips(minRaiseTo)} BB
-              </span>
-              <span>
-                <small>有效筹码</small>
-                {formatChips(
-                  Math.min(
-                    hero?.stack ?? 0,
-                    Math.max(
-                      0,
-                      ...game.players
-                        .filter(
-                          (player) =>
-                            player.id !== HERO_ID && player.status !== "folded",
-                        )
-                        .map((player) => player.stack),
-                    ),
-                  ),
-                )}{" "}
-                BB
-              </span>
-              <span>
-                <small>SPR</small>
-                {pot ? ((hero?.stack ?? 0) / pot).toFixed(1) : "—"}
-              </span>
+              {!game.settled && (
+                <>
+                  <span>
+                    <small>跟注</small>
+                    {formatChips(toCall)} BB
+                  </span>
+                  <span>
+                    <small>最小加注到</small>
+                    {formatChips(minRaiseTo)} BB
+                  </span>
+                  <span>
+                    <small>有效筹码</small>
+                    {formatChips(
+                      Math.min(
+                        hero?.stack ?? 0,
+                        Math.max(
+                          0,
+                          ...game.players
+                            .filter(
+                              (player) =>
+                                player.id !== HERO_ID &&
+                                player.status !== "folded",
+                            )
+                            .map((player) => player.stack),
+                        ),
+                      ),
+                    )}{" "}
+                    BB
+                  </span>
+                  <span>
+                    <small>SPR</small>
+                    {pot ? ((hero?.stack ?? 0) / pot).toFixed(1) : "—"}
+                  </span>
+                </>
+              )}
               <span>
                 <small>位置 / 街</small>
-                {hero?.positionLabel} · {game.street}
+                {hero?.positionLabel || "—"} · {game.street}
               </span>
               <span>
                 <small>剩余玩家</small>
@@ -1366,7 +1438,26 @@ export function PokerTrainer() {
                   ).length
                 }
               </span>
-              {data.settings.showPotOdds && (
+              {game.settled && (
+                <>
+                  <span>
+                    <small>结果</small>
+                    {game.outcome?.reason === "showdown" ? "摊牌" : "弃牌结束"}
+                  </span>
+                  <span>
+                    <small>本手盈亏</small>
+                    {(hero?.stack ?? 0) - (hero?.startingStack ?? 0) >= 0
+                      ? "+"
+                      : ""}
+                    {formatChips(
+                      ((hero?.stack ?? 0) - (hero?.startingStack ?? 0)) /
+                        game.bigBlind,
+                    )}{" "}
+                    BB
+                  </span>
+                </>
+              )}
+              {!game.settled && data.settings.showPotOdds && (
                 <span>
                   <small>底池赔率</small>
                   {toCall
@@ -1374,31 +1465,32 @@ export function PokerTrainer() {
                     : "0%"}
                 </span>
               )}
-              {data.settings.showEquity && assessment && (
+              {!game.settled && data.settings.showEquity && assessment && (
                 <span>
-                  <small>粗略胜率</small>
+                  <small>粗略胜率</small>≈{" "}
                   {(assessment.equityEstimate * 100).toFixed(0)}%
                 </span>
               )}
-              {data.settings.showOuts && assessment && (
+              {!game.settled && data.settings.showOuts && assessment && (
                 <span>
                   <small>估算 Outs</small>≈{" "}
                   {Math.round(assessment.drawStrength * 16)}
                 </span>
               )}
-              {data.settings.showRecommendedAction && (
+              {!game.settled && data.settings.showRecommendedAction && (
                 <span>
                   <small>可选建议</small>
                   {recommendedAction}
                 </span>
               )}
-              {data.settings.showRecommendedSizing && (
+              {!game.settled && data.settings.showRecommendedSizing && (
                 <span>
                   <small>参考尺度</small>
                   {formatChips(recommendedSizing)} BB
                 </span>
               )}
-              {data.settings.showBoardWarnings &&
+              {!game.settled &&
+                data.settings.showBoardWarnings &&
                 assessment &&
                 assessment.boardDanger > 0.58 && (
                   <span>
@@ -1477,7 +1569,7 @@ export function PokerTrainer() {
                       type="range"
                       min={Math.min(minRaiseTo, maxRaiseTo)}
                       max={maxRaiseTo}
-                      step={data.settings.smallBlind}
+                      step={0.01}
                       value={Math.min(maxRaiseTo, Math.max(0, betAmount))}
                       onChange={(event) =>
                         setBetAmount(Number(event.target.value))
@@ -1486,15 +1578,28 @@ export function PokerTrainer() {
                     <input
                       aria-label="下注总额"
                       type="number"
-                      min={0}
+                      min={Math.min(minRaiseTo, maxRaiseTo)}
                       max={maxRaiseTo}
-                      step={data.settings.smallBlind}
+                      step={0.01}
                       value={betAmount}
+                      aria-invalid={
+                        game.actingPlayerId === HERO_ID &&
+                        sizedActionValidation?.legal === false
+                      }
                       onChange={(event) =>
                         setBetAmount(Number(event.target.value))
                       }
                     />
                   </div>
+                  {game.actingPlayerId === HERO_ID &&
+                    sizedActionValidation?.legal === false && (
+                      <small className="sizing-error" role="status">
+                        {sizedActionValidation.reason}
+                        {sizedActionValidation.nearestLegalAmount !== undefined
+                          ? `；最近合法值 ${formatChips(sizedActionValidation.nearestLegalAmount)} BB`
+                          : ""}
+                      </small>
+                    )}
                 </div>
                 <div className="action-buttons">
                   <button
@@ -1524,16 +1629,16 @@ export function PokerTrainer() {
                   <button
                     disabled={
                       game.actingPlayerId !== HERO_ID ||
-                      !(game.currentBet === 0 ? legal?.bet : legal?.raise)
+                      !sizedActionValidation?.legal
                     }
                     onClick={() =>
                       humanAction({
-                        type: game.currentBet === 0 ? "bet" : "raise",
+                        type: sizedActionType,
                         amount: betAmount,
                       })
                     }
                   >
-                    {game.currentBet === 0 ? "Bet" : "Raise"}{" "}
+                    {sizedActionType === "bet" ? "Bet" : "Raise"}{" "}
                     <kbd aria-hidden="true">R</kbd>
                   </button>
                   <button

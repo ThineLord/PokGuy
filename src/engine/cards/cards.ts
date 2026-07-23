@@ -50,19 +50,21 @@ export function parseCard(token: string): Card {
 }
 
 export function parseCards(tokens: string): Card[] {
-  return tokens
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .map(parseCard);
+  return tokens.trim().split(/\s+/).filter(Boolean).map(parseCard);
 }
 
 export function assertUniqueCards(cards: Card[]): void {
   const ids = new Set(cards.map(cardId));
-  if (ids.size !== cards.length) throw new Error("Duplicate cards are not allowed");
+  if (ids.size !== cards.length)
+    throw new Error("Duplicate cards are not allowed");
 }
 
 export function rankLabel(rank: Rank): string {
-  const faces: Partial<Record<Rank, string>> = { 10: "T", 11: "J", 12: "Q", 13: "K", 14: "A" };
-  return rank <= 9 ? String(rank) : faces[rank]!;
+  const faces: Partial<Record<Rank, string>> = {
+    11: "J",
+    12: "Q",
+    13: "K",
+    14: "A",
+  };
+  return rank <= 10 ? String(rank) : faces[rank]!;
 }

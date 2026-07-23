@@ -1,4 +1,7 @@
-import { validateAction } from "@/src/engine/betting/actionValidator";
+import {
+  legalActionsFor,
+  validateAction,
+} from "@/src/engine/betting/actionValidator";
 import { applyBettingAction } from "@/src/engine/betting/bettingEngine";
 import type { BettingRoundState } from "@/src/engine/betting/types";
 
@@ -12,9 +15,36 @@ function state(overrides: Partial<BettingRoundState> = {}): BettingRoundState {
     actionSequence: 0,
     lastAggressorId: "b",
     players: [
-      { id: "a", seat: 0, stack: 100, streetContribution: 0, totalContribution: 0, status: "active", acted: false, lastActedBet: 0 },
-      { id: "b", seat: 1, stack: 90, streetContribution: 10, totalContribution: 10, status: "active", acted: true, lastActedBet: 10 },
-      { id: "c", seat: 2, stack: 90, streetContribution: 10, totalContribution: 10, status: "active", acted: true, lastActedBet: 10 },
+      {
+        id: "a",
+        seat: 0,
+        stack: 100,
+        streetContribution: 0,
+        totalContribution: 0,
+        status: "active",
+        acted: false,
+        lastActedBet: 0,
+      },
+      {
+        id: "b",
+        seat: 1,
+        stack: 90,
+        streetContribution: 10,
+        totalContribution: 10,
+        status: "active",
+        acted: true,
+        lastActedBet: 10,
+      },
+      {
+        id: "c",
+        seat: 2,
+        stack: 90,
+        streetContribution: 10,
+        totalContribution: 10,
+        status: "active",
+        acted: true,
+        lastActedBet: 10,
+      },
     ],
     ...overrides,
   };
@@ -22,24 +52,43 @@ function state(overrides: Partial<BettingRoundState> = {}): BettingRoundState {
 
 describe("action validator", () => {
   it("rejects check when facing a bet", () => {
-    expect(validateAction(state(), "a", { type: "check" })).toMatchObject({ legal: false });
+    expect(validateAction(state(), "a", { type: "check" })).toMatchObject({
+      legal: false,
+    });
   });
 
   it("rejects call when nothing is owed", () => {
-    expect(validateAction(state({ currentBet: 0 }), "a", { type: "call" })).toMatchObject({ legal: false });
+    expect(
+      validateAction(state({ currentBet: 0 }), "a", { type: "call" }),
+    ).toMatchObject({ legal: false });
   });
 
   it("rejects a raise below the minimum and suggests the nearest total", () => {
-    expect(validateAction(state(), "a", { type: "raise", amount: 15 })).toMatchObject({
+    expect(
+      validateAction(state(), "a", { type: "raise", amount: 15 }),
+    ).toMatchObject({
       legal: false,
       nearestLegalAmount: 20,
+    });
+  });
+
+  it("offers a legal minimum bet or raise to automated players", () => {
+    expect(legalActionsFor(state({ currentBet: 0 }), "a").bet).toMatchObject({
+      legal: true,
+      minRaiseTo: 10,
+    });
+    expect(legalActionsFor(state(), "a").raise).toMatchObject({
+      legal: true,
+      minRaiseTo: 20,
     });
   });
 
   it("allows a short stack all-in below the normal minimum", () => {
     const short = state();
     short.players[0].stack = 15;
-    expect(validateAction(short, "a", { type: "raise", amount: 15 })).toMatchObject({
+    expect(
+      validateAction(short, "a", { type: "raise", amount: 15 }),
+    ).toMatchObject({
       legal: true,
       reopensBetting: false,
     });
@@ -50,7 +99,9 @@ describe("action validator", () => {
     round.players[0].stack = 15;
     round = applyBettingAction(round, "a", { type: "all-in" });
     round.actingPlayerId = "b";
-    expect(validateAction(round, "b", { type: "raise", amount: 30 })).toMatchObject({
+    expect(
+      validateAction(round, "b", { type: "raise", amount: 30 }),
+    ).toMatchObject({
       legal: false,
       reason: "Betting has not been reopened",
     });
@@ -61,7 +112,9 @@ describe("action validator", () => {
     const round = state({ currentBet: 20, actingPlayerId: "b" });
     round.players[1].acted = true;
     round.players[1].lastActedBet = 10;
-    expect(validateAction(round, "b", { type: "raise", amount: 30 }).legal).toBe(true);
+    expect(
+      validateAction(round, "b", { type: "raise", amount: 30 }).legal,
+    ).toBe(true);
   });
 
   it("keeps the original minimum increment after a short all-in raise", () => {

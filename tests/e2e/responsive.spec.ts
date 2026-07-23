@@ -85,5 +85,7 @@ test("desktop keyboard shortcut can fold without stealing input keystrokes", asy
   await expect(page.getByRole("button", { name: "下一手" })).toHaveCount(0);
   await amount.evaluate((element) => (element as HTMLInputElement).blur());
   await page.keyboard.press("f");
-  await expect(page.getByRole("button", { name: "下一手" })).toBeVisible();
+  await expect(
+    page.locator('article[aria-label^="Hero，"]').filter({ hasText: "fold" }),
+  ).toBeVisible();
 });

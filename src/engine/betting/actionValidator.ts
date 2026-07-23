@@ -7,7 +7,10 @@ import type {
 
 const EPSILON = 1e-9;
 
-export function amountToCall(state: BettingRoundState, player: BettingPlayer): number {
+export function amountToCall(
+  state: BettingRoundState,
+  player: BettingPlayer,
+): number {
   return Math.max(0, state.currentBet - player.streetContribution);
 }
 
@@ -19,18 +22,37 @@ export function isBettingReopened(
   state: BettingRoundState,
   player: BettingPlayer,
 ): boolean {
-  return !player.acted || state.currentBet - player.lastActedBet + EPSILON >= state.minRaiseIncrement;
+  return (
+    !player.acted ||
+    state.currentBet - player.lastActedBet + EPSILON >= state.minRaiseIncrement
+  );
 }
 
 export function legalActionsFor(
   state: BettingRoundState,
   playerId: string,
 ): Record<string, ActionValidation> {
+  const player = state.players.find((candidate) => candidate.id === playerId);
+  const minimumTarget =
+    state.currentBet === 0
+      ? state.bigBlind
+      : state.currentBet + state.minRaiseIncrement;
+  const sizedTarget = player
+    ? Math.min(maxRaiseTo(player), minimumTarget)
+    : minimumTarget;
   return Object.fromEntries(
-    (["fold", "check", "call", "bet", "raise", "all-in"] as const).map((type) => [
-      type,
-      validateAction(state, playerId, { type }),
-    ]),
+    (["fold", "check", "call", "bet", "raise", "all-in"] as const).map(
+      (type) => [
+        type,
+        validateAction(
+          state,
+          playerId,
+          type === "bet" || type === "raise"
+            ? { type, amount: sizedTarget }
+            : { type },
+        ),
+      ],
+    ),
   );
 }
 
@@ -43,10 +65,19 @@ export function validateAction(
   if (!player) return invalid("Unknown player", 0, null, 0);
   const toCall = amountToCall(state, player);
   const maximum = maxRaiseTo(player);
-  const minRaiseTo = state.currentBet === 0 ? state.bigBlind : state.currentBet + state.minRaiseIncrement;
-  const base = { toCall, minRaiseTo, maxRaiseTo: maximum, reopensBetting: false };
+  const minRaiseTo =
+    state.currentBet === 0
+      ? state.bigBlind
+      : state.currentBet + state.minRaiseIncrement;
+  const base = {
+    toCall,
+    minRaiseTo,
+    maxRaiseTo: maximum,
+    reopensBetting: false,
+  };
 
-  if (state.actingPlayerId !== playerId) return { ...base, legal: false, reason: "Not this player's turn" };
+  if (state.actingPlayerId !== playerId)
+    return { ...base, legal: false, reason: "Not this player's turn" };
   if (player.status !== "active" || player.stack <= 0) {
     return { ...base, legal: false, reason: "Player cannot act" };
   }
@@ -66,27 +97,59 @@ export function validateAction(
     case "raise": {
       const expectedType = state.currentBet === 0 ? "bet" : "raise";
       if (action.type !== expectedType) {
-        return { ...base, legal: false, reason: `Action must be ${expectedType}` };
+        return {
+          ...base,
+          legal: false,
+          reason: `Action must be ${expectedType}`,
+        };
       }
       if (!isBettingReopened(state, player)) {
-        return { ...base, legal: false, reason: "Betting has not been reopened" };
+        return {
+          ...base,
+          legal: false,
+          reason: "Betting has not been reopened",
+        };
       }
       if (action.amount === undefined || !Number.isFinite(action.amount)) {
-        return { ...base, legal: false, reason: "A target total is required", nearestLegalAmount: Math.min(minRaiseTo, maximum) };
+        return {
+          ...base,
+          legal: false,
+          reason: "A target total is required",
+          nearestLegalAmount: Math.min(minRaiseTo, maximum),
+        };
       }
       if (action.amount > maximum + EPSILON) {
-        return { ...base, legal: false, reason: "Amount exceeds stack", nearestLegalAmount: maximum };
+        return {
+          ...base,
+          legal: false,
+          reason: "Amount exceeds stack",
+          nearestLegalAmount: maximum,
+        };
       }
       if (action.amount <= state.currentBet + EPSILON) {
-        return { ...base, legal: false, reason: "Raise must exceed the current bet", nearestLegalAmount: Math.min(minRaiseTo, maximum) };
+        return {
+          ...base,
+          legal: false,
+          reason: "Raise must exceed the current bet",
+          nearestLegalAmount: Math.min(minRaiseTo, maximum),
+        };
       }
-      if (action.amount + EPSILON < minRaiseTo && action.amount + EPSILON < maximum) {
-        return { ...base, legal: false, reason: `Minimum legal total is ${minRaiseTo}`, nearestLegalAmount: Math.min(minRaiseTo, maximum) };
+      if (
+        action.amount + EPSILON < minRaiseTo &&
+        action.amount + EPSILON < maximum
+      ) {
+        return {
+          ...base,
+          legal: false,
+          reason: `Minimum legal total is ${minRaiseTo}`,
+          nearestLegalAmount: Math.min(minRaiseTo, maximum),
+        };
       }
       return {
         ...base,
         legal: true,
-        reopensBetting: action.amount - state.currentBet + EPSILON >= state.minRaiseIncrement,
+        reopensBetting:
+          action.amount - state.currentBet + EPSILON >= state.minRaiseIncrement,
       };
     }
     case "all-in": {
@@ -95,12 +158,18 @@ export function validateAction(
       }
       const raises = maximum > state.currentBet + EPSILON;
       if (raises && !isBettingReopened(state, player)) {
-        return { ...base, legal: false, reason: "Betting has not been reopened; all-in may only call" };
+        return {
+          ...base,
+          legal: false,
+          reason: "Betting has not been reopened; all-in may only call",
+        };
       }
       return {
         ...base,
         legal: true,
-        reopensBetting: raises && maximum - state.currentBet + EPSILON >= state.minRaiseIncrement,
+        reopensBetting:
+          raises &&
+          maximum - state.currentBet + EPSILON >= state.minRaiseIncrement,
       };
     }
   }
@@ -112,5 +181,12 @@ function invalid(
   minRaiseTo: number | null,
   max: number,
 ): ActionValidation {
-  return { legal: false, reason, toCall, minRaiseTo, maxRaiseTo: max, reopensBetting: false };
+  return {
+    legal: false,
+    reason,
+    toCall,
+    minRaiseTo,
+    maxRaiseTo: max,
+    reopensBetting: false,
+  };
 }

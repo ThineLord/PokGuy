@@ -1,4 +1,4 @@
-import { cardId } from "@/src/engine/cards/cards";
+import { cardId, rankLabel } from "@/src/engine/cards/cards";
 import { createDeck, shuffleDeck } from "@/src/engine/deck/deck";
 import { SeededRandom } from "@/src/engine/deck/random";
 
@@ -13,7 +13,9 @@ describe("deck", () => {
     const original = createDeck();
     const shuffled = shuffleDeck(original, new SeededRandom(42));
     expect(new Set(shuffled.map(cardId)).size).toBe(52);
-    expect([...shuffled].map(cardId).sort()).toEqual(original.map(cardId).sort());
+    expect([...shuffled].map(cardId).sort()).toEqual(
+      original.map(cardId).sort(),
+    );
     expect(shuffled).not.toEqual(original);
   });
 
@@ -21,5 +23,13 @@ describe("deck", () => {
     const first = shuffleDeck(createDeck(), new SeededRandom(2026));
     const second = shuffleDeck(createDeck(), new SeededRandom(2026));
     expect(second).toEqual(first);
+  });
+
+  it("uses familiar face labels without leaking internal rank numbers", () => {
+    expect(
+      [2, 9, 10, 11, 12, 13, 14].map((rank) =>
+        rankLabel(rank as Parameters<typeof rankLabel>[0]),
+      ),
+    ).toEqual(["2", "9", "10", "J", "Q", "K", "A"]);
   });
 });

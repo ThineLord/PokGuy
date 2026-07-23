@@ -73,6 +73,7 @@ button:disabled { cursor: not-allowed; opacity: 0.38; }
 .playing-card small { align-self: flex-end; font-size: 16px; }
 .playing-card.red-card { color: #bd3c4e; }
 .playing-card.card-back { align-items: center; justify-content: center; border-color: #527089; background: repeating-linear-gradient(45deg, #14283a, #14283a 5px, #1b354c 5px, #1b354c 10px); color: #7d9bb1; font-size: 13px; }
+.playing-card.card-placeholder { border-style: dashed; border-color: #6f8a841f; background: #07120f52; box-shadow: none; }
 .street-label { margin: 0; color: #69a494; font-size: 9px; font-weight: 700; letter-spacing: .24em; }
 .seat { position: absolute; z-index: 4; width: 168px; border: 1px solid #ffffff13; border-radius: 13px; background: #0b121ddd; padding: 10px; box-shadow: 0 10px 24px #0006; transition: border-color .18s, transform .18s, opacity .18s; backdrop-filter: blur(9px); }
 .seat.is-acting { border-color: #52d5a3aa; box-shadow: 0 0 0 2px #52d5a31f, 0 10px 28px #0008; }
@@ -109,6 +110,7 @@ button:disabled { cursor: not-allowed; opacity: 0.38; }
 .sizing-input { display: grid; grid-template-columns: 1fr 76px; gap: 8px; }
 .sizing-input input[type="number"], .form-grid input, .form-grid select, .scenario-grid input, .scenario-grid select, .note-field textarea { min-width: 0; border: 1px solid #ffffff15; border-radius: 8px; background: #0c1420; padding: 9px 10px; color: #edf3f8; }
 .sizing-input input[type="range"], .range-row input { accent-color: #43c695; }
+.sizing-error { display: block; margin-top: 6px; color: #eb8c96; font-size: 9px; }
 .action-buttons { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
 .action-buttons button, .primary-button { min-height: 42px; border: 1px solid #ffffff16; border-radius: 9px; background: #141e2b; color: #c6d1de; font-size: 11px; font-weight: 650; }
 .action-buttons button:nth-last-child(2), .primary-button { border-color: #3bbb8b55; background: #123c31; color: #71e0b8; }
@@ -478,6 +480,7 @@ button {
   }
 
   .action-buttons {
+    order: -1;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 7px;
   }
