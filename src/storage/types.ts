@@ -2,6 +2,8 @@ import type { PokerPersonality } from "../ai/types";
 import type { OpponentHabitStats } from "../ai/types";
 import type { PokerGameState } from "../engine/state/gameState";
 
+export type DeckTheme = "river-current" | "burgundy-weave" | "graphite";
+
 export interface AppSettings {
   playerName: string;
   seatCount: number;
@@ -11,6 +13,7 @@ export interface AppSettings {
   selectedAiIds: string[];
   animations: boolean;
   animationSpeed: "fast" | "normal" | "slow";
+  deckTheme: DeckTheme;
   autoAi: boolean;
   aiDelayMs: number;
   showEquity: boolean;

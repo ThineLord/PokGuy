@@ -26,6 +26,7 @@ import {
   defaultData,
   EMPTY_STATS,
   loadData,
+  migrateData,
   saveData,
 } from "../../storage/storage";
 import type {
@@ -44,24 +45,47 @@ const suitGlyph: Record<Card["suit"], string> = {
   spades: "♠",
 };
 
-function CardView({ card, hidden = false }: { card?: Card; hidden?: boolean }) {
+function CardView({
+  card,
+  hidden = false,
+  className = "",
+}: {
+  card?: Card;
+  hidden?: boolean;
+  className?: string;
+}) {
   if (hidden)
-    return <span className="playing-card card-back" aria-label="牌背" />;
+    return (
+      <span className={`playing-card card-back ${className}`} aria-label="牌背">
+        <span className="card-back-pattern" aria-hidden="true" />
+      </span>
+    );
   if (!card)
     return (
       <span
-        className="playing-card card-placeholder"
+        className={`playing-card card-placeholder ${className}`}
         aria-label="尚未发出的公共牌"
       />
     );
   const red = card.suit === "hearts" || card.suit === "diamonds";
+  const label = rankLabel(card.rank);
+  const suit = suitGlyph[card.suit];
   return (
     <span
-      className={`playing-card ${red ? "red-card" : ""}`}
-      aria-label={`${rankLabel(card.rank)} ${card.suit}`}
+      className={`playing-card card-face ${red ? "red-card" : ""} ${className}`}
+      aria-label={`${label} ${card.suit}`}
     >
-      {rankLabel(card.rank)}
-      <small>{suitGlyph[card.suit]}</small>
+      <span className="card-corner card-corner-top" aria-hidden="true">
+        <strong>{label}</strong>
+        <small>{suit}</small>
+      </span>
+      <span className="card-center-suit" aria-hidden="true">
+        {suit}
+      </span>
+      <span className="card-corner card-corner-bottom" aria-hidden="true">
+        <strong>{label}</strong>
+        <small>{suit}</small>
+      </span>
     </span>
   );
 }
@@ -160,44 +184,125 @@ function PokerTable({
   aiBusy: boolean;
 }) {
   const reveal = game.settled && game.outcome?.reason === "showdown";
+  const lastRecord = game.actions.at(-1);
+  const lastActorId = lastRecord?.playerId;
+  const sidePotCount =
+    game.outcome?.pots
+      .slice(1)
+      .filter((sidePot) => sidePot.contributors.length > 1).length ?? 0;
+  const winnerIds = game.outcome?.showdown
+    ? [
+        ...new Set(
+          game.outcome.showdown.awards
+            .filter((award) => award.pot.contributors.length > 1)
+            .flatMap((award) => award.winnerIds),
+        ),
+      ]
+    : Object.entries(game.outcome?.payouts ?? {})
+        .filter(([, amount]) => amount > 0)
+        .map(([id]) => id);
+  const winnerNames = winnerIds
+    .map((id) => game.players.find((player) => player.id === id)?.name)
+    .filter(Boolean)
+    .join(" / ");
+  const [showShuffle, setShowShuffle] = useState(true);
+  useEffect(() => {
+    setShowShuffle(true);
+    const timer = window.setTimeout(() => setShowShuffle(false), 1500);
+    return () => window.clearTimeout(timer);
+  }, [game.handId]);
   return (
-    <div className="poker-table" aria-label="德州扑克牌桌">
+    <div
+      className={`poker-table street-${game.street} ${game.settled ? "is-settled" : ""}`}
+      aria-label="德州扑克牌桌"
+    >
+      <div className="table-rail" aria-hidden="true" />
+      {showShuffle && (
+        <div
+          className="shuffle-theater"
+          key={`shuffle-${game.handId}`}
+          aria-hidden="true"
+        >
+          <span />
+          <span />
+          <span />
+          <span />
+          <i>洗牌</i>
+        </div>
+      )}
       <div className="table-center">
         <div className="pot-pill">
-          底池 <strong>{formatChips(tablePot(game))} BB</strong>
+          <span className="pot-stack" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+          <span>
+            底池 <strong>{formatChips(tablePot(game))} BB</strong>
+          </span>
+          {sidePotCount > 0 && <small>{sidePotCount} 个边池</small>}
         </div>
         <div className="community-cards" aria-label="公共牌">
-          {Array.from({ length: 5 }, (_, index) => (
-            <CardView key={index} card={game.board[index]} />
-          ))}
+          {Array.from({ length: 5 }, (_, index) => {
+            const card = game.board[index];
+            return (
+              <span
+                className={`board-card-slot ${card ? "has-card street-reveal" : ""}`}
+                key={card ? `${card.rank}-${card.suit}` : `slot-${index}`}
+                style={{ animationDelay: `${index < 3 ? index * 75 : 0}ms` }}
+              >
+                <CardView card={card} />
+              </span>
+            );
+          })}
         </div>
         <p className="street-label">
           {game.street === "complete" ? "本手结束" : game.street.toUpperCase()}
         </p>
+        {game.settled && game.outcome && (
+          <div className="pot-award" key={`award-${game.handId}`} role="status">
+            <span aria-hidden="true">● ● ●</span>
+            {winnerNames ? `${winnerNames} · ` : ""}
+            {game.outcome.reason === "showdown" ? "摊牌结算" : "弃牌获胜"}
+          </div>
+        )}
       </div>
       {game.players.map((player, index) => {
         const active = game.actingPlayerId === player.id;
         const seatClass = `seat seat-${index}-${game.players.length}`;
+        const isLastActor = lastActorId === player.id;
         return (
           <article
             key={player.id}
-            className={`${seatClass} ${active ? "is-acting" : ""} ${player.status === "folded" ? "is-folded" : ""}`}
+            className={`${seatClass} ${active ? "is-acting" : ""} ${isLastActor ? "is-last-actor" : ""} ${player.status === "folded" ? "is-folded" : ""}`}
             aria-label={`${player.name}，筹码 ${formatChips(player.stack)}`}
           >
+            {player.positionLabel.startsWith("BTN") && (
+              <span className="dealer-button" aria-label="庄家按钮">
+                D
+              </span>
+            )}
             <div className="seat-topline">
               <strong>{player.name}</strong>
               <span>{player.positionLabel}</span>
             </div>
             <div className="hole-cards">
               {player.holeCards.map((card, cardIndex) => (
-                <CardView
-                  key={cardIndex}
-                  card={card}
-                  hidden={
-                    player.kind === "ai" &&
-                    !(reveal && player.status !== "folded")
-                  }
-                />
+                <span
+                  className="dealt-card"
+                  key={`${game.handId}-${cardIndex}`}
+                  style={{
+                    animationDelay: `${110 + (cardIndex * game.players.length + index) * 42}ms`,
+                  }}
+                >
+                  <CardView
+                    card={card}
+                    hidden={
+                      player.kind === "ai" &&
+                      !(reveal && player.status !== "folded")
+                    }
+                  />
+                </span>
               ))}
             </div>
             <div className="seat-meta">
@@ -210,8 +315,25 @@ function PokerTable({
               </span>
             </div>
             {player.streetContribution > 0 && (
-              <span className="seat-bet">
-                投入 {formatChips(player.streetContribution)}
+              <span
+                className="seat-bet"
+                key={`${game.actionSequence}-${player.streetContribution}`}
+              >
+                <span className="mini-chip-stack" aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+                <span>投入 {formatChips(player.streetContribution)}</span>
+              </span>
+            )}
+            {isLastActor && player.lastAction && (
+              <span
+                className="action-callout"
+                key={`${game.actionSequence}-${player.id}`}
+                aria-hidden="true"
+              >
+                {player.lastAction}
               </span>
             )}
           </article>
@@ -496,6 +618,27 @@ function SettingsView({
     "adaptability",
     "variance",
   ] as const;
+  const deckThemes: {
+    id: AppSettings["deckTheme"];
+    name: string;
+    description: string;
+  }[] = [
+    {
+      id: "river-current",
+      name: "深海流纹",
+      description: "蓝绿雕版 · 默认",
+    },
+    {
+      id: "burgundy-weave",
+      name: "酒红编织",
+      description: "经典亚麻纹理",
+    },
+    {
+      id: "graphite",
+      name: "石墨构造",
+      description: "现代碳纤几何",
+    },
+  ];
 
   return (
     <div className="settings-layout">
@@ -627,6 +770,34 @@ function SettingsView({
             </label>
           ))}
         </div>
+        <div className="deck-theme-setting">
+          <div>
+            <strong>牌背收藏</strong>
+            <small>仅改变视觉，不影响发牌与概率</small>
+          </div>
+          <div className="deck-theme-grid" role="group" aria-label="选择牌背">
+            {deckThemes.map((theme) => (
+              <button
+                type="button"
+                key={theme.id}
+                className={
+                  data.settings.deckTheme === theme.id ? "selected" : ""
+                }
+                aria-pressed={data.settings.deckTheme === theme.id}
+                onClick={() => updateSettings({ deckTheme: theme.id })}
+              >
+                <span
+                  className={`deck-preview deck-preview-${theme.id}`}
+                  aria-hidden="true"
+                />
+                <span>
+                  <strong>{theme.name}</strong>
+                  <small>{theme.description}</small>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
       </section>
       <section className="panel settings-section">
         <div className="panel-heading">
@@ -738,11 +909,13 @@ function SettingsView({
               if (!file) return;
               try {
                 const parsed = JSON.parse(await file.text());
-                replaceData({
-                  ...data,
-                  settings: { ...data.settings, ...(parsed.settings ?? {}) },
-                  aiProfiles: parsed.aiProfiles ?? data.aiProfiles,
-                });
+                replaceData(
+                  migrateData({
+                    ...data,
+                    settings: { ...data.settings, ...(parsed.settings ?? {}) },
+                    aiProfiles: parsed.aiProfiles ?? data.aiProfiles,
+                  }),
+                );
               } catch {
                 window.alert("无法读取该设置文件");
               }
@@ -1322,7 +1495,7 @@ export function PokerTrainer() {
 
   return (
     <main
-      className={`app-shell ${data.settings.animations ? `speed-${data.settings.animationSpeed}` : "animations-off"}`}
+      className={`app-shell deck-${data.settings.deckTheme} ${data.settings.animations ? `speed-${data.settings.animationSpeed}` : "animations-off"}`}
     >
       <header className="topbar">
         <button className="brand" onClick={() => setView("table")}>

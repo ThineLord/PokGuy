@@ -189,9 +189,14 @@ test("edit AI settings, persist after reload, and export hands", async ({
   await page.getByRole("button", { name: "设置" }).click();
   await page.getByLabel("玩家名称").fill("River Hero");
   await page.getByLabel("玩家名称").press("Tab");
+  await page.getByRole("button", { name: /石墨构造/ }).click();
   await page.reload();
   await page.getByRole("button", { name: "设置" }).click();
   await expect(page.getByLabel("玩家名称")).toHaveValue("River Hero");
+  await expect(page.getByRole("button", { name: /石墨构造/ })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
   const download = page.waitForEvent("download");
   await page.getByRole("button", { name: "导出牌局记录" }).click();
   await expect((await download).suggestedFilename()).toBe(

@@ -4,6 +4,7 @@ import type { PokerGameState } from "../engine/state/gameState";
 import type {
   AggregateStats,
   AppSettings,
+  DeckTheme,
   PersistedData,
   StoredHand,
 } from "./types";
@@ -19,6 +20,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   selectedAiIds: ["tag", "lag", "rock", "station", "grinder"],
   animations: true,
   animationSpeed: "normal",
+  deckTheme: "river-current",
   autoAi: true,
   aiDelayMs: 420,
   showEquity: false,
@@ -47,6 +49,18 @@ export const EMPTY_STATS: AggregateStats = {
   byPosition: {},
 };
 
+const DECK_THEMES: DeckTheme[] = [
+  "river-current",
+  "burgundy-weave",
+  "graphite",
+];
+
+function validDeckTheme(value: unknown): DeckTheme {
+  return DECK_THEMES.includes(value as DeckTheme)
+    ? (value as DeckTheme)
+    : DEFAULT_SETTINGS.deckTheme;
+}
+
 export function defaultData(): PersistedData {
   return {
     version: 2,
@@ -71,7 +85,11 @@ export function migrateData(raw: unknown): PersistedData {
   const candidate = raw as Partial<PersistedData>;
   return {
     version: 2,
-    settings: { ...defaults.settings, ...(candidate.settings ?? {}) },
+    settings: {
+      ...defaults.settings,
+      ...(candidate.settings ?? {}),
+      deckTheme: validDeckTheme(candidate.settings?.deckTheme),
+    },
     aiProfiles:
       Array.isArray(candidate.aiProfiles) && candidate.aiProfiles.length >= 8
         ? candidate.aiProfiles
