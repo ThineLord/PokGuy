@@ -1,7 +1,6 @@
 import { amountToCall, validateAction } from "./actionValidator";
 import type { BettingPlayer, BettingRoundState, PokerAction } from "./types";
-
-const CHIP_EPSILON = 1e-9;
+import { CHIP_EPSILON, normalizeChips } from "../chips/chips";
 
 function nextActivePlayerId(
   state: BettingRoundState,
@@ -45,25 +44,27 @@ export function applyBettingAction(
   let target = actor.streetContribution;
 
   if (action.type === "call")
-    target += Math.min(validation.toCall, actor.stack);
-  if (action.type === "bet" || action.type === "raise") target = action.amount!;
-  if (action.type === "all-in") target = actor.streetContribution + actor.stack;
+    target = normalizeChips(target + Math.min(validation.toCall, actor.stack));
+  if (action.type === "bet" || action.type === "raise")
+    target = normalizeChips(action.amount!);
+  if (action.type === "all-in")
+    target = normalizeChips(actor.streetContribution + actor.stack);
 
-  const paid = Math.max(0, target - actor.streetContribution);
-  const raiseIncrement = Math.max(0, target - previousBet);
+  const paid = normalizeChips(Math.max(0, target - actor.streetContribution));
+  const raiseIncrement = normalizeChips(Math.max(0, target - previousBet));
   const fullRaise =
     target > previousBet && raiseIncrement >= state.minRaiseIncrement;
 
   let players = state.players.map((player): BettingPlayer => {
     if (player.id === playerId) {
-      const rawRemaining = player.stack - paid;
+      const rawRemaining = normalizeChips(player.stack - paid);
       const remaining =
         Math.abs(rawRemaining) <= CHIP_EPSILON ? 0 : rawRemaining;
       return {
         ...player,
         stack: remaining,
         streetContribution: target,
-        totalContribution: player.totalContribution + paid,
+        totalContribution: normalizeChips(player.totalContribution + paid),
         status:
           action.type === "fold"
             ? "folded"
@@ -79,7 +80,7 @@ export function applyBettingAction(
     return player;
   });
 
-  const currentBet = Math.max(previousBet, target);
+  const currentBet = normalizeChips(Math.max(previousBet, target));
   const minRaiseIncrement = fullRaise
     ? raiseIncrement
     : state.minRaiseIncrement;

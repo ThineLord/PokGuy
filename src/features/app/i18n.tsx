@@ -177,6 +177,9 @@ const ENGLISH: Record<string, string> = {
   返回现金桌: "Return to cash game",
   重新开局: "Restart session",
   重新买入: "Rebuy",
+  等待本手结束后才能重新买入:
+    "A rebuy can only take effect after the current hand ends",
+  当前筹码不低于买入目标: "Your stack is already at or above the buy-in target",
   跟注: "Call",
   最小加注到: "Minimum raise-to",
   "位置 / 街": "Position / street",
@@ -192,7 +195,25 @@ const ENGLISH: Record<string, string> = {
   牌面提示: "Board warning",
   危险度较高: "Coordinated board",
   本手已结算: "Hand settled",
+  本手正式结束: "HAND OFFICIALLY COMPLETE",
   摊牌完成: "Showdown complete",
+  "只剩一手活牌，底池已直接推送":
+    "Only one live hand remains; the pot has been pushed",
+  "All-in 后无后续下注，公共牌已发完并摊牌":
+    "All betting closed after an all-in; the board ran out and hands were shown",
+  "河牌下注完成，所有活牌已摊牌比较":
+    "River betting is complete; all live hands were compared",
+  结算检查: "Settlement checks",
+  赢家已经确定: "Winner determined",
+  主池和边池已经分别结算: "Main and side pots awarded separately",
+  无人跟注筹码已经退回: "Uncalled chips returned",
+  筹码已经到账: "Payouts added to stacks",
+  本桌训练结束: "TABLE SESSION COMPLETE",
+  "你的筹码为 0，请重新买入后继续":
+    "Your stack is zero; rebuy before continuing",
+  桌上只剩一名有筹码玩家: "Only one funded player remains at the table",
+  重新买入并继续: "Rebuy and continue",
+  筹码归零: "Stack exhausted",
   新场景: "New scenario",
   下一手: "Next hand",
   玩家操作区: "Player action controls",

@@ -78,6 +78,39 @@ describe("pot manager", () => {
       uncalledReturns: { deep: 50 },
     });
   });
+
+  it("does not create a zero-value side pot from floating point residue", () => {
+    expect(
+      calculatePotStructure([
+        { playerId: "a", seat: 0, amount: 100, folded: false },
+        {
+          playerId: "b",
+          seat: 1,
+          amount: 100.00000000000001,
+          folded: false,
+        },
+        { playerId: "c", seat: 2, amount: 100, folded: false },
+      ]),
+    ).toEqual({
+      pots: [
+        {
+          id: "main",
+          amount: 300,
+          cap: 100,
+          contributors: ["a", "b", "c"],
+          eligiblePlayerIds: ["a", "b", "c"],
+        },
+      ],
+      uncalledReturns: {},
+    });
+  });
+
+  it("uses the table chip unit for an odd-chip showdown split", () => {
+    expect(splitPot(0.03, ["a", "b"], { a: 1, b: 2 }, 0, 0.01)).toEqual({
+      a: 0.02,
+      b: 0.01,
+    });
+  });
 });
 
 describe("showdown", () => {

@@ -98,6 +98,7 @@ describe("versioned LocalStorage", () => {
       })),
       outcome: {
         reason: "showdown",
+        termination: "river-showdown",
         payouts: showdown.payouts,
         pots: showdown.awards.map((award) => award.pot),
         showdown,

@@ -4,18 +4,19 @@ import type {
   BettingRoundState,
   PokerAction,
 } from "./types";
-
-const EPSILON = 1e-9;
+import { CHIP_EPSILON, normalizeChips } from "../chips/chips";
 
 export function amountToCall(
   state: BettingRoundState,
   player: BettingPlayer,
 ): number {
-  return Math.max(0, state.currentBet - player.streetContribution);
+  return normalizeChips(
+    Math.max(0, state.currentBet - player.streetContribution),
+  );
 }
 
 export function maxRaiseTo(player: BettingPlayer): number {
-  return player.streetContribution + player.stack;
+  return normalizeChips(player.streetContribution + player.stack);
 }
 
 export function isBettingReopened(
@@ -24,7 +25,8 @@ export function isBettingReopened(
 ): boolean {
   return (
     !player.acted ||
-    state.currentBet - player.lastActedBet + EPSILON >= state.minRaiseIncrement
+    state.currentBet - player.lastActedBet + CHIP_EPSILON >=
+      state.minRaiseIncrement
   );
 }
 
@@ -86,11 +88,11 @@ export function validateAction(
     case "fold":
       return { ...base, legal: true };
     case "check":
-      return toCall <= EPSILON
+      return toCall <= CHIP_EPSILON
         ? { ...base, legal: true }
         : { ...base, legal: false, reason: `Cannot check facing ${toCall}` };
     case "call":
-      return toCall > EPSILON
+      return toCall > CHIP_EPSILON
         ? { ...base, legal: true }
         : { ...base, legal: false, reason: "Nothing to call" };
     case "bet":
@@ -118,7 +120,7 @@ export function validateAction(
           nearestLegalAmount: Math.min(minRaiseTo, maximum),
         };
       }
-      if (action.amount > maximum + EPSILON) {
+      if (action.amount > maximum + CHIP_EPSILON) {
         return {
           ...base,
           legal: false,
@@ -126,7 +128,7 @@ export function validateAction(
           nearestLegalAmount: maximum,
         };
       }
-      if (action.amount <= state.currentBet + EPSILON) {
+      if (action.amount <= state.currentBet + CHIP_EPSILON) {
         return {
           ...base,
           legal: false,
@@ -135,8 +137,8 @@ export function validateAction(
         };
       }
       if (
-        action.amount + EPSILON < minRaiseTo &&
-        action.amount + EPSILON < maximum
+        action.amount + CHIP_EPSILON < minRaiseTo &&
+        action.amount + CHIP_EPSILON < maximum
       ) {
         return {
           ...base,
@@ -149,14 +151,15 @@ export function validateAction(
         ...base,
         legal: true,
         reopensBetting:
-          action.amount - state.currentBet + EPSILON >= state.minRaiseIncrement,
+          action.amount - state.currentBet + CHIP_EPSILON >=
+          state.minRaiseIncrement,
       };
     }
     case "all-in": {
-      if (maximum <= player.streetContribution + EPSILON) {
+      if (maximum <= player.streetContribution + CHIP_EPSILON) {
         return { ...base, legal: false, reason: "No chips available" };
       }
-      const raises = maximum > state.currentBet + EPSILON;
+      const raises = maximum > state.currentBet + CHIP_EPSILON;
       if (raises && !isBettingReopened(state, player)) {
         return {
           ...base,
@@ -169,7 +172,7 @@ export function validateAction(
         legal: true,
         reopensBetting:
           raises &&
-          maximum - state.currentBet + EPSILON >= state.minRaiseIncrement,
+          maximum - state.currentBet + CHIP_EPSILON >= state.minRaiseIncrement,
       };
     }
   }

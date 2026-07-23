@@ -64,6 +64,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("start a hand, fold, open history and replay", async ({ page }) => {
+  await expect(page.getByRole("button", { name: "重新买入" })).toBeDisabled();
   await page
     .getByRole("button", { name: "弃牌" })
     .waitFor({ state: "visible" });
@@ -80,6 +81,12 @@ test("start a hand, fold, open history and replay", async ({ page }) => {
   await expect(page.getByRole("button", { name: "下一手" })).toBeVisible({
     timeout: 20_000,
   });
+  await expect(page.getByText("本手正式结束")).toBeVisible();
+  await expect(page.locator(".completion-copy > strong")).toHaveText(
+    /只剩一手活牌|All-in 后无后续下注|河牌下注完成/,
+  );
+  await expect(page.getByText("赢家已经确定")).toBeVisible();
+  await expect(page.getByText("筹码已经到账")).toBeVisible();
   await page.getByRole("button", { name: "历史与复盘" }).click();
   await expect(page.getByText("逐街复盘")).toBeVisible();
   await page.getByRole("button", { name: "下一步" }).click();
@@ -219,12 +226,23 @@ test("enter a deterministic river scenario and reach showdown", async ({
   if (!(await check.isDisabled())) await check.click();
   else await call.click();
   await expect(page.getByText("摊牌完成")).toBeVisible();
+  await expect(
+    page.getByText("河牌下注完成，所有活牌已摊牌比较"),
+  ).toBeVisible();
+  await expect(page.getByText("主池和边池已经分别结算")).toBeVisible();
+  await expect(page.getByText("无人跟注筹码已经退回")).toBeVisible();
   await expect(page.getByLabel("正式牌型比较")).toBeVisible();
   await expect(page.getByText("只比较最佳五张牌")).toBeVisible();
   await expect(page.locator(".showdown-player")).toHaveCount(2);
   await expect(page.locator(".showdown-player.is-winner")).toHaveCount(1);
   await expect(page.getByLabel("最佳五张").first()).toBeVisible();
-  await expect(page.getByText("主池")).toBeVisible();
+  await expect(page.getByText("主池", { exact: true })).toBeVisible();
+  await expect(
+    page.locator(".showdown-pot-ledger .uncalled-return"),
+  ).toHaveCount(0);
+  await expect(page.locator(".showdown-pot-ledger")).not.toContainText(
+    /(^|\s)0 BB/,
+  );
   await page.getByRole("button", { name: "新场景" }).click();
   await expect(
     page.getByRole("heading", { name: "构建一个决策节点" }),

@@ -1,3 +1,5 @@
+import { CHIP_EPSILON, normalizeChips } from "../chips/chips";
+
 export interface PotContribution {
   playerId: string;
   seat: number;
@@ -28,9 +30,15 @@ export function calculatePotStructure(
   ) {
     throw new Error("Contributions must be finite non-negative numbers");
   }
+  const normalizedContributions = contributions.map((entry) => ({
+    ...entry,
+    amount: normalizeChips(entry.amount),
+  }));
   const levels = [
     ...new Set(
-      contributions.map((entry) => entry.amount).filter((amount) => amount > 0),
+      normalizedContributions
+        .map((entry) => entry.amount)
+        .filter((amount) => amount > CHIP_EPSILON),
     ),
   ].sort((a, b) => a - b);
   const pots: SidePot[] = [];
@@ -38,15 +46,17 @@ export function calculatePotStructure(
   let previous = 0;
 
   levels.forEach((cap) => {
-    const participants = contributions.filter((entry) => entry.amount >= cap);
-    const amount = (cap - previous) * participants.length;
+    const participants = normalizedContributions.filter(
+      (entry) => entry.amount + CHIP_EPSILON >= cap,
+    );
+    const amount = normalizeChips((cap - previous) * participants.length);
     previous = cap;
 
-    if (amount <= 0) return;
+    if (amount <= CHIP_EPSILON) return;
     if (participants.length === 1) {
       const [participant] = participants;
-      uncalledReturns[participant.playerId] = Number(
-        ((uncalledReturns[participant.playerId] ?? 0) + amount).toFixed(6),
+      uncalledReturns[participant.playerId] = normalizeChips(
+        (uncalledReturns[participant.playerId] ?? 0) + amount,
       );
       return;
     }
@@ -71,7 +81,9 @@ export function calculateSidePots(contributions: PotContribution[]): SidePot[] {
 }
 
 export function totalPot(contributions: PotContribution[]): number {
-  return contributions.reduce((total, entry) => total + entry.amount, 0);
+  return normalizeChips(
+    contributions.reduce((total, entry) => total + entry.amount, 0),
+  );
 }
 
 export function oddChipOrder(
@@ -104,17 +116,7 @@ export function splitPot(
     order.map((playerId) => {
       const extra = remainder > 0 ? 1 : 0;
       remainder -= extra;
-      return [playerId, Number(((baseUnits + extra) * chipUnit).toFixed(6))];
+      return [playerId, normalizeChips((baseUnits + extra) * chipUnit)];
     }),
   );
-}
-
-export function inferChipUnit(amounts: number[]): number {
-  const scale = 1000;
-  const values = amounts
-    .filter((amount) => amount > 0)
-    .map((amount) => Math.round(amount * scale));
-  if (values.length === 0) return 1;
-  const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
-  return values.reduce(gcd) / scale;
 }

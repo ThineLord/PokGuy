@@ -1,4 +1,5 @@
 import { assertUniqueCards, type Card } from "../cards/cards";
+import { CHIP_EPSILON, chipAmountsEqual, normalizeChips } from "../chips/chips";
 import { amountToCall } from "../betting/actionValidator";
 import {
   applyBettingAction,
@@ -26,8 +27,6 @@ import {
   nextSeat,
   type SeatRef,
 } from "./positions";
-
-const CHIP_EPSILON = 1e-9;
 
 export interface TablePlayerInput {
   id: string;
@@ -60,6 +59,7 @@ export interface ActionRecord {
 
 export interface HandOutcome {
   reason: "folds" | "showdown";
+  termination: "uncontested" | "river-showdown" | "all-in-runout";
   payouts: Record<string, number>;
   pots: SidePot[];
   uncalledReturns?: Record<string, number>;
@@ -167,10 +167,10 @@ function dealHoleCards(
 }
 
 function postBlind(player: HandPlayer, amount: number): HandPlayer {
-  const paid = Math.min(player.stack, amount);
+  const paid = normalizeChips(Math.min(player.stack, amount));
   return {
     ...player,
-    stack: player.stack - paid,
+    stack: normalizeChips(player.stack - paid),
     streetContribution: paid,
     totalContribution: paid,
     status: player.stack === paid ? "all-in" : player.status,
@@ -293,11 +293,28 @@ export function startTrainingScenario(
       player.id === options.heroId
         ? heroHoleCards
         : ([available.shift()!, available.shift()!] as [Card, Card]);
+    const postflopContribution = normalizeChips(
+      Math.min(player.startingStack, options.bigBlind),
+    );
+    const postflopStack = normalizeChips(
+      player.startingStack - postflopContribution,
+    );
     return {
       ...player,
       holeCards,
+      stack: options.startStreet === "preflop" ? player.stack : postflopStack,
       streetContribution:
         options.startStreet === "preflop" ? player.streetContribution : 0,
+      totalContribution:
+        options.startStreet === "preflop"
+          ? player.totalContribution
+          : postflopContribution,
+      status:
+        options.startStreet === "preflop"
+          ? player.status
+          : postflopStack <= CHIP_EPSILON
+            ? ("all-in" as const)
+            : ("active" as const),
       acted:
         options.startStreet === "preflop"
           ? player.acted
@@ -346,7 +363,9 @@ function nextActionable(
 }
 
 function potSize(players: HandPlayer[]): number {
-  return players.reduce((sum, player) => sum + player.totalContribution, 0);
+  return normalizeChips(
+    players.reduce((sum, player) => sum + player.totalContribution, 0),
+  );
 }
 
 function contenders(players: HandPlayer[]): HandPlayer[] {
@@ -397,7 +416,23 @@ function dealStreet(
 
 function settle(state: PokerGameState, outcome: HandOutcome): PokerGameState {
   if (state.settled) return state;
-  return {
+  const committed = potSize(state.players);
+  const paid = normalizeChips(
+    Object.values(outcome.payouts).reduce((sum, amount) => sum + amount, 0),
+  );
+  const structured = normalizeChips(
+    outcome.pots.reduce((sum, pot) => sum + pot.amount, 0) +
+      Object.values(outcome.uncalledReturns ?? {}).reduce(
+        (sum, amount) => sum + amount,
+        0,
+      ),
+  );
+  if (!chipAmountsEqual(committed, paid))
+    throw new Error("Settlement payouts do not conserve committed chips");
+  if (!chipAmountsEqual(committed, structured))
+    throw new Error("Pot structure does not conserve committed chips");
+
+  const settled: PokerGameState = {
     ...state,
     street: "complete",
     actingPlayerId: null,
@@ -405,9 +440,12 @@ function settle(state: PokerGameState, outcome: HandOutcome): PokerGameState {
     settled: true,
     players: state.players.map((player) => ({
       ...player,
-      stack: player.stack + (outcome.payouts[player.id] ?? 0),
+      stack: normalizeChips(player.stack + (outcome.payouts[player.id] ?? 0)),
     })),
   };
+  if (settled.actingPlayerId !== null || settled.street !== "complete")
+    throw new Error("A settled hand cannot retain pending action");
+  return settled;
 }
 
 function finishByFolds(state: PokerGameState): PokerGameState {
@@ -422,13 +460,17 @@ function finishByFolds(state: PokerGameState): PokerGameState {
   const { pots, uncalledReturns } = calculatePotStructure(contributions);
   return settle(state, {
     reason: "folds",
+    termination: "uncontested",
     payouts: awardUncontestedPot(winner.id, contributions),
     pots,
     uncalledReturns,
   });
 }
 
-function finishShowdown(state: PokerGameState): PokerGameState {
+function finishShowdown(
+  state: PokerGameState,
+  termination: "river-showdown" | "all-in-runout",
+): PokerGameState {
   if (state.board.length !== 5)
     throw new Error("Cannot resolve showdown before the river");
   const showdown = resolveShowdown(
@@ -444,6 +486,7 @@ function finishShowdown(state: PokerGameState): PokerGameState {
   );
   return settle(state, {
     reason: "showdown",
+    termination,
     payouts: showdown.payouts,
     pots: showdown.awards.map((award) => award.pot),
     uncalledReturns: showdown.uncalledReturns,
@@ -462,7 +505,7 @@ function autoRunout(state: PokerGameState): PokerGameState {
           : "river";
     next = dealStreet(next, street);
   }
-  return finishShowdown(next);
+  return finishShowdown(next, "all-in-runout");
 }
 
 function advance(state: PokerGameState): PokerGameState {
@@ -477,7 +520,7 @@ function advance(state: PokerGameState): PokerGameState {
   if (actionable.length <= 1 && isRoundComplete(state))
     return autoRunout(state);
   if (!isRoundComplete(state)) return state;
-  if (state.street === "river") return finishShowdown(state);
+  if (state.street === "river") return finishShowdown(state, "river-showdown");
   if (state.street === "preflop") return dealStreet(state, "flop");
   if (state.street === "flop") return dealStreet(state, "turn");
   if (state.street === "turn") return dealStreet(state, "river");

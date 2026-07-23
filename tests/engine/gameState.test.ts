@@ -40,6 +40,9 @@ describe("game state machine", () => {
     });
     const complete = act(initial, "hero", { type: "fold" });
     expect(complete.outcome?.reason).toBe("folds");
+    expect(complete.outcome?.termination).toBe("uncontested");
+    expect(complete.actingPlayerId).toBeNull();
+    expect(complete.settled).toBe(true);
     expect(
       complete.players.find((player) => player.id === "villain")?.stack,
     ).toBe(100.5);
@@ -66,6 +69,7 @@ describe("game state machine", () => {
     expect(game.street).toBe("complete");
     expect(game.board).toHaveLength(5);
     expect(game.outcome?.reason).toBe("showdown");
+    expect(game.outcome?.termination).toBe("river-showdown");
     expect(
       Object.values(game.outcome?.payouts ?? {}).reduce((a, b) => a + b, 0),
     ).toBe(2);
@@ -88,6 +92,77 @@ describe("game state machine", () => {
     expect(game.street).toBe("complete");
     expect(game.board).toHaveLength(5);
     expect(game.outcome?.reason).toBe("showdown");
+    expect(game.outcome?.termination).toBe("all-in-runout");
+  });
+
+  it("keeps betting open between funded players after a third player is all-in", () => {
+    const players = [
+      { id: "short", name: "Short", seat: 0, stack: 5, kind: "human" as const },
+      {
+        id: "deep-a",
+        name: "Deep A",
+        seat: 1,
+        stack: 100,
+        kind: "ai" as const,
+      },
+      {
+        id: "deep-b",
+        name: "Deep B",
+        seat: 2,
+        stack: 100,
+        kind: "ai" as const,
+      },
+    ];
+    let game = startHand({
+      players,
+      dealerSeat: 0,
+      smallBlind: 0.5,
+      bigBlind: 1,
+      deck: createDeck(),
+    });
+
+    game = act(game, "short", { type: "all-in" });
+
+    expect(game.settled).toBe(false);
+    expect(game.street).toBe("preflop");
+    expect(game.actingPlayerId).toBe("deep-a");
+    expect(game.players.find((player) => player.id === "short")?.status).toBe(
+      "all-in",
+    );
+  });
+
+  it("requires the final funded player to answer an unmatched all-in", () => {
+    let game = startHand({
+      players: [
+        { ...headsUpPlayers[0], stack: 5 },
+        { ...headsUpPlayers[1], stack: 10 },
+      ],
+      dealerSeat: 0,
+      smallBlind: 0.5,
+      bigBlind: 1,
+      deck: createDeck(),
+    });
+
+    game = act(game, "hero", { type: "all-in" });
+
+    expect(game.settled).toBe(false);
+    expect(game.actingPlayerId).toBe("villain");
+    expect(game.currentBet).toBe(5);
+  });
+
+  it("does not deal unused board cards after an uncontested fold", () => {
+    const initial = startHand({
+      players: headsUpPlayers,
+      dealerSeat: 0,
+      smallBlind: 0.5,
+      bigBlind: 1,
+      deck: createDeck(),
+    });
+    const complete = act(initial, "hero", { type: "fold" });
+
+    expect(complete.board).toHaveLength(0);
+    expect(complete.burnCards).toHaveLength(0);
+    expect(complete.outcome?.termination).toBe("uncontested");
   });
 
   it("does not deadlock when only the big blind has chips behind", () => {
@@ -104,6 +179,27 @@ describe("game state machine", () => {
     expect(complete.street).toBe("complete");
     expect(complete.board).toHaveLength(5);
     expect(complete.settled).toBe(true);
+    expect(complete.outcome?.termination).toBe("all-in-runout");
+  });
+
+  it("keeps a funded short stack below one big blind in the next deal", () => {
+    const short = startHand({
+      players: [
+        { ...headsUpPlayers[0], stack: 0.25 },
+        { ...headsUpPlayers[1], stack: 10 },
+      ],
+      dealerSeat: 0,
+      smallBlind: 0.5,
+      bigBlind: 1,
+      deck: createDeck(),
+    });
+
+    expect(
+      short.players.find((player) => player.id === "hero")?.startingStack,
+    ).toBe(0.25);
+    expect(short.players.find((player) => player.id === "hero")?.status).toBe(
+      "all-in",
+    );
   });
 
   it("builds a scenario without duplicating specified or hidden cards", () => {
@@ -131,6 +227,16 @@ describe("game state machine", () => {
       scenario.players.find((player) => player.id === "hero")?.holeCards,
     ).toEqual(parseCards("AS AH"));
     expect(scenario.board).toHaveLength(4);
+    expect(
+      scenario.players.map((player) => ({
+        stack: player.stack,
+        streetContribution: player.streetContribution,
+        totalContribution: player.totalContribution,
+      })),
+    ).toEqual([
+      { stack: 99, streetContribution: 0, totalContribution: 1 },
+      { stack: 99, streetContribution: 0, totalContribution: 1 },
+    ]);
   });
 
   it("labels every six-max position after the button rotates", () => {

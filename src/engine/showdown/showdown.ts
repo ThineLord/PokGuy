@@ -6,11 +6,11 @@ import {
 } from "../evaluator/evaluator";
 import {
   calculatePotStructure,
-  inferChipUnit,
   splitPot,
   type PotContribution,
   type SidePot,
 } from "../pots/sidePots";
+import { CHIP_UNIT, normalizeChips } from "../chips/chips";
 
 export interface ShowdownPlayer extends PotContribution {
   holeCards: Card[];
@@ -33,6 +33,7 @@ export function resolveShowdown(
   players: ShowdownPlayer[],
   board: Card[],
   dealerSeat: number,
+  chipUnit = CHIP_UNIT,
 ): ShowdownResult {
   if (board.length !== 5)
     throw new Error("Showdown requires a complete five-card board");
@@ -54,7 +55,6 @@ export function resolveShowdown(
       uncalledReturns[player.playerId] ?? 0,
     ]),
   );
-  const chipUnit = inferChipUnit(players.map((player) => player.amount));
   const awards = pots.map((pot): PotAward => {
     const eligible = pot.eligiblePlayerIds.filter(
       (playerId) => evaluations[playerId],
@@ -72,7 +72,7 @@ export function resolveShowdown(
     }
     const shares = splitPot(pot.amount, winners, seats, dealerSeat, chipUnit);
     Object.entries(shares).forEach(([playerId, amount]) => {
-      payouts[playerId] = (payouts[playerId] ?? 0) + amount;
+      payouts[playerId] = normalizeChips((payouts[playerId] ?? 0) + amount);
     });
     return { pot, winnerIds: winners, shares };
   });
@@ -84,6 +84,8 @@ export function awardUncontestedPot(
   contributions: PotContribution[],
 ): Record<string, number> {
   return {
-    [winnerId]: contributions.reduce((sum, entry) => sum + entry.amount, 0),
+    [winnerId]: normalizeChips(
+      contributions.reduce((sum, entry) => sum + entry.amount, 0),
+    ),
   };
 }

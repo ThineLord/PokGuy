@@ -21,6 +21,8 @@ import {
 import type { PokerAction, PokerActionType } from "../../engine/betting/types";
 import { parseCards, rankLabel, type Card } from "../../engine/cards/cards";
 import type { HandEvaluation } from "../../engine/evaluator/evaluator";
+import { CHIP_EPSILON } from "../../engine/chips/chips";
+import { cashTableContinuation } from "../../engine/state/cashTable";
 import {
   act,
   startHand,
@@ -409,6 +411,10 @@ function PokerTable({
         const actionClass = lastActionType ? `action-${lastActionType}` : "";
         const isSmallBlind = player.positionLabel.includes("SB");
         const isBigBlind = player.positionLabel === "BB";
+        const lostStackAtSettlement =
+          game.settled &&
+          player.stack <= CHIP_EPSILON &&
+          player.status !== "folded";
         const blindClass = isSmallBlind
           ? "small-blind"
           : isBigBlind
@@ -491,8 +497,10 @@ function PokerTable({
             <div className="seat-meta">
               <span>{formatChips(player.stack)} BB</span>
               <span>
-                {player.status === "all-in"
-                  ? actionLabel("all-in").toUpperCase()
+                {lostStackAtSettlement
+                  ? t("筹码归零")
+                  : player.status === "all-in"
+                    ? actionLabel("all-in").toUpperCase()
                   : player.lastAction
                     ? actionLabel(player.lastAction)
                     : active && aiBusy
@@ -571,7 +579,10 @@ function ShowdownBreakdown({ game }: { game: PokerGameState }) {
     });
   const uncalledReturns = Object.entries(
     showdown.uncalledReturns ?? game.outcome?.uncalledReturns ?? {},
-  ).filter(([, amount]) => amount > 0);
+  ).filter(([, amount]) => amount > CHIP_EPSILON);
+  const awards = showdown.awards.filter(
+    (award) => award.pot.amount > CHIP_EPSILON,
+  );
 
   return (
     <section className="showdown-breakdown" aria-label={t("正式牌型比较")}>
@@ -630,7 +641,7 @@ function ShowdownBreakdown({ game }: { game: PokerGameState }) {
         })}
       </div>
       <div className="showdown-pot-ledger">
-        {showdown.awards.map((award, index) => (
+        {awards.map((award, index) => (
           <span key={award.pot.id}>
             <small>{index === 0 ? t("主池") : `${t("边池")} ${index}`}</small>
             <strong>{formatChips(award.pot.amount)} BB</strong>
@@ -1478,13 +1489,7 @@ function PokerTrainerApp() {
       stacks?: Record<string, number>,
       button = dealerSeat,
     ) => {
-      const funded = buildPlayers(source, stacks).map((player) => ({
-        ...player,
-        stack:
-          player.stack < source.settings.bigBlind
-            ? source.settings.startingStackBb * source.settings.bigBlind
-            : player.stack,
-      }));
+      const funded = buildPlayers(source, stacks);
       const next = startHand({
         players: funded,
         dealerSeat: button,
@@ -1520,6 +1525,12 @@ function PokerTrainerApp() {
 
   const hero = game?.players.find((player) => player.id === HERO_ID);
   const isScenarioHand = game?.handId.startsWith("scenario-") ?? false;
+  const continuation = game
+    ? cashTableContinuation(game.players, HERO_ID)
+    : null;
+  const handTermination =
+    game?.outcome?.termination ??
+    (game?.outcome?.reason === "folds" ? "uncontested" : "river-showdown");
   const pot = game ? tablePot(game) : 0;
   const toCall = game && hero ? amountToCall(game, hero) : 0;
   const liveOpponentCount = game
@@ -1877,23 +1888,41 @@ function PokerTrainerApp() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [betAmount, game]);
-  const nextHand = () => {
+  const startNextCashHand = (stacks: Record<string, number>) => {
     if (!game) return;
-    const stacks = Object.fromEntries(
-      game.players.map((player) => [player.id, player.stack]),
-    );
     const seats = game.players
-      .filter((player) => player.stack > 0)
+      .filter((player) => (stacks[player.id] ?? 0) > CHIP_EPSILON)
       .map((player) => ({ id: player.id, seat: player.seat }));
-    const button = rotateButton(
-      seats.length >= 2
-        ? seats
-        : game.players.map((player) => ({ id: player.id, seat: player.seat })),
-      game.dealerSeat,
-    );
+    if (seats.length < 2) return;
+    const button = rotateButton(seats, game.dealerSeat);
     setDealerSeat(button);
     startCashHand(data, stacks, button);
   };
+  const nextHand = () => {
+    if (!game || !continuation?.canDealNextHand) return;
+    startNextCashHand(
+      Object.fromEntries(
+        game.players.map((player) => [player.id, player.stack]),
+      ),
+    );
+  };
+  const rebuyHeroAndContinue = () => {
+    if (!game?.settled) return;
+    const target = data.settings.startingStackBb * data.settings.bigBlind;
+    const stacks = Object.fromEntries(
+      game.players.map((player) => [
+        player.id,
+        player.id === HERO_ID ? Math.max(player.stack, target) : player.stack,
+      ]),
+    );
+    startNextCashHand(stacks);
+  };
+  const heroRebuyTarget =
+    data.settings.startingStackBb * data.settings.bigBlind;
+  const canRebuyHero =
+    Boolean(game?.settled) &&
+    Boolean(hero) &&
+    (hero?.stack ?? 0) + CHIP_EPSILON < heroRebuyTarget;
   const updateSettings = (patch: Partial<AppSettings>) =>
     persist({ ...data, settings: { ...data.settings, ...patch } });
   const replaceData = (next: PersistedData) => persist(next);
@@ -1982,17 +2011,16 @@ function PokerTrainerApp() {
                       {t("重新开局")}
                     </button>
                     <button
+                      disabled={!canRebuyHero}
+                      title={
+                        !game.settled
+                          ? t("等待本手结束后才能重新买入")
+                          : !canRebuyHero
+                            ? t("当前筹码不低于买入目标")
+                            : undefined
+                      }
                       onClick={() => {
-                        const stacks = Object.fromEntries(
-                          game.players.map((player) => [
-                            player.id,
-                            player.id === HERO_ID
-                              ? data.settings.startingStackBb *
-                                data.settings.bigBlind
-                              : player.stack,
-                          ]),
-                        );
-                        startCashHand(data, stacks, game.dealerSeat);
+                        rebuyHeroAndContinue();
                       }}
                     >
                       {t("重新买入")}
@@ -2121,27 +2149,70 @@ function PokerTrainerApp() {
             </section>
             {game.settled ? (
               <section className="action-bar complete-bar">
-                <div>
-                  <p className="eyebrow">{t("本手已结算")}</p>
-                  <strong>
+                <div className="completion-copy">
+                  <p className="eyebrow">
+                    {t("本手正式结束")} ·{" "}
                     {game.outcome?.reason === "showdown"
                       ? t("摊牌完成")
                       : t("弃牌获胜")}
+                  </p>
+                  <strong>
+                    {handTermination === "uncontested"
+                      ? t("只剩一手活牌，底池已直接推送")
+                      : handTermination === "all-in-runout"
+                        ? t("All-in 后无后续下注，公共牌已发完并摊牌")
+                        : t("河牌下注完成，所有活牌已摊牌比较")}
                   </strong>
+                  <div className="settlement-checks" aria-label={t("结算检查")}>
+                    <span>✓ {t("赢家已经确定")}</span>
+                    <span>✓ {t("主池和边池已经分别结算")}</span>
+                    <span>✓ {t("无人跟注筹码已经退回")}</span>
+                    <span>✓ {t("筹码已经到账")}</span>
+                  </div>
+                  {!isScenarioHand &&
+                    continuation &&
+                    !continuation.canDealNextHand && (
+                      <small className="table-complete-notice">
+                        <b>{t("本桌训练结束")}</b>
+                        {continuation.heroNeedsRebuy
+                          ? t("你的筹码为 0，请重新买入后继续")
+                          : t("桌上只剩一名有筹码玩家")}
+                      </small>
+                    )}
                 </div>
-                <button
-                  className="primary-button"
-                  onClick={
-                    isScenarioHand ? () => setView("scenario") : nextHand
-                  }
-                >
-                  {isScenarioHand ? t("新场景") : t("下一手")}
-                </button>
-                {isScenarioHand && (
-                  <button onClick={() => startCashHand(data)}>
-                    {t("返回现金桌")}
-                  </button>
-                )}
+                <div className="completion-actions">
+                  {isScenarioHand ? (
+                    <>
+                      <button
+                        className="primary-button"
+                        onClick={() => setView("scenario")}
+                      >
+                        {t("新场景")}
+                      </button>
+                      <button onClick={() => startCashHand(data)}>
+                        {t("返回现金桌")}
+                      </button>
+                    </>
+                  ) : continuation?.canDealNextHand ? (
+                    <button className="primary-button" onClick={nextHand}>
+                      {t("下一手")}
+                    </button>
+                  ) : continuation?.heroNeedsRebuy ? (
+                    <button
+                      className="primary-button"
+                      onClick={rebuyHeroAndContinue}
+                    >
+                      {t("重新买入并继续")}
+                    </button>
+                  ) : (
+                    <button
+                      className="primary-button"
+                      onClick={() => startCashHand(data)}
+                    >
+                      {t("重新开局")}
+                    </button>
+                  )}
+                </div>
               </section>
             ) : (
               <section

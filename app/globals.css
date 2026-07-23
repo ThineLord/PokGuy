@@ -649,12 +649,58 @@ button:disabled {
   color: #e69099;
 }
 .complete-bar {
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
 }
+
+.completion-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
 .complete-bar strong {
   display: block;
+}
+
+.settlement-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+  margin-top: 3px;
+  color: #7ea99a;
+  font-size: 9px;
+}
+
+.settlement-checks span::first-letter {
+  color: #60d6a8;
+}
+
+.table-complete-notice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 8px;
   margin-top: 4px;
+  border-left: 2px solid #d8a358;
+  padding-left: 9px;
+  color: #b5a68e;
+  line-height: 1.4;
+}
+
+.table-complete-notice b {
+  color: #e2ba7d;
+  letter-spacing: 0.04em;
+}
+
+.completion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.completion-actions button {
+  min-height: 44px;
 }
 
 .panel {
@@ -1068,6 +1114,24 @@ button:disabled {
     position: relative;
     bottom: auto;
     grid-template-columns: 1fr;
+  }
+
+  .complete-bar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .completion-actions {
+    justify-content: stretch;
+  }
+
+  .completion-actions button {
+    flex: 1 1 160px;
+  }
+
+  .settlement-checks {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px 9px;
   }
   .decision-status {
     grid-column: auto;
