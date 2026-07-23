@@ -56,6 +56,8 @@ npx playwright install chromium
 - 1194×834 iPad 横屏：操作栏完整进入首屏且不覆盖信息；
 - 834×1194 iPad 竖屏：完整牌桌与操作区无需横向滚动；
 - 390/393×844/852 iPhone：关键动作按钮位于移动操作区最前，轮到用户时自动显示下半牌桌与操作区；
+- macOS Safari 真实窗口：启用动画时牌面可见，数字框中的快捷键不破坏下注额；
+- macOS Safari 真实实玩：加注、跟注、66% pot 下注、键盘 check、fold、showdown、复盘和单手牌场景；
 - 键盘 Tab：主导航、输入和所有动作按钮有可见 focus；
 - reduced-motion / 动画关闭：发牌动画关闭；
 - 设置、单手牌、历史、复盘、统计空状态；
@@ -68,4 +70,4 @@ npx playwright install chromium
 
 vinext/Node 可能打印 `module.register()` deprecation、代理环境和 jsdom LocalStorage experimental warning。这些是当前工具链提示，不代表测试失败。验收以命令退出码和断言结果为准。
 
-当前自动化使用 Playwright Chromium 的设备尺寸回归；本机尚未安装 Playwright WebKit 浏览器二进制。iOS 安全区与动态视口使用标准 CSS 实现，并已做真实布局截图复核，但 Safari 引擎自动化仍属于后续验证项。
+当前自动化使用 Playwright Chromium 的设备尺寸回归；本机尚未安装 Playwright WebKit 浏览器二进制。macOS Safari 已通过直接页面操控完成实玩复核，iOS 安全区与动态视口也已做真实布局检查；Safari/WebKit 自动化矩阵仍属于后续验证项。

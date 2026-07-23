@@ -2,7 +2,7 @@
 
 ## 下一项具体任务
 
-当前深度实玩修复没有未完成的必需任务。下一项建议是在获得安装浏览器运行时的许可后加入 Playwright WebKit 项目，覆盖 Safari 引擎的 iPhone、iPad 与 Mac 视口；随后再为 Monte Carlo 加入按 AI 人格和公开行动加权的对手范围。
+当前 Safari 直接实玩修复没有未完成的必需任务。下一项建议是在获得安装浏览器运行时的许可后，把本轮真实发现的“牌面渲染、数字输入保护和场景返回”加入 Playwright WebKit 项目，覆盖 Safari 引擎的 iPhone、iPad 与 Mac 视口；随后再为 Monte Carlo 加入按 AI 人格和公开行动加权的对手范围。
 
 ## 相关文件
 
