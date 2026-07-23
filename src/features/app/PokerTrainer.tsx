@@ -1373,7 +1373,16 @@ export function PokerTrainer() {
               </div>
               <div className="toolbar-actions">
                 {isScenarioHand ? (
-                  <button onClick={() => setView("scenario")}>调整场景</button>
+                  !game.settled && (
+                    <>
+                      <button onClick={() => setView("scenario")}>
+                        调整场景
+                      </button>
+                      <button onClick={() => startCashHand(data)}>
+                        返回现金桌
+                      </button>
+                    </>
+                  )
                 ) : (
                   <>
                     <button onClick={() => startCashHand(data)}>
@@ -1532,6 +1541,11 @@ export function PokerTrainer() {
                 >
                   {isScenarioHand ? "新场景" : "下一手"}
                 </button>
+                {isScenarioHand && (
+                  <button onClick={() => startCashHand(data)}>
+                    返回现金桌
+                  </button>
+                )}
               </section>
             ) : (
               <section

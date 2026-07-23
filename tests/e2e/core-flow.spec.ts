@@ -178,6 +178,9 @@ test("enter a deterministic river scenario and reach showdown", async ({
   await expect(
     page.getByRole("heading", { name: "构建一个决策节点" }),
   ).toBeVisible();
+  await page.getByRole("button", { name: "训练桌" }).click();
+  await page.getByRole("button", { name: "返回现金桌" }).click();
+  await expect(page.getByText("标准现金桌训练", { exact: true })).toBeVisible();
 });
 
 test("edit AI settings, persist after reload, and export hands", async ({
