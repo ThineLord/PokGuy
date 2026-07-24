@@ -95,7 +95,7 @@
 ## 恢复命令
 
 ```bash
-cd "/Users/hanzhiyou/Documents/PokGuy"
+cd PokGuy
 npm install
 npm run check
 npm run dev
@@ -106,9 +106,3 @@ npm run dev
 ```bash
 npm run dev:lan
 ```
-
-## 目录说明
-
-- 项目的规范位置为 `/Users/hanzhiyou/Documents/PokGuy`。
-- 旧路径 `/Users/hanzhiyou/Documents/New project` 保留为指向规范位置的兼容符号链接，因此旧对话和旧命令仍可继续访问同一仓库。
-- 原先位于 `PokGuy` 的空 Git 仓库已完整保存在 `/Users/hanzhiyou/Documents/PokGuy.empty-repo-backup-20260724`，未删除任何内容。
