@@ -65,3 +65,13 @@ Append stable maintenance checkpoints here after their commit and remote status 
 - Commit: `2c2782d` (`security: patch Next.js advisories`).
 - Push: Verified by matching local HEAD, `origin/main`, and GitHub at `2c2782d5223b5f63448c442adaed97360cbbd46c`.
 - CI: GitHub Actions run `30713299084` completed successfully for the exact commit SHA; Node 22 clean install and every quality-gate step passed.
+
+## 2026-08-02 — React Server Components security patch
+
+- Updated React, React DOM, and `react-server-dom-webpack` together from `19.2.6` to stable `19.2.8`, removing `GHSA-wx67-qw84-cm4g` without moving Next, Vite, vinext, Webpack, Wrangler, or Cloudflare.
+- Retained all 724 lock entries; only the root plus the three aligned runtime records changed, with zero added/removed package and zero mirror URL.
+- Reduced the complete audit from 15 package records / 26 advisory sources to 14 / 25; the direct RSC advisory disappeared, production audit remained at the documented four PostCSS/Sharp sources, and critical count remained zero.
+- Passed isolated and repository cold installs, peer checks, `npm run check` with 112 tests/build, 13 Chromium, 7 WebKit, production HTML/RSC/malformed-request liveness smoke, formatting, structural, sensitive-data, and complete diff checks.
+- Commit: `237ff2b` (`security: patch React RSC advisory`).
+- Push: Verified by matching local HEAD, `origin/main`, and GitHub at `237ff2b68fde421a56a4aabdacdecfe8be57041d`.
+- CI: GitHub Actions run `30714243780` completed successfully for the exact product SHA; Node 22 clean install and every quality-gate step passed.

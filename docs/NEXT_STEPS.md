@@ -2,9 +2,9 @@
 
 ## 下一项具体任务
 
-Phase 8.5 已在本地把 React、React DOM 与 `react-server-dom-webpack` 从 `19.2.6` 同步到 `19.2.8`。直接 RSC 高危公告已从完整 audit 消失，三件套 peer 关系、冷安装、112 项单元测试、13 项 Chromium、7 项 WebKit、production build 与 RSC/异常请求 smoke 均通过；本检查点仍需精确 SHA GitHub Actions 成功后才能标记远端稳定。
+Phase 8.5 已把 React、React DOM 与 `react-server-dom-webpack` 从 `19.2.6` 同步到 `19.2.8`。直接 RSC 高危公告已从完整 audit 消失，三件套 peer 关系、冷安装、112 项单元测试、13 项 Chromium、7 项 WebKit、production build、RSC/异常请求 smoke 与精确 SHA GitHub Actions 均通过。
 
-远端验证完成后的下一项 P1 是 PKG-009：单独审计 Vite `8.0.13` 的两条直接公告（一条 high、一条 moderate）及官方建议的 `8.2.0` 边界，先验证 vinext、React RSC plugin、Vitest 与 Cloudflare adapter 的 peer/构建兼容，再决定是否更新。Cloudflare plugin、Wrangler、Miniflare、PostCSS/Sharp 继续保留为独立检查点，避免一次升级多个构建系统。
+下一项 P1 是 PKG-009：单独审计 Vite `8.0.13` 的两条直接公告（一条 high、一条 moderate）及官方建议的 `8.2.0` 边界，先验证 vinext、React RSC plugin、Vitest 与 Cloudflare adapter 的 peer/构建兼容，再决定是否更新。Cloudflare plugin、Wrangler、Miniflare、PostCSS/Sharp 继续保留为独立检查点，避免一次升级多个构建系统。
 
 ## 相关文件
 

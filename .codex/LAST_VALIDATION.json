@@ -1,10 +1,10 @@
 {
-  "validated_at": "2026-08-02T03:10:12+08:00",
+  "validated_at": "2026-08-02T03:13:16+08:00",
   "branch": "main",
-  "head": "72fb430786f1010cd7326ff1f8327591a3cbee33",
-  "last_stable_commit": "72fb430786f1010cd7326ff1f8327591a3cbee33",
-  "worktree": "pkg-008-locally-validated-preserving-three-untracked-history-copies",
-  "phase": "pre-commit-pkg-008",
+  "head": "237ff2b68fde421a56a4aabdacdecfe8be57041d",
+  "last_stable_commit": "237ff2b68fde421a56a4aabdacdecfe8be57041d",
+  "worktree": "recovery-state-checkpoint-after-remote-and-ci-verified-pkg-008",
+  "phase": "remote-and-ci-verified-pkg-008",
   "commands": [
     {
       "command": "startup Git/GitHub recovery and gh auth checks",
@@ -70,6 +70,16 @@
       "command": "final changed-file Prettier, JSON, whitespace, candidate byte/hash, lock-boundary, mirror, sensitive/private-path, listener, status, and complete diff review",
       "exit_code": 0,
       "result": "All checks passed for the 11 intended tracked files; package files match the accepted candidate, 724 entries remain, only four lock records changed, no package/mirror/secret/private path/listener appeared, and three historical untracked copies remain excluded"
+    },
+    {
+      "command": "scoped GitHub-specific HTTPS proxy push and remote SHA verification",
+      "exit_code": 0,
+      "result": "Fast-forwarded origin/main from 72fb430 to 237ff2b without changing global Git configuration; local, tracking, and GitHub SHAs matched exactly"
+    },
+    {
+      "command": "gh run watch/view 30714243780",
+      "exit_code": 0,
+      "result": "Quality run completed successfully for exact head SHA 237ff2b68fde421a56a4aabdacdecfe8be57041d; checkout, Node 22 setup, npm ci, npm run check, and all post steps succeeded"
     }
   ],
   "known_failures": [
@@ -95,6 +105,7 @@
     "Three untracked conflict-style historical copies remain excluded and preserved pending explicit deletion approval.",
     "Task-owned isolated candidates and npm caches remain outside the repository pending explicit cleanup approval.",
     "The direct RSC package is declared in devDependencies but is bundled into production server output; production-only audit omission was not treated as proof of non-reachability.",
-    "Commit, push, and exact-SHA CI remain before PKG-008 is complete."
+    "PKG-008 product commit, push, remote SHA match, and completed exact-SHA GitHub Actions verification all passed.",
+    "At creation of this state record, the recovery-documentation checkpoint still required commit, push, and final CI confirmation; resume must verify current Git history and the exact state-only SHA rather than assume it remains pending."
   ]
 }
