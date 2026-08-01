@@ -1,10 +1,10 @@
 {
-  "validated_at": "2026-08-02T04:13:11+08:00",
+  "validated_at": "2026-08-02T04:15:01+08:00",
   "branch": "main",
-  "head": "51821add9f7648d3f4fd92528559894a709a8356",
-  "last_stable_commit": "51821add9f7648d3f4fd92528559894a709a8356",
-  "worktree": "pkg-009-locally-validated-preserving-three-untracked-history-copies",
-  "phase": "local-validation-pkg-009",
+  "head": "0754a4f1414768aff06cf91df5669c7379c32c7b",
+  "last_stable_commit": "0754a4f1414768aff06cf91df5669c7379c32c7b",
+  "worktree": "recovery-state-checkpoint-after-remote-and-ci-verified-pkg-009",
+  "phase": "remote-and-ci-verified-pkg-009",
   "commands": [
     {
       "command": "startup Git/GitHub recovery and gh auth checks",
@@ -55,6 +55,16 @@
       "command": "final formatting, JSON, whitespace, candidate/hash, lock/package boundary, mirror, sensitive/private-path, scope, diff, and independent review",
       "exit_code": 0,
       "result": "All gates passed for exactly 11 intended tracked files; 724 lock records remain with 24 changed and zero added/removed; three historical untracked copies remain excluded; independent read-only review found no blocker"
+    },
+    {
+      "command": "scoped GitHub-specific HTTPS proxy push and remote SHA verification",
+      "exit_code": 0,
+      "result": "Fast-forwarded origin/main from 51821ad to 0754a4f without changing global Git configuration; local, tracking, and GitHub SHAs matched exactly"
+    },
+    {
+      "command": "gh run watch/view 30716519172",
+      "exit_code": 0,
+      "result": "Quality run completed successfully for exact head SHA 0754a4f1414768aff06cf91df5669c7379c32c7b; checkout, Node 22 setup, npm ci, npm run check, and all post steps succeeded"
     }
   ],
   "known_failures": [
@@ -80,6 +90,7 @@
     "Three untracked conflict-style historical copies remain excluded and preserved pending explicit deletion approval.",
     "Task-owned isolated candidates and caches must remain outside the repository and are not cleanup-authorized.",
     "Vite is a development dependency but is exercised by dev, test, vinext production build, and Cloudflare adapter paths; production-only audit omission is not treated as proof of irrelevance.",
-    "Local PKG-009 validation and final review are complete; commit, push, and exact-SHA CI remain."
+    "PKG-009 product commit, push, remote SHA match, and completed exact-SHA GitHub Actions verification all passed.",
+    "At creation of this state record, the recovery-documentation checkpoint still required commit, push, and final CI confirmation; resume must verify current Git history and the exact state-only SHA rather than assume it remains pending."
   ]
 }

@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-- 当前阶段：Phase 8.6 Vite 安全补丁本地验证完成，等待远端精确 SHA CI
+- 当前阶段：Phase 8.6 Vite 安全补丁远端精确 SHA CI 验证完成
 - 可运行状态：可安装、启动、连续游戏、训练、复盘、统计、导出和可信局域网访问
 - 当前分支：`main`
 - 当前稳定维护提交、远端同步与精确 SHA CI 状态见 `.codex/CURRENT_STATE.md`
@@ -78,7 +78,7 @@
 - GitHub Actions `Quality / Node 22 quality gate` 首次干净 Linux 运行通过（run `30709790461`）
 - PKG-007 冷缓存 `npm ci`、production audit 前后对比、生产服务器 HTTP 200/title smoke 与精确 SHA GitHub Actions run `30713299084` 通过
 - PKG-008 冷缓存 `npm ci`、peer/lock 边界、完整审计前后对比、生产 RSC/异常请求 smoke、13 项 Chromium、7 项 WebKit 与精确 SHA GitHub Actions run `30714243780` 均通过
-- PKG-009 隔离候选与仓库冷缓存 `npm ci`、peer/lock 边界、完整审计前后对比、Cloudflare workerd preview 与 deploy dry-run、production smoke、13 项 Chromium 和 7 项 WebKit 均通过；远端精确 SHA CI 待本检查点推送后验证
+- PKG-009 隔离候选与仓库冷缓存 `npm ci`、peer/lock 边界、完整审计前后对比、Cloudflare workerd preview 与 deploy dry-run、production smoke、13 项 Chromium、7 项 WebKit 与精确 SHA GitHub Actions run `30716519172` 均通过
 - 120 手种子化六人桌规则压力测试通过
 - 弃牌动画与确定性河牌摊牌关键流程连续重复 5 轮，共 10 项回归通过
 - iPhone 393×852 正式摊牌比较区无横向溢出

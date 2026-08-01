@@ -2,7 +2,7 @@
 
 ## 下一项具体任务
 
-Phase 8.6 已把 Vite 从 `8.0.13` 最小升级到首个修复两条直接公告的 `8.0.16`。隔离候选、冷安装、peer 与精确 lock 边界、112 项单元测试、13 项 Chromium、7 项 WebKit、production smoke、Cloudflare workerd preview 和 deploy dry-run 均通过；远端精确 SHA CI 待本检查点推送后验证。
+Phase 8.6 已把 Vite 从 `8.0.13` 最小升级到首个修复两条直接公告的 `8.0.16`。隔离候选、冷安装、peer 与精确 lock 边界、112 项单元测试、13 项 Chromium、7 项 WebKit、production smoke、Cloudflare workerd preview、deploy dry-run 与精确 SHA GitHub Actions run `30716519172` 均通过。
 
 下一项 P1 是 PKG-010：单独审计 `@cloudflare/vite-plugin` `1.37.1`、Wrangler `4.92.0`、Miniflare 与 workerd 的完整公告/peer/部署边界，并把官方当前稳定候选放入隔离目录比较。只有在构建产物、真实 workerd preview 和无上传 deploy dry-run 均兼容时才更新；Next 的 PostCSS/Sharp 仍保持独立上游等待项。
 

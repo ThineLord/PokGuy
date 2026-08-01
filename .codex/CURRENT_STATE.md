@@ -2,15 +2,15 @@
 
 Current branch: `main`
 
-Current HEAD: `51821add9f7648d3f4fd92528559894a709a8356` (remote-verified PKG-008 recovery checkpoint; pre-PKG-009 baseline)
+Current HEAD: Recovery-documentation checkpoint on top of validated PKG-009 product commit `0754a4f1414768aff06cf91df5669c7379c32c7b`; run `git rev-parse HEAD` for the exact state-only commit after it is created.
 
-Last stable commit: `51821add9f7648d3f4fd92528559894a709a8356` (`origin/main`; GitHub Actions run `30714376713` completed successfully for this exact SHA)
+Last stable commit: `0754a4f1414768aff06cf91df5669c7379c32c7b` (`origin/main`; GitHub Actions run `30716519172` completed successfully for this exact SHA)
 
-Current objective: Complete PKG-009 with the smallest supported Vite security patch while keeping Cloudflare/Wrangler and product behavior unchanged.
+Current objective: Preserve the completed PKG-009 Vite security checkpoint and select the next highest-value bounded dependency task.
 
-Active task: PKG-009 is IN_PROGRESS. Exact Vite `8.0.16` is applied and all local compatibility/security gates pass; product commit, push, and exact-SHA GitHub Actions verification remain.
+Active task: None. PKG-009 is complete; PKG-010 is queued as the next P1 security-maintenance checkpoint.
 
-Modified files: Eleven intended PKG-009 files: `package.json`, `package-lock.json`, three public status/changelog documents, and six `.codex/` recovery/decision files. Three documented historical conflict copies remain untracked, preserved, and excluded.
+Modified files: This state checkpoint contains eight recovery/status documentation files only. Three documented historical conflict copies remain untracked, preserved, and excluded. The validated PKG-009 product commit is already pushed.
 
 Completed steps:
 
@@ -52,11 +52,13 @@ Completed steps:
 - Removed both direct Vite advisories. Production audit remains 3 package records / 4 PostCSS-Sharp sources; complete audit improves from 14 package records / 25 sources to 13 / 23; zero critical finding.
 - Passed `npm run check` with 112 tests/build, 13 Chromium tests, 7 WebKit tests, production HTML/RSC/SVG smoke, Cloudflare workerd preview, no-upload Wrangler deploy dry-run, hosting artifact assertions, and stopped-listener checks.
 - Passed final changed-file Prettier, JSON, whitespace, exact 24-record lock/package boundary, candidate byte/hash, mirror, sensitive/private-path, tracked/untracked scope, complete diff, and independent read-only review.
+- Created and pushed product commit `0754a4f`; local HEAD, `origin/main`, and GitHub matched exact SHA `0754a4f1414768aff06cf91df5669c7379c32c7b`.
+- Waited for GitHub Actions run `30716519172`; Node 22 clean install, `npm run check`, and every job/post step completed successfully for the exact product SHA.
 
 Remaining steps:
 
-- Commit and push only the 11 scoped product-checkpoint files, then require completed GitHub Actions success for the exact product SHA.
-- Record the verified product SHA/run in a state-only checkpoint, push it, and require completed success for that exact state SHA.
+- Stage and commit only the eight recovery/status documentation files without including the three preserved untracked files.
+- Push the state-only commit and require completed GitHub Actions success for its exact SHA; no additional self-referential state commit is needed solely to record that run.
 
 Current tests:
 
@@ -89,11 +91,12 @@ Current tests:
 - PKG-009 `npm run test:e2e` / `npm run test:e2e:webkit` — PASS (13 Chromium / 7 selected WebKit tests).
 - PKG-009 production and Cloudflare smokes — PASS (HTML/RSC/SVG responses, workerd preview, deploy dry-run without upload, hosting artifact assertions, listeners stopped).
 - PKG-009 final formatting/JSON/whitespace/lock/candidate/mirror/sensitive/private-path/scope/diff/independent review — PASS at 2026-08-02T04:13+08:00.
+- GitHub Actions `Quality` run `30716519172` — PASS at 2026-08-02T04:15+08:00 (`completed/success`, exact product SHA `0754a4f`; clean install and all quality steps passed).
 
 Known failures: Production-only npm audit remains nonzero because stable Next `16.2.12` pins affected PostCSS/Sharp ranges. Complete audit remains nonzero for the independently scoped Cloudflare/Wrangler and PostCSS/Sharp chains, but no longer reports direct RSC or Vite advisories. Repository-wide `npm run format:check` has 10 pre-existing differences in untouched files. vinext returns a prompt generic HTTP 500 for an unknown Server Action ID while keeping the server live. Three untracked historical conflict copies remain intentionally untouched.
 
-Risk: Low-medium. The bounded patch and all local paths are validated; remote exact-SHA CI remains the completion gate. Cloudflare/Wrangler findings remain explicitly separate.
+Risk: Low for the completed checkpoint; the product commit and exact-SHA CI are verified. Residual Cloudflare/Wrangler and PostCSS/Sharp exposure remains explicitly tracked. The three untracked historical copies remain isolated from Git.
 
-Next command: Stage the 11 intended tracked files explicitly, verify the staged boundary, and create `security: patch Vite advisories`.
+Next command: Stage and commit only the eight state/status files, push the checkpoint, and require completed CI for its exact SHA.
 
-Resume instructions: Read `.codex/RESUME.md`, verify baseline HEAD/run `51821ad` / `30714376713`, preserve the three documented untracked files and all task-owned temp directories, then resume at final review/commit. Do not regenerate the accepted lockfile or include Cloudflare/Wrangler.
+Resume instructions: Read `.codex/RESUME.md`, verify product commit/run `0754a4f` / `30716519172`, then determine from Git history whether this recovery checkpoint still needs commit/push/CI verification. Leave the three documented untracked historical copies untouched and do not broaden PKG-010 into product dependency work.

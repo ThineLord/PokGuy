@@ -75,3 +75,13 @@ Append stable maintenance checkpoints here after their commit and remote status 
 - Commit: `237ff2b` (`security: patch React RSC advisory`).
 - Push: Verified by matching local HEAD, `origin/main`, and GitHub at `237ff2b68fde421a56a4aabdacdecfe8be57041d`.
 - CI: GitHub Actions run `30714243780` completed successfully for the exact product SHA; Node 22 clean install and every quality-gate step passed.
+
+## 2026-08-02 — Vite security patch
+
+- Updated only the direct Vite declaration from `8.0.13` to first-fixed `8.0.16`; rejected broader `8.2.0` after isolated dependency comparison.
+- Retained all 724 lock entries; 24 records changed with zero added/removed package, and Cloudflare/Wrangler/Miniflare/Next/React/vinext/Vitest direct records remained byte-identical.
+- Removed both direct Vite advisories and reduced the complete audit from 14 package records / 25 advisory sources to 13 / 23; production PostCSS/Sharp audit remained 3 / 4 and critical count remained zero.
+- Passed isolated/repository cold installs, peer graph, 112 tests/build, 13 Chromium, 7 WebKit, production HTML/RSC/SVG smoke, Cloudflare workerd preview, no-upload deploy dry-run, artifact, formatting, structural, sensitive-data, and independent reviews.
+- Commit: `0754a4f` (`security: patch Vite advisories`).
+- Push: Verified by matching local HEAD, `origin/main`, and GitHub at `0754a4f1414768aff06cf91df5669c7379c32c7b`.
+- CI: GitHub Actions run `30716519172` completed successfully for the exact product SHA; Node 22 clean install and every quality-gate step passed.
