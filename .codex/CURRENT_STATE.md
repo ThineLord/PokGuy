@@ -2,50 +2,52 @@
 
 Current branch: `main`
 
-Current HEAD: recovery-documentation checkpoint on top of validated PKG-006 commit `cb19453986661ec52529587c2fc79a34eafed25a`; run `git rev-parse HEAD` for the exact state-only commit.
+Current HEAD: `eb637a5f332ffa1681945d448853e87d52cdba38` (pre-PKG-007 stable checkpoint)
 
-Last stable commit: `cb19453986661ec52529587c2fc79a34eafed25a` (`origin/main`; GitHub Actions run `30710451561` completed successfully for this exact SHA)
+Last stable commit: `eb637a5f332ffa1681945d448853e87d52cdba38` (`origin/main`; GitHub Actions run `30710600306` completed successfully for this exact SHA)
 
-Current objective: Preserve the completed PKG-006 lockfile-provenance checkpoint and select the next highest-value maintenance task.
+Current objective: Complete PKG-007 by applying the supported Next.js security patch while documenting and containing unsupported transitive fixes.
 
-Active task: None. PKG-006 is complete; PKG-007 is queued as the next P1 security-maintenance checkpoint.
+Active task: PKG-007 is IN_PROGRESS. The locally validated candidate updates `next` and `eslint-config-next` from `16.2.6` to `16.2.12`; commit, push, and exact-SHA CI remain.
 
-Modified files: Recovery records only until this state checkpoint is committed. The validated PKG-006 product commit is already pushed.
+Modified files: The intended staged set is `package.json`, `package-lock.json`, `CHANGELOG.md`, `docs/IMPLEMENTATION_STATUS.md`, `docs/NEXT_STEPS.md`, and `.codex/` recovery records. Three documented historical conflict copies remain untracked and excluded. No product logic, persistence schema, hosting resource, or user configuration is intended to change.
 
 Completed steps:
 
-- Confirmed a clean `main` startup state with local, tracking, and GitHub SHA at `6377692`; no stash or interrupted Git operation exists.
-- Passed the unmodified baseline `npm run check` with lint, typecheck, 13 Vitest files / 112 tests, and production build.
-- Audited lockfile v3: 724 package entries and 717 HTTPS/SHA-512 downloads, initially split between 619 npmjs and 98 npmmirror URLs.
-- Confirmed all 98 mirror `name@version` records match npmjs metadata for integrity and tarball pathname; no credentials, query strings, fragments, git/file/link downloads, or non-`resolved` mirror strings exist.
-- Verified in an isolated archive that changing only the 98 hostnames leaves every other lockfile field identical.
-- Passed an isolated cold-cache `npm ci` against npmjs; npm did not rewrite the candidate lockfile, and isolated `npm run check` passed.
-- Applied the same exact 98-line hostname-only transformation to the repository and re-ran the structural comparison successfully.
-- Passed changed-file Prettier, JSON parse, whitespace, provenance-count, credential-pattern, and private-path checks; manually reviewed the complete recovery-documentation diff.
-- Created and pushed commit `cb19453` without changing global Git or npm configuration; local HEAD, `origin/main`, and GitHub matched after the push.
-- Waited for GitHub Actions run `30710451561`; the Node 22 clean install and quality gate completed successfully for exact SHA `cb19453986661ec52529587c2fc79a34eafed25a`.
+- Confirmed clean startup with local HEAD, `origin/main`, and GitHub at `eb637a5`; final PKG-006 CI run `30710600306` remains `completed/success` for that exact SHA.
+- Reproduced the official-registry production audit: 13 advisory records across the `next`/PostCSS/Sharp chain before the patch.
+- Verified Next `16.2.11` is the official July security boundary and selected current stable `16.2.12`; aligned `eslint-config-next` to keep its exact Next ESLint plugin dependency coherent.
+- Confirmed Node 22.13+ and React/React DOM `19.2.6` remain within the updated packages' declared compatibility ranges.
+- Built an isolated candidate with 724 lock entries unchanged in count: only the root record plus 12 Next-owned entries changed from `16.2.6` to `16.2.12`; no React, Vite, vinext, Wrangler, Cloudflare, added, or removed package appeared.
+- Passed isolated cold-cache `npm ci` and `npm run check`; reproduced the exact candidate hashes in the repository after applying the same two manifest edits.
+- Passed repository cold-cache `npm ci`, confirmed installed versions, and passed `npm run check` with lint, typecheck, 13 Vitest files / 112 tests, and production build.
+- Confirmed all 9 Next.js advisory records disappeared; four residual advisory records remain (three PostCSS, one Sharp), with zero critical finding.
+- Rejected PostCSS/Sharp overrides: stable Next pins ranges that exclude the safe versions, and upstream compatibility work changes vendored bundles, image optimization, tests, and Turbopack tracing.
+- Passed 13 Chromium tests, 7 selected WebKit tests, and production server smoke at `http://localhost:43217/` with HTTP 200 and the expected RiverLab title.
+- Passed final changed-file formatting, whitespace, lock-boundary, JSON, credential/private-path, stopped-listener, and complete diff review; the intended commit contains only the 11 scoped PKG-007 files.
+- Detected three untracked conflict-style historical copies after final staging: `.codex/CURRENT_STATE 2.md`, `.codex/LAST_VALIDATION 2.json`, and `docs/NEXT_STEPS 2.md`. They are older maintenance snapshots, are excluded from the commit, and are preserved pending explicit deletion approval.
 
 Remaining steps:
 
-- Commit and push this recovery-documentation checkpoint.
-- Wait for completed GitHub Actions success for the exact state-only commit before stopping.
+- Stage only the scoped files, inspect the staged boundary, commit, and push `main`.
+- Wait for completed GitHub Actions success for the exact pushed SHA, then create and verify the recovery-state checkpoint.
 
 Current tests:
 
-- Baseline `npm run check` — PASS at 2026-08-02T01:21+08:00 (lint, typecheck, 13 Vitest files / 112 tests, production build).
-- Isolated structural lockfile comparison — PASS (98 expected hostname changes; all remaining fields identical; 717 npmjs and 0 npmmirror URLs).
-- Isolated cold-cache `npm ci` with empty npm config files and explicit npmjs registry — PASS (590 packages installed; SHA-512 integrity accepted; lockfile unchanged).
-- Isolated `npm run check` — PASS at 2026-08-02T01:25+08:00 (lint, typecheck, 13 Vitest files / 112 tests, production build).
-- Repository `npm run check` — PASS at 2026-08-02T01:26+08:00 (lint, typecheck, 13 Vitest files / 112 tests, production build).
-- `npm run test:e2e` — PASS at 2026-08-02T01:27+08:00 (13 Chromium tests).
-- `npm run test:e2e:webkit` — PASS at 2026-08-02T01:28+08:00 (7 selected WebKit tests).
-- Changed-file Prettier, JSON parse, `git diff --check`, structural/provenance assertion, and sensitive/private-path scans — PASS.
-- GitHub Actions `Quality` run `30710451561` — PASS at 2026-08-02T01:30+08:00 (`completed/success`, exact `cb19453` head; install and all quality steps successful).
+- Baseline `npm run check` — PASS at 2026-08-02T02:32+08:00 (lint, typecheck, 13 Vitest files / 112 tests, production build).
+- Isolated candidate `npm ci` and `npm run check` — PASS (590 packages; same 112 tests and build).
+- Repository cold-cache `npm ci` — PASS at 2026-08-02T02:37+08:00 (590 packages; scripts disabled for local supply-chain isolation).
+- Repository `npm run check` — PASS at 2026-08-02T02:38+08:00.
+- `npm run test:e2e` — PASS at 2026-08-02T02:39+08:00 (13 Chromium tests).
+- `npm run test:e2e:webkit` — PASS at 2026-08-02T02:39+08:00 (7 selected WebKit tests).
+- Production `vinext start --port 43217` plus HTTP/title smoke — PASS at 2026-08-02T02:39+08:00.
+- Production audit advisory records — improved from 13 to 4; expected nonzero result remains for PostCSS/Sharp.
+- Final formatting, whitespace, dependency-boundary, JSON, sensitive/private-path, and stopped-listener checks — PASS at 2026-08-02T02:44+08:00.
 
-Known failures: Repository-wide `npm run format:check` has 10 pre-existing differences in untouched files. Read-only npm audit triage reports 15 affected package entries (13 high, 2 low, 0 critical), including three production-path entries: direct `next@16.2.6` plus transitive `postcss@8.4.31` and optional `sharp@0.34.5`; remediation is queued separately as PKG-007. The first isolated install invocation reused `/dev/null` for both npm config layers and npm rejected that test harness before dependency resolution; distinct empty files fixed the harness and the clean install passed.
+Known failures: Production-only npm audit remains nonzero because stable Next `16.2.12` still pins affected PostCSS/Sharp ranges. Complete audit remains nonzero for 15 package-level development/build findings. Repository-wide `npm run format:check` has 10 pre-existing differences in untouched files. Three untracked historical conflict copies appeared during final staging and remain intentionally untouched.
 
-Risk: Low. All local, isolated, and exact-SHA CI gates pass; committed dependency bytes and integrity values are unchanged.
+Risk: Low to medium pending remote CI. The direct framework risk is materially reduced; unsupported transitive overrides are deliberately excluded and residual exposure is documented. The staged commit is cleanly isolated from the three preserved untracked copies.
 
-Next command: `git status --short --branch && git diff --check`
+Next command: Restage the three updated recovery records, repeat staged-boundary checks, then commit the 11 explicitly listed PKG-007 files.
 
-Resume instructions: Read `.codex/RESUME.md`, verify the PKG-006 product commit and run `30710451561`, then finish the recovery-documentation commit/push/CI verification if it is not already synchronized. Do not regenerate the lockfile or add user/global npm configuration.
+Resume instructions: Read `.codex/RESUME.md`, verify HEAD remains `eb637a5`, confirm the staged set contains exactly the 11 scoped PKG-007 files, and leave the three documented untracked historical copies untouched. All local gates and final diff/security checks pass; commit/push and wait for exact-SHA CI without broad audit fixes or dependency expansion.

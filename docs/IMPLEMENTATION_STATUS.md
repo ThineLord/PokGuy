@@ -2,10 +2,10 @@
 
 ## 当前状态
 
-- 当前阶段：Phase 8.3 GitHub Actions 质量门禁完成
+- 当前阶段：Phase 8.4 依赖来源与 Next.js 安全补丁本地验证完成
 - 可运行状态：可安装、启动、连续游戏、训练、复盘、统计、导出和可信局域网访问
 - 当前分支：`main`
-- 当前稳定产品提交：`5273674`；远端同步与 CI 状态见 `.codex/CURRENT_STATE.md`
+- 当前稳定维护提交、远端同步与精确 SHA CI 状态见 `.codex/CURRENT_STATE.md`
 
 ## 已完成模块
 
@@ -31,6 +31,8 @@
 - 启动与设置导入发生迁移/修复时显示全局双语提示，空数字输入不会写入非法盲注
 - 完整 13 项 Chromium 回归保持默认门禁，7 项精选 WebKit 回归覆盖复盘、持久化、导出、响应式布局、摊牌和键盘输入边界
 - `main` push 与面向 `main` 的 pull request 会触发只读 GitHub Actions 门禁，以 Node `22.x` 干净安装并运行 `npm run check`
+- lockfile 的 717 个普通下载地址已统一为 npmjs.org；版本、integrity 与依赖图未因来源规范化而改变
+- `next` 与 `eslint-config-next` 已同步到 `16.2.12`，清除 9 条 Next.js 自身公告且未联动 React、Vite、vinext、Wrangler 或 Cloudflare
 - Mac 自适应视口牌桌与 `F/K/C/R/A` 键盘操作
 - iPad 横/竖屏零覆盖布局与 iPhone 自动行动区定位
 - iOS 安全区、动态视口、44px+ 触控目标与输入防缩放
@@ -72,6 +74,7 @@
 - 13 项 Chromium E2E 通过
 - 7 项精选 WebKit E2E 通过
 - GitHub Actions `Quality / Node 22 quality gate` 首次干净 Linux 运行通过（run `30709790461`）
+- PKG-007 冷缓存 `npm ci`、production audit 前后对比与生产服务器 HTTP 200/title smoke 通过
 - 120 手种子化六人桌规则压力测试通过
 - 弃牌动画与确定性河牌摊牌关键流程连续重复 5 轮，共 10 项回归通过
 - iPhone 393×852 正式摊牌比较区无横向溢出
@@ -99,7 +102,8 @@
 - 旧版训练记录不含行动时 equity / pot odds / 推荐动作快照；当前仅在记录数与 Hero 动作数完全一致、且最新优先存储顺序可验证时做顺序关联
 - Playwright WebKit 使用 Desktop Safari 引擎与显式移动视口，不等同于物理 iPhone/iPad Safari；真实设备安全区、触控和动态地址栏仍需保留手动检查
 - GitHub Actions 当前报告质量结果，但 `main` 尚未启用 branch protection，因此不会强制阻止绕过门禁的直接推送或合并
-- `package-lock.json` 同时包含 npmjs.org 与 npmmirror.com 下载地址；首次 CI 已成功，但依赖来源一致性需要单独审计
+- Next `16.2.12` 稳定版仍精确依赖 PostCSS `8.4.31` 并可选依赖 Sharp `^0.34.5`；production audit 剩余 4 条传递公告。当前应用不构建不可信 CSS、未使用 `next/image`，但风险仅属可达性降低，需等待稳定 Next 纳入上游兼容升级
+- 完整 npm audit 仍包含 React Server Components、Vite、Cloudflare/Wrangler 等开发/构建路径公告；必须拆分为小型依赖检查点处理，不能直接运行宽泛 `npm audit fix`
 
 ## 重要架构决定
 

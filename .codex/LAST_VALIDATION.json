@@ -1,30 +1,50 @@
 {
-  "validated_at": "2026-08-02T01:31:00+08:00",
+  "validated_at": "2026-08-02T02:44:06+08:00",
   "branch": "main",
-  "head": "cb19453986661ec52529587c2fc79a34eafed25a",
-  "last_stable_commit": "cb19453986661ec52529587c2fc79a34eafed25a",
-  "worktree": "recovery-state-checkpoint-after-remote-and-ci-verified-pkg-006",
-  "phase": "remote-and-ci-verified-pkg-006",
+  "head": "eb637a5f332ffa1681945d448853e87d52cdba38",
+  "last_stable_commit": "eb637a5f332ffa1681945d448853e87d52cdba38",
+  "worktree": "validated-pkg-007-candidate-awaiting-commit-and-remote-ci",
+  "phase": "local-validation-pkg-007",
   "commands": [
     {
-      "command": "npm run check (unmodified baseline)",
+      "command": "startup Git/GitHub recovery and gh auth checks",
+      "exit_code": 0,
+      "result": "Clean main startup; local, tracking, and GitHub SHAs matched eb637a5; final prior Quality run 30710600306 was completed/success"
+    },
+    {
+      "command": "baseline npm audit --omit=dev --json against the official registry",
+      "exit_code": 1,
+      "result": "Expected audit finding: 13 distinct advisory records in the Next/PostCSS/Sharp chain, zero critical"
+    },
+    {
+      "command": "official Next/npm metadata and upstream compatibility review",
+      "exit_code": 0,
+      "result": "Selected stable Next and eslint-config-next 16.2.12; confirmed Node/React compatibility and rejected unsupported PostCSS/Sharp overrides"
+    },
+    {
+      "command": "isolated package/lock update, structural comparison, cold-cache npm ci, and npm run check",
+      "exit_code": 0,
+      "result": "Only root plus 12 Next-owned lock entries changed from 16.2.6 to 16.2.12; 724 entries retained; 590 packages installed; lint, typecheck, 112 tests, and build passed"
+    },
+    {
+      "command": "repository package-lock-only generation and isolated-candidate byte comparison",
+      "exit_code": 0,
+      "result": "package.json and package-lock.json hashes matched the independently generated candidate exactly; no added/removed package or mirror URL"
+    },
+    {
+      "command": "repository cold-cache npm ci --ignore-scripts",
+      "exit_code": 0,
+      "result": "Installed 590 locked packages from the official registry and retained the candidate lockfile"
+    },
+    {
+      "command": "post-update production and complete npm audits",
+      "exit_code": 1,
+      "result": "Expected residual findings: all 9 Next-specific advisories removed; 4 production advisory records remain for PostCSS/Sharp; complete audit still reports 15 package-level findings and zero critical"
+    },
+    {
+      "command": "npm run check",
       "exit_code": 0,
       "result": "Passed ESLint, TypeScript, 13 Vitest files and 112 tests, and the production build"
-    },
-    {
-      "command": "npmjs metadata parity and before/after structural lockfile comparison",
-      "exit_code": 0,
-      "result": "All 98 mirror name/version records matched npmjs integrity and tarball pathname; only the exact resolved hostname changed and every other field remained identical"
-    },
-    {
-      "command": "isolated cold-cache npm ci with empty config files and explicit npmjs registry",
-      "exit_code": 0,
-      "result": "Installed 590 packages with integrity verification and did not rewrite the normalized lockfile"
-    },
-    {
-      "command": "npm run check (isolated candidate and repository candidate)",
-      "exit_code": 0,
-      "result": "Both runs passed ESLint, TypeScript, 13 Vitest files and 112 tests, and the production build"
     },
     {
       "command": "npm run test:e2e",
@@ -37,38 +57,38 @@
       "result": "7 selected WebKit tests passed"
     },
     {
-      "command": "changed-file Prettier/JSON parse, git diff --check, structural provenance assertion, and sensitive/private-path scans",
+      "command": "vinext start --port 43217 and localhost HTTP/title smoke",
       "exit_code": 0,
-      "result": "Formatting and whitespace passed; lockfile contains 717 npmjs and zero mirror URLs with no other field drift; no credential-like addition or private path was found"
+      "result": "Production server returned HTTP 200 with the expected RiverLab title; server was stopped after the check"
     },
     {
-      "command": "scoped GitHub-specific HTTPS proxy push and remote SHA verification",
+      "command": "final changed-file Prettier, git diff --check, lock-boundary/JSON, sensitive/private-path, listener, status, and complete diff review",
       "exit_code": 0,
-      "result": "Fast-forwarded origin/main from 6377692 to cb19453 without changing global Git configuration; local, tracking, and GitHub SHAs matched"
-    },
-    {
-      "command": "gh run watch/view 30710451561",
-      "exit_code": 0,
-      "result": "Quality run completed successfully for exact head SHA cb19453986661ec52529587c2fc79a34eafed25a; checkout, Node 22 setup, npm ci, npm run check, and post steps all succeeded"
+      "result": "All checks passed for the 11 scoped PKG-007 files: 724 lock entries are retained, only root plus 12 Next-owned entries changed, and no added/removed dependency, mirror URL, secret-like assignment, private path, or smoke listener remains"
     }
   ],
   "known_failures": [
     {
+      "command": "npm audit --omit=dev --json (post-update)",
+      "exit_code": 1,
+      "result": "Stable Next still installs affected PostCSS/Sharp versions; four distinct residual advisories are documented and unsupported overrides are deferred"
+    },
+    {
+      "command": "npm audit --json (post-update)",
+      "exit_code": 1,
+      "result": "15 package-level development/build findings remain for separately scoped maintenance; no critical finding"
+    },
+    {
       "command": "npm run format:check",
       "exit_code": 1,
       "result": "10 pre-existing formatting differences in untouched files"
-    },
-    {
-      "command": "first isolated npm ci config-isolation attempt",
-      "exit_code": 1,
-      "result": "npm rejected using /dev/null as both user and global config before dependency resolution; using two distinct empty config files corrected the harness and the subsequent cold-cache install passed"
     }
   ],
   "notes": [
-    "The candidate has 717 npmjs and zero npmmirror resolved URLs; all package versions, integrity hashes, paths, dependency edges, flags, and lockfile metadata remain unchanged.",
-    "No project, user, or global npm configuration was added or modified; no proxy value, credential, token, or machine path is recorded.",
-    "Read-only npm audit triage classified 15 affected package entries: 13 high, 2 low, zero critical; three production-path entries are queued separately as PKG-007.",
-    "PKG-006 commit, push, remote SHA match, and completed exact-SHA GitHub Actions verification all passed.",
-    "This recovery-documentation checkpoint still needs its own commit, push, and final CI confirmation before the worktree is clean."
+    "No product logic, LocalStorage schema/key, hosting resource, user npm configuration, or proxy setting changed.",
+    "No npm audit fix, preview/canary package, dependency override, or unrelated toolchain update was used.",
+    "A completed subagent's temporary candidate path was already absent when independently inspected; the main task recreated the candidate and reproduced the reported package and lock hashes before repository application.",
+    "Three untracked conflict-style historical copies appeared after final staging. Their older contents were compared with the current files; they are excluded from the staged set and preserved pending explicit deletion approval.",
+    "Commit, push, and completed exact-SHA GitHub Actions verification remain."
   ]
 }

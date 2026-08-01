@@ -59,7 +59,7 @@
 - Test method: Before/after structural lockfile comparison, isolated `npm ci`, `npm run check`, Chromium/WebKit regressions, diff/security review, and completed GitHub Actions conclusion.
 - Completion: Commit `cb19453`; 98 mirror records matched npmjs metadata and were changed by exact hostname substitution only. Structural comparison, isolated cold-cache `npm ci`, repository checks, 13 Chromium tests, 7 WebKit tests, final diff/security checks, push verification, and exact-SHA GitHub Actions run `30710451561` all passed.
 
-## PKG-007 — TODO
+## PKG-007 — IN_PROGRESS
 
 - Description: Remediate production-path npm advisories in a minimal dependency checkpoint, starting with the direct Next.js update and explicitly evaluating residual PostCSS/Sharp findings.
 - Priority: P1
@@ -67,3 +67,13 @@
 - Risk: Medium because framework and transitive dependency updates can affect build, runtime routing, image handling, and deployment compatibility.
 - Acceptance criteria: Upgrade Next.js to a verified patched release without API or UX regression; rerun production-only audit; document and safely resolve or explicitly defer residual PostCSS/Sharp findings; do not use an unreviewed `npm audit fix` or broad toolchain upgrade.
 - Test method: Before/after dependency and audit comparison, isolated clean `npm ci`, `npm run check`, Chromium/WebKit regressions, production build/smoke test, diff/security review, and completed exact-SHA GitHub Actions conclusion.
+- Progress: Next and `eslint-config-next` are updated to `16.2.12`; isolated/repository clean install, 112 tests/build, 13 Chromium, 7 WebKit, production smoke, advisory-level reduction from 13 to 4, and final diff/security checks pass. PostCSS/Sharp overrides are explicitly deferred; commit, push, and exact-SHA CI remain.
+
+## PKG-008 — TODO
+
+- Description: Audit and apply the smallest coherent React Server Components security patch across React, React DOM, and `react-server-dom-webpack`.
+- Priority: P1
+- File scope: `package.json`, `package-lock.json`, directly affected app/tests/docs, and `.codex/` recovery state. Vite and Cloudflare/Wrangler upgrades remain separate.
+- Risk: Medium because the three packages have exact compatibility and peer boundaries across client rendering, RSC serialization, and the vinext adapter.
+- Acceptance criteria: Use an official patched version trio; remove the direct RSC advisory without introducing peer warnings or unrelated dependency drift; preserve UI, LocalStorage, poker rules, and deployment configuration.
+- Test method: Advisory-level before/after audit, isolated cold-cache `npm ci`, `npm run check`, Chromium/WebKit regressions, production smoke, diff/security review, and completed exact-SHA GitHub Actions conclusion.

@@ -2,32 +2,39 @@
 
 ## 下一项具体任务
 
-Phase 8.3 已完成首个 GitHub Actions 质量门禁：官方 Actions 固定到不可变 SHA，token 仅可读取仓库内容，Node `22.x` 会执行 `npm ci` 与 `npm run check`；首次干净 Linux run 已完成且成功。下一项 P2 是审计 `package-lock.json` 中混合的 npmjs.org / npmmirror.com 下载来源，并在不改变版本、integrity 或依赖图的前提下决定是否规范化。若执行规范化会重写锁文件，因此必须单独经过配置/依赖安全检查点。
+Phase 8.4 已完成 npm 下载来源规范化，并把 `next` / `eslint-config-next` 从 `16.2.6` 同步到 `16.2.12`。Next.js 自身 9 条公告已从 production audit 消失；稳定版 Next 尚未包含 PostCSS/Sharp 的兼容升级，因此没有使用 preview/canary 或强制 override。
+
+下一项 P1 是 PKG-008：把 React Server Components 安全更新作为独立兼容单元，先验证审计建议的 React、React DOM 与 `react-server-dom-webpack` 同步补丁版本。Vite、Cloudflare、Wrangler 及其传递依赖继续留在后续独立检查点，避免一次升级多个构建系统。
 
 ## 相关文件
 
-- `package-lock.json`
 - `package.json`
-- 用户级与项目级 npm registry 配置（只读审计，不提交本机配置）
-- `.github/workflows/ci.yml`
-- `TESTING.md`
+- `package-lock.json`
+- `app/`
+- `src/`
+- `tests/`
+- `.openai/hosting.json`（只验证，不改变部署资源）
 - `.codex/TASK_QUEUE.md`
 - `.codex/CURRENT_STATE.md`
 
 ## 验收标准
 
-- 解释 98 个 npmmirror.com 与 619 个 npmjs.org `resolved` 条目的来源，不把首次 CI 成功误当成来源一致性证明
-- 若规范化，所有包版本、integrity、依赖关系和 lockfile v3 保持不变，只允许必要的 `resolved` 来源差异
-- 不把本机 npm registry、代理、凭据或绝对路径写入仓库
-- 在隔离干净安装和 GitHub Actions 中验证 `npm ci` 与 `npm run check`
-- 本地 112 项单元测试、13 项 Chromium E2E 和 7 项 WebKit E2E 继续通过
-- 若无法证明机械改写安全，记录审计结论并保持锁文件不变
+- 以官方公告与 npm 元数据确认 React 三件套的同版本安全边界和 peer 约束
+- 只改变 React、React DOM、`react-server-dom-webpack` 及其必需 lockfile 条目
+- 对比 production 与 complete audit 的 advisory-level 变化，不用 package-level 汇总冒充漏洞清零
+- 不把 Vite、Cloudflare/Wrangler、PostCSS/Sharp 或 preview/canary 版本混入同一提交
+- 冷缓存 `npm ci`、112 项单元测试、13 项 Chromium E2E、7 项 WebKit E2E、production build/smoke 与精确 SHA GitHub Actions 全部通过
+- 保持 LocalStorage v2、扑克规则、用户体验、部署配置与现有接口不变
 
 ## 推荐执行命令
 
 ```bash
-npm config get registry
-git diff -- package-lock.json
+npm audit --json
+npm view react versions --json
+npm view react-dom versions --json
+npm view react-server-dom-webpack versions --json
 npm ci
 npm run check
+npm run test:e2e
+npm run test:e2e:webkit
 ```

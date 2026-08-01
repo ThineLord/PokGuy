@@ -52,3 +52,11 @@ Architecture and poker-rule decisions remain authoritative in `ARCHITECTURE.md` 
 - Do not use `npm install --package-lock-only` as a registry-normalization mechanism because npm does not guarantee that it rewrites existing custom registry origins.
 - Do not add a project `.npmrc` in this task. Registry choice remains a user/operator preference, while committed lockfile provenance is reviewed independently.
 - Treat npm audit advisory remediation as separate dependency-maintenance work; do not change dependency versions inside this provenance-only checkpoint.
+
+## 2026-08-02 — Patch supported Next packages and defer incompatible transitive overrides
+
+- Update `next` and `eslint-config-next` together from `16.2.6` to current stable `16.2.12`; keep React, Vite, vinext, Wrangler, and Cloudflare unchanged.
+- Measure audit improvement by distinct advisory records as well as npm's package-level summary. Parent-package propagation keeps the package-level total at three even after all nine Next-specific advisory records disappear.
+- Do not override Next's exact PostCSS `8.4.31` or Sharp `^0.34.5` declarations. Upstream safe-version adoption changes vendored PostCSS bundles, image optimization, tests, and Turbopack tracing, so a version-only override is not equivalent to the upstream fix.
+- Do not adopt preview/canary Next builds for this application. Revisit the residual findings when a stable release incorporates PostCSS `>=8.5.18` and Sharp `>=0.35.0` with its compatibility changes.
+- Treat reduced reachability as mitigation, not resolution: PokGuy does not build untrusted CSS or use `next/image`, but the affected packages remain installed.

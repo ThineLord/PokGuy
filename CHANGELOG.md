@@ -25,6 +25,8 @@
 - 训练评价按时间排序；时间无效、重复、不符合最新优先存储顺序或记录数不一致时禁用动作配对，并加入 320/393px 无横向溢出与 44px 筛选触控回归。
 - 社交预览地址兼容本机、可信局域网 IPv4/IPv6 和反向代理协议，并拒绝异常 Host/端口输入。
 - LocalStorage v2 key 与数据格式保持不变；旧版迁移、启动恢复和导入修复会显示可理解提示，且不会自动覆盖未知版本的原始浏览器数据。
+- 将 `next` 与 `eslint-config-next` 从 `16.2.6` 同步升级到 `16.2.12`，消除当前审计中的 9 条 Next.js 自身安全公告；lockfile 只更新 12 个 Next 自有条目，不改变 React、Vite、vinext、Wrangler 或 Cloudflare 版本。
+- Next 稳定版仍固定受影响的 PostCSS/Sharp 范围；由于上游修复同时涉及 vendored bundle、image optimizer 与 Turbopack 代码，本轮不使用不受支持的 override，并保留明确的残余风险记录。
 
 ## Unreleased — 2026-07-24
 

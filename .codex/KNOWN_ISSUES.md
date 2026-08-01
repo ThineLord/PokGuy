@@ -42,10 +42,17 @@
 
 ## Production dependency advisories
 
-- Status: Open; queued as PKG-007
-- Priority: P1
-- Impact: Read-only npm audit triage reports three high-severity production-path package findings: direct `next@16.2.6`, transitive `postcss@8.4.31`, and optional `sharp@0.34.5`. There are 12 additional development-path findings and no critical finding.
-- Next step: First evaluate the patched Next.js `16.2.12` line, then rerun the production-only audit. Do not assume it also fixes PostCSS/Sharp: current Next metadata can retain their affected ranges, so any override or broader framework choice needs its own compatibility evidence. Never run an unreviewed broad `npm audit fix`.
+- Status: Reduced by PKG-007 locally; exact-SHA CI pending. Residual PostCSS/Sharp findings are deferred with mitigation.
+- Priority: P1 residual upstream dependency risk
+- Impact: Updating Next removes all nine Next-specific advisory records. Stable Next `16.2.12` still installs PostCSS `8.4.31` and Sharp `0.34.5`, leaving three PostCSS and one Sharp advisory record; npm's parent propagation therefore still reports three high package-level nodes. PokGuy does not build user-supplied CSS or use `next/image`, reducing current reachability without eliminating the vulnerable packages.
+- Next step: Monitor stable Next for its merged PostCSS/Sharp compatibility work and update when a stable release declares PostCSS `>=8.5.18` and Sharp `>=0.35.0`. Do not force overrides or adopt preview/canary builds.
+
+## React and build-toolchain dependency advisories
+
+- Status: Open; React Server Components patch queued as PKG-008
+- Priority: P1 for the direct RSC package; remaining build-toolchain findings require later scoped checkpoints
+- Impact: Complete audit remains nonzero for `react-server-dom-webpack`, Vite, Cloudflare/Wrangler, and their transitive packages even after the Next patch. Grouping all fixes would cross several peer and adapter boundaries.
+- Next step: Patch the React/React DOM/RSC trio as one bounded unit, then reassess Vite and Cloudflare/Wrangler separately. Never use an unreviewed broad `npm audit fix`.
 
 ## Quality check is not branch-protected
 
