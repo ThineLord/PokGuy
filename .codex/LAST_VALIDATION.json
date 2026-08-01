@@ -1,10 +1,10 @@
 {
-  "validated_at": "2026-08-02T05:51:36+08:00",
+  "validated_at": "2026-08-02T07:14:38+08:00",
   "branch": "main",
-  "head": "d3866d5e5013dfca1266598b3335b6ae28be1269",
-  "last_stable_commit": "d3866d5e5013dfca1266598b3335b6ae28be1269",
-  "worktree": "pkg-011-approval-boundary-documentation-only",
-  "phase": "isolated-pkg-011-candidate-validated-awaiting-dependency-change-approval",
+  "head": "6f3f4d06b510cc3639cb6dd1eaf2322584007faf",
+  "last_stable_commit": "6f3f4d06b510cc3639cb6dd1eaf2322584007faf",
+  "worktree": "locally-validated-pkg-011-product-checkpoint",
+  "phase": "approved-six-record-lock-candidate-awaiting-product-commit-push-ci",
   "commands": [
     {
       "command": "startup Git/GitHub recovery and gh auth checks",
@@ -195,6 +195,51 @@
       "command": "approval-boundary repository npm run check",
       "exit_code": 0,
       "result": "With package.json and package-lock.json still unchanged, passed ESLint, strict TypeScript, 13 Vitest files / 112 tests, and the Vite 8.0.16 production build"
+    },
+    {
+      "command": "startup Git/GitHub recovery, Playwright prerequisite, and approval checkpoint verification",
+      "exit_code": 0,
+      "result": "Local, tracking, ls-remote, and GitHub SHAs matched 6f3f4d06b510cc3639cb6dd1eaf2322584007faf; Quality run 30720162214 was completed/success; npx and authenticated gh were available; four historical untracked copies remained preserved"
+    },
+    {
+      "command": "approved two-stage official-registry lock-only refresh",
+      "exit_code": 0,
+      "result": "Babel historical-cutoff update produced intermediate lock SHA d712786fa70530d86d8230bd191c1b27ae9f5938764895fe5d30bdf44a7fbd18; brace-expansion/fast-uri/js-yaml update produced exact accepted lock SHA b1ee4dec8caa44b2e8d2bbfac6e5e9c4d27a9cde75aacc56699cfd42eb25856c; package.json remained byte-identical"
+    },
+    {
+      "command": "repository semantic lock, candidate-byte, excluded-package, registry, and independent review",
+      "exit_code": 0,
+      "result": "Repository lock is byte-identical to the candidate; records remain 754 with exactly six changed and zero added/removed; all excluded Next/PostCSS/Sharp/React/RSC/Vite/vinext/Cloudflare records and top-level non-package fields are unchanged; zero mirror/private path; independent read-only review found no blocker"
+    },
+    {
+      "command": "repository cold npm ci --ignore-scripts and npm ls --all",
+      "exit_code": 0,
+      "result": "Installed 593 packages; all six target versions matched and dependency/peer problems were empty"
+    },
+    {
+      "command": "official-registry complete and production audits after PKG-011",
+      "exit_code": 1,
+      "result": "Expected residual findings only: both audits report Next, PostCSS, and Sharp as 3 high package records / 4 independent advisory sources; Babel, brace-expansion, fast-uri, and js-yaml are absent; low and critical counts are zero"
+    },
+    {
+      "command": "repository npm run check",
+      "exit_code": 0,
+      "result": "Passed ESLint, strict TypeScript, 13 Vitest files / 112 tests, and Vite 8.0.16 production build"
+    },
+    {
+      "command": "npm run test:e2e and npm run test:e2e:webkit",
+      "exit_code": 0,
+      "result": "Passed 13 Chromium and 7 selected WebKit tests; Playwright servers stopped"
+    },
+    {
+      "command": "artifact assertions, vinext production smoke, and real-workerd preview smoke",
+      "exit_code": 0,
+      "result": "Preserved compatibility date, flags, main, no_bundle, assets, D1/R2, hosting copy, and deploy redirect; production and workerd HTML/RSC/SVG/liveness probes passed on isolated ports; all listeners stopped; no deploy was performed"
+    },
+    {
+      "command": "changed-file formatting, whitespace, exact hashes, scope, registry, sensitive/private-path, and listener checks",
+      "exit_code": 0,
+      "result": "All intended local gates passed for package-lock plus recovery/status documentation; package.json/product/persistence/hosting/deployment files are unchanged; repository-wide formatter retains exactly 10 pre-existing untouched differences"
     }
   ],
   "known_failures": [
@@ -206,7 +251,7 @@
     {
       "command": "npm audit --json",
       "exit_code": 1,
-      "result": "The unchanged repository retains 7 package-level findings and 13 advisory sources until PKG-011 is approved and applied; the isolated candidate proves the four development records can be removed while leaving only the separately deferred Next/PostCSS/Sharp 3 / 4; no critical finding"
+      "result": "After the approved PKG-011 lock refresh, only the separately deferred Next/PostCSS/Sharp 3 high package records / 4 independent advisory sources remain; no low or critical finding"
     },
     {
       "command": "npm run format:check",
@@ -228,9 +273,12 @@
     "The original anomalous node_modules tree and all task-owned candidate/evidence directories remain preserved outside Git; none was deleted.",
     "PKG-010 product commit 448a243, push, remote SHA match, and exact-SHA Quality run 30719418742 are verified.",
     "At creation of this state record, the final PKG-010 recovery commit d3866d5 and exact-SHA Quality run 30719518356 were verified.",
-    "PKG-011 has no approved repository dependency change yet: package.json and package-lock.json remain at the stable d3866d5 baseline; only recovery/status documentation is modified.",
+    "PKG-011 explicit approval was received and the exact six-record lock candidate is applied; package.json remains at the stable baseline while package-lock.json matches the accepted candidate byte-for-byte.",
     "The accepted isolated candidate changes exactly six lock records and has SHA-256 b1ee4dec8caa44b2e8d2bbfac6e5e9c4d27a9cde75aacc56699cfd42eb25856c; any future reproduction mismatch requires a fresh audit rather than acceptance by similarity.",
     "Babel 7.29.7, Babel 8, broad npm update, npm audit fix, dependency overrides, and unrelated Next/React/Vite/Cloudflare movement are explicitly rejected for PKG-011.",
-    "At creation of this state record, the PKG-011 approval-boundary documentation checkpoint still required commit, push, and exact-SHA CI confirmation; resume must inspect Git history rather than assume it remains pending."
+    "Approval checkpoint 6f3f4d0, push, remote SHA match, and exact-SHA Quality run 30720162214 are verified.",
+    "PKG-011 did not change Wrangler, workerd, Vite, Worker or hosting configuration; artifact and real-workerd gates passed, so repeating deploy dry-run would add unrelated surface and was intentionally omitted.",
+    "The original dependency backup, task-owned external candidates/evidence, and four historical untracked copies remain preserved; none was deleted or staged.",
+    "At creation of this state record, the locally validated PKG-011 product checkpoint still required commit, push, and exact-SHA CI confirmation; resume must inspect Git history rather than assume it remains pending."
   ]
 }

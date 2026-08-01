@@ -49,10 +49,10 @@
 
 ## React and build-toolchain dependency advisories
 
-- Status: Direct React Server Components, Vite, and Cloudflare toolchain findings are resolved through PKG-010 product commit `448a243`; exact-SHA CI run `30719418742` passed. A PKG-011 lock-only candidate for the four remaining development records is validated but not yet applied.
+- Status: Direct React Server Components, Vite, and Cloudflare findings remain resolved. The approved PKG-011 lock-only candidate is applied and locally validated; product commit/push/exact-SHA CI remain.
 - Priority: P2 residual development-toolchain risk
-- Impact: The current repository complete audit has 7 package records / 13 sources (6 high, 1 low, zero critical). The isolated six-record candidate removes Babel/brace-expansion/fast-uri/js-yaml and leaves only the separately deferred Next/PostCSS/Sharp 3 records / 4 sources, but repository risk is unchanged until approval and application.
-- Next step: After explicit dependency-change approval, apply only the exact six-record candidate and run the complete repository/browser/runtime/CI gates. Never use an unreviewed broad `npm audit fix`.
+- Impact: The local complete audit now contains only the separately deferred Next/PostCSS/Sharp 3 high package records / 4 independent sources; Babel/brace-expansion/fast-uri/js-yaml are absent and low/critical counts are zero. Remote users remain on the approval checkpoint until push and CI complete.
+- Next step: Publish the exact validated product checkpoint, require exact-SHA CI, then close PKG-011 in a final state commit. Never use an unreviewed broad `npm audit fix`.
 
 ## Quality check is not branch-protected
 

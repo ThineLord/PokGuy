@@ -99,7 +99,7 @@
 - Test method: Advisory-level audit comparison, isolated cold-cache `npm ci`, peer graph, `npm run check`, Chromium/WebKit regressions, production smoke, real workerd preview, no-upload Wrangler deploy dry-run, artifact/diff/security review, and completed exact-SHA GitHub Actions conclusion.
 - Completion: Commit `448a243` applies plugin `1.47.0`, Wrangler `4.114.0`, exact Workers types `5.20260722.1`, and an explicit baseline compatibility date. Candidate/repository cold installs, clean peer graph, 724→754 semantic lock boundary, audit reduction from 13/23 to 7/13 with no Cloudflare chain, 112 tests/build, 13 Chromium, 7 WebKit, production/workerd/artifact/no-upload dry-run, formatting/security/independent reviews, push verification, and exact-SHA CI run `30719418742` all passed.
 
-## PKG-011 — BLOCKED
+## PKG-011 — IN_PROGRESS
 
 - Description: Map and, where stable compatible fixes exist, patch the residual `@babel/core`, `brace-expansion`, `fast-uri`, and `js-yaml` development-toolchain audit records without bundling Next/PostCSS/Sharp or product dependency work.
 - Priority: P2
@@ -107,5 +107,5 @@
 - Risk: Medium because these packages participate in lint/build/test tooling and may be pinned through multiple direct dependency trees.
 - Acceptance criteria: Map every advisory via chain and reachability; prefer stable direct upstream adoption; produce isolated bounded candidates; remove only supported findings without overrides or unrelated package movement.
 - Test method: Official advisory comparison, cold `npm ci`, clean peer graph, `npm run check`, Chromium/WebKit, production/workerd smoke where build graph changes, diff/security review, and exact-SHA CI.
-- Current status: Advisory and parent-range mapping is complete. The accepted isolated candidate changes only Babel core/generator `7.29.6`, brace-expansion `1.1.18` / `5.0.9`, fast-uri `3.1.5`, and js-yaml `4.3.1`; it retains 754 records, adds/removes none, and leaves `package.json` plus all excluded records unchanged.
-- Approval boundary: Cold install, dependency graph, complete audit, lint, typecheck, 112 tests, and build pass in isolation. Applying the six-record lock change to the repository requires explicit dependency-change approval under `AGENTS.md`.
+- Current status: Explicit approval was received and the accepted six-record lock-only candidate is applied locally. Cold install, clean dependency graph, complete/production audits, 112 tests/build, 13 Chromium, 7 WebKit, artifact, production/workerd, formatting/security/scope, and independent review pass.
+- Remaining boundary: Product commit, push, exact-SHA CI, then final recovery-state checkpoint. Do not mark DONE until both remote checkpoints are verified.
