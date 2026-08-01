@@ -15,22 +15,23 @@ Also confirm there is no `MERGE_HEAD`, `REBASE_HEAD`, `CHERRY_PICK_HEAD`, `REVER
 
 ## Current task
 
-PKG-006 is in progress on top of stable commit `6377692`. The candidate mechanically changes 98 lockfile `resolved` origins from npmmirror to npmjs after metadata parity, structural equality, cold-cache integrity installation, isolated and repository checks, 13 Chromium tests, 7 WebKit tests, and final diff/security review passed. Commit, push, and exact-SHA CI verification remain.
+PKG-006 is complete. Commit `cb19453` was pushed, local/tracking/GitHub SHAs matched, and GitHub Actions run `30710451561` completed successfully for that exact SHA. The following documentation-only checkpoint records the recovery state.
 
 ## Exact resume sequence
 
 1. Read `.codex/TASK_QUEUE.md` and verify Git status/history against this file.
-2. Confirm local `HEAD` is still `6377692`, `origin/main` and GitHub still match it, and only the PKG-006 files recorded in `CURRENT_STATE.md` are modified.
-3. Re-run the structural comparison against `git show HEAD:package-lock.json`; it must report exactly 98 hostname changes, 717 npmjs URLs, no npmmirror URL, and no other field change.
-4. Stage exactly the seven files recorded in `CURRENT_STATE.md`; inspect the staged paths and diff before committing.
-5. Commit and push `main`, then wait for completed GitHub Actions success for the exact pushed SHA. Never commit user registry/proxy configuration.
+2. Confirm the recovery-documentation checkpoint is committed and local HEAD, `origin/main`, and GitHub agree.
+3. Confirm the final checkpoint's GitHub Actions run is `completed/success` for its exact SHA; if not, wait or record the real failure.
+4. Run `npm run check` only if the tree or environment differs from the recorded checkpoint; browser regressions remain `npm run test:e2e` and `npm run test:e2e:webkit`.
+5. PKG-007 is the next P1 task. Start it with a new dependency/configuration safety assessment, verify patched Next.js metadata and production-only audit behavior, and never commit user registry/proxy configuration.
 
 ## Recovery boundary
 
-- Last remote-verified stable CI commit: `6377692002052361d428af7561959c5b2acfe4f1`.
-- GitHub Actions evidence: run `30709981525`, `completed/success`, exact head SHA `6377692002052361d428af7561959c5b2acfe4f1`.
+- Last remote-verified stable CI commit: `cb19453986661ec52529587c2fc79a34eafed25a`.
+- GitHub Actions evidence: run `30710451561`, `completed/success`, exact head SHA `cb19453986661ec52529587c2fc79a34eafed25a`.
 - No stash or interrupted Git operation existed at startup.
-- The poker engine, LocalStorage key/schema, package manifest, dependency versions, hosting configuration, and deployment state remain unchanged by PKG-006; only lockfile registry hostnames and recovery records are in scope.
+- The poker engine, LocalStorage key/schema, package manifest, dependency versions, hosting configuration, and deployment state remained unchanged by PKG-006; only lockfile registry hostnames and recovery records changed.
 - The workflow token has only `contents: read`; browser E2E remains a separate local gate, and branch protection is not enabled.
 - The normalized candidate has 717 npmjs and zero npmmirror resolved URLs; all locked integrity hashes and tarball paths are unchanged.
+- Read-only advisory triage found three high-severity production-path affected packages and no critical issue; PKG-007 records the bounded remediation scope.
 - If any final gate fails, record the exact command and failure in `CURRENT_STATE.md` and `LAST_VALIDATION.json`; do not mark the task done or push an unverified checkpoint.

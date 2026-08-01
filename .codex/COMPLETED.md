@@ -45,3 +45,13 @@ Append stable maintenance checkpoints here after their commit and remote status 
 - Commit: `5273674` (`ci: add read-only quality gate`).
 - Push: Verified by matching local `HEAD`, `origin/main`, and GitHub at `527367430d663bdbd89c62f1b10a472281209ec3`.
 - CI: GitHub Actions run `30709790461` completed successfully for the exact commit SHA; clean install and every quality-gate step passed.
+
+## 2026-08-02 — Lockfile registry provenance normalization
+
+- Audited all 717 downloaded lockfile entries and confirmed HTTPS plus SHA-512 integrity coverage; 98 entries used npmmirror and 619 used npmjs.
+- Matched all 98 mirror `name@version` records against npmjs metadata for integrity and tarball pathname with zero mismatch.
+- Changed only the 98 exact registry hostnames, leaving every package version, integrity hash, dependency edge, flag, package key, root field, and lockfile version unchanged.
+- Passed isolated cold-cache `npm ci`, isolated and repository `npm run check`, 13 Chromium tests, 7 WebKit tests, formatting, whitespace, structural, credential-pattern, and private-path checks.
+- Commit: `cb19453` (`security: normalize npm lockfile provenance`).
+- Push: Verified by matching local HEAD, `origin/main`, and GitHub at `cb19453986661ec52529587c2fc79a34eafed25a`.
+- CI: GitHub Actions run `30710451561` completed successfully for the exact commit SHA; Node 22 clean install and every quality-gate step passed.

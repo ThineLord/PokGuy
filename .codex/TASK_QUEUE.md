@@ -49,7 +49,7 @@
 - Acceptance criteria: Requires a separately approved design; v1/v2 data migrate without loss; snapshots contain only information visible at action time.
 - Test method: Migration fixtures, privacy boundary tests, unit tests, Chromium/WebKit flows, clean-profile import/export smoke test.
 
-## PKG-006 — IN_PROGRESS
+## PKG-006 — DONE
 
 - Description: Audit mixed npm registry provenance in `package-lock.json` and, only if mechanically safe, normalize ordinary package downloads without changing dependency versions or integrity.
 - Priority: P2
@@ -57,4 +57,13 @@
 - Risk: Medium because a lockfile rewrite changes dependency configuration and may affect clean installs despite unchanged versions.
 - Acceptance criteria: Registry origin is documented; package versions, integrity hashes, dependency graph, and lockfile version remain unchanged; no credentials or machine configuration enter the repository; local and clean Linux gates pass.
 - Test method: Before/after structural lockfile comparison, isolated `npm ci`, `npm run check`, Chromium/WebKit regressions, diff/security review, and completed GitHub Actions conclusion.
-- Progress: The 98 mirror records match npmjs metadata and were changed by exact hostname substitution only. Structural comparison, isolated cold-cache `npm ci`, repository checks, 13 Chromium tests, 7 WebKit tests, and final diff/security checks pass; commit, push, exact-SHA CI, and final synchronization remain.
+- Completion: Commit `cb19453`; 98 mirror records matched npmjs metadata and were changed by exact hostname substitution only. Structural comparison, isolated cold-cache `npm ci`, repository checks, 13 Chromium tests, 7 WebKit tests, final diff/security checks, push verification, and exact-SHA GitHub Actions run `30710451561` all passed.
+
+## PKG-007 — TODO
+
+- Description: Remediate production-path npm advisories in a minimal dependency checkpoint, starting with the direct Next.js update and explicitly evaluating residual PostCSS/Sharp findings.
+- Priority: P1
+- File scope: `package.json`, `package-lock.json`, directly affected tests/documentation, and `.codex/` recovery state. Cloudflare/Vite/React development-toolchain upgrades must remain a separate checkpoint unless required by the production fix.
+- Risk: Medium because framework and transitive dependency updates can affect build, runtime routing, image handling, and deployment compatibility.
+- Acceptance criteria: Upgrade Next.js to a verified patched release without API or UX regression; rerun production-only audit; document and safely resolve or explicitly defer residual PostCSS/Sharp findings; do not use an unreviewed `npm audit fix` or broad toolchain upgrade.
+- Test method: Before/after dependency and audit comparison, isolated clean `npm ci`, `npm run check`, Chromium/WebKit regressions, production build/smoke test, diff/security review, and completed exact-SHA GitHub Actions conclusion.

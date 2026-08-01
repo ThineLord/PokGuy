@@ -2,15 +2,15 @@
 
 Current branch: `main`
 
-Current HEAD: `6377692002052361d428af7561959c5b2acfe4f1` (pre-PKG-006 stable checkpoint)
+Current HEAD: recovery-documentation checkpoint on top of validated PKG-006 commit `cb19453986661ec52529587c2fc79a34eafed25a`; run `git rev-parse HEAD` for the exact state-only commit.
 
-Last stable commit: `6377692002052361d428af7561959c5b2acfe4f1` (`origin/main`; GitHub Actions run `30709981525` completed successfully for this exact SHA)
+Last stable commit: `cb19453986661ec52529587c2fc79a34eafed25a` (`origin/main`; GitHub Actions run `30710451561` completed successfully for this exact SHA)
 
-Current objective: Complete PKG-006 by normalizing mixed lockfile registry provenance without changing dependency contents or project npm configuration.
+Current objective: Preserve the completed PKG-006 lockfile-provenance checkpoint and select the next highest-value maintenance task.
 
-Active task: PKG-006 is IN_PROGRESS. The repository candidate contains only 98 exact `resolved` hostname substitutions from `registry.npmmirror.com` to `registry.npmjs.org`.
+Active task: None. PKG-006 is complete; PKG-007 is queued as the next P1 security-maintenance checkpoint.
 
-Modified files: `package-lock.json` and `.codex/` recovery records. No package manifest, dependency version, integrity hash, dependency graph, user configuration, or product file is intended to change.
+Modified files: Recovery records only until this state checkpoint is committed. The validated PKG-006 product commit is already pushed.
 
 Completed steps:
 
@@ -22,12 +22,13 @@ Completed steps:
 - Passed an isolated cold-cache `npm ci` against npmjs; npm did not rewrite the candidate lockfile, and isolated `npm run check` passed.
 - Applied the same exact 98-line hostname-only transformation to the repository and re-ran the structural comparison successfully.
 - Passed changed-file Prettier, JSON parse, whitespace, provenance-count, credential-pattern, and private-path checks; manually reviewed the complete recovery-documentation diff.
+- Created and pushed commit `cb19453` without changing global Git or npm configuration; local HEAD, `origin/main`, and GitHub matched after the push.
+- Waited for GitHub Actions run `30710451561`; the Node 22 clean install and quality gate completed successfully for exact SHA `cb19453986661ec52529587c2fc79a34eafed25a`.
 
 Remaining steps:
 
-- Stage the seven scoped PKG-006 files, review the staged diff, commit, and push `main`.
-- Wait for completed GitHub Actions success for the exact pushed SHA.
-- Record the final commit/run evidence in a separate recovery-state checkpoint if needed.
+- Commit and push this recovery-documentation checkpoint.
+- Wait for completed GitHub Actions success for the exact state-only commit before stopping.
 
 Current tests:
 
@@ -39,11 +40,12 @@ Current tests:
 - `npm run test:e2e` — PASS at 2026-08-02T01:27+08:00 (13 Chromium tests).
 - `npm run test:e2e:webkit` — PASS at 2026-08-02T01:28+08:00 (7 selected WebKit tests).
 - Changed-file Prettier, JSON parse, `git diff --check`, structural/provenance assertion, and sensitive/private-path scans — PASS.
+- GitHub Actions `Quality` run `30710451561` — PASS at 2026-08-02T01:30+08:00 (`completed/success`, exact `cb19453` head; install and all quality steps successful).
 
-Known failures: Repository-wide `npm run format:check` has 10 pre-existing differences in untouched files. npm audit reports 15 existing advisory findings during the isolated install; dependency remediation is outside this hostname-only task and must not be conflated with it. The first isolated install invocation reused `/dev/null` for both npm config layers and npm rejected that test harness before dependency resolution; distinct empty files fixed the harness and the clean install passed.
+Known failures: Repository-wide `npm run format:check` has 10 pre-existing differences in untouched files. Read-only npm audit triage reports 15 affected package entries (13 high, 2 low, 0 critical), including three production-path entries: direct `next@16.2.6` plus transitive `postcss@8.4.31` and optional `sharp@0.34.5`; remediation is queued separately as PKG-007. The first isolated install invocation reused `/dev/null` for both npm config layers and npm rejected that test harness before dependency resolution; distinct empty files fixed the harness and the clean install passed.
 
-Risk: Low pending remote CI. All local and isolated gates pass; the candidate changes only authenticated tarball origins while preserving the locked bytes through unchanged SHA-512 integrity values.
+Risk: Low. All local, isolated, and exact-SHA CI gates pass; committed dependency bytes and integrity values are unchanged.
 
-Next command: `git status --short --branch && git diff --stat && git diff --check`
+Next command: `git status --short --branch && git diff --check`
 
-Resume instructions: Read `.codex/RESUME.md`, verify HEAD is still `6377692` and only the seven PKG-006 files are modified, then stage and review exactly those files. Do not regenerate the lockfile with `npm install` and do not add or modify npm user/global configuration.
+Resume instructions: Read `.codex/RESUME.md`, verify the PKG-006 product commit and run `30710451561`, then finish the recovery-documentation commit/push/CI verification if it is not already synchronized. Do not regenerate the lockfile or add user/global npm configuration.

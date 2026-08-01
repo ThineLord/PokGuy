@@ -34,12 +34,18 @@
 - Impact: `npm run format:check` reports 10 untouched files, so it cannot yet serve as a repository-wide gate without a separate formatting-only change.
 - Next step: Keep changed-file formatting clean; schedule any baseline normalization as an isolated, reviewable task.
 
-## Lockfile uses mixed npm registries
+## Lockfile uses mixed npm registries — resolved
 
-- Status: PKG-006 normalization validated locally; commit and exact-SHA CI verification pending
-- Priority: P2
-- Impact: The previous lockfile contained 98 npmmirror.com and 619 npmjs.org resolved URLs, making clean installs depend on two domains. The candidate now contains 717 npmjs.org URLs and no mirror URL while preserving every integrity hash and dependency field.
-- Next step: Complete diff/security review, commit, push, and require completed GitHub Actions success for the exact commit before marking this resolved. Never commit local registry or proxy credentials.
+- Status: Fixed in `cb19453`; exact-SHA GitHub Actions run `30710451561` passed
+- Priority: Closed P2
+- Resolution: Replaced only 98 mirror hostnames after npmjs metadata parity and cold-cache integrity verification. The lockfile now contains 717 npmjs.org and zero npmmirror.com resolved URLs, with every version, integrity hash, path, dependency edge, and flag unchanged.
+
+## Production dependency advisories
+
+- Status: Open; queued as PKG-007
+- Priority: P1
+- Impact: Read-only npm audit triage reports three high-severity production-path package findings: direct `next@16.2.6`, transitive `postcss@8.4.31`, and optional `sharp@0.34.5`. There are 12 additional development-path findings and no critical finding.
+- Next step: First evaluate the patched Next.js `16.2.12` line, then rerun the production-only audit. Do not assume it also fixes PostCSS/Sharp: current Next metadata can retain their affected ranges, so any override or broader framework choice needs its own compatibility evidence. Never run an unreviewed broad `npm audit fix`.
 
 ## Quality check is not branch-protected
 
