@@ -35,7 +35,7 @@ npx playwright install chromium
 - 翻牌后训练场景从已匹配投入开始，不把小盲/大盲差额错误退回；
 - 小数筹码 all-in 后的浮点余量归零，0 BB 玩家不会重新进入行动队列；
 - AI 人格差异、seed 复现、隐藏牌隔离、已知牌排除和适应上限；
-- LocalStorage v1→v2、损坏 JSON 回退和 adapter round-trip。
+- LocalStorage v1→v2、损坏 JSON 回退、非法数字设置/profile/AI 习惯记录恢复、合法纯自定义对手池保留和 adapter round-trip；
 - 损坏训练评价记录过滤，以及旧记录在顺序或数量不明确时不猜测动作关联；
 - 牌背设置的旧数据补全、未知主题回退和 adapter round-trip；
 - 社交预览 origin 覆盖本机、私网 IPv4、IPv6、异常 Host/端口和受信代理协议；
@@ -53,7 +53,8 @@ npx playwright install chromium
 4. 连续完成 6 手并覆盖 fold/call/raise，验证位置轮转、无死锁和弃牌 AI 不亮牌；
 5. 创建带 `10` 的指定河牌场景，验证已匹配起始底池、两位小数下注输入、最佳五张、牌型比较、正式结束原因和逐池结算；
 6. 修改玩家名称与牌背主题、刷新验证持久化、导出牌局记录；
-7. 切换完整英文界面并验证刷新后语言持久化。
+7. 清空或输入互相冲突的盲注设置，验证不会写入非法值且刷新后牌桌仍可启动；
+8. 切换完整英文界面并验证刷新后语言持久化。
 
 `tests/e2e/responsive.spec.ts` 覆盖：
 

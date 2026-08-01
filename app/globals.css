@@ -183,6 +183,16 @@ button:disabled {
   margin: 0 auto;
   padding: 24px 28px 40px;
 }
+.recovery-message {
+  margin: 0 0 14px;
+  border: 1px solid #d9a85133;
+  border-radius: 9px;
+  background: #6f531d24;
+  padding: 9px 12px;
+  color: #d8bd7d;
+  font-size: 11px;
+  line-height: 1.5;
+}
 .table-view {
   display: flex;
   flex-direction: column;

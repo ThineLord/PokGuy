@@ -335,6 +335,42 @@ test("edit AI settings, persist after reload, and export hands", async ({
   );
 });
 
+test("rejects invalid blind settings and remains reloadable", async ({
+  page,
+}) => {
+  const pageErrors: Error[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error));
+
+  await page.getByRole("button", { name: "设置" }).click();
+  const smallBlind = page.getByLabel("小盲");
+  const bigBlind = page.getByLabel("大盲");
+
+  await smallBlind.fill("");
+  await smallBlind.press("Tab");
+  await expect(smallBlind).toHaveValue("0.5");
+
+  await bigBlind.fill("0.25");
+  await bigBlind.press("Tab");
+  await expect(bigBlind).toHaveValue("1");
+
+  const storedBlinds = await page.evaluate(() => {
+    const serialized = window.localStorage.getItem("riverlab-poker-v2");
+    if (!serialized) return null;
+    const stored = JSON.parse(serialized) as {
+      settings?: { smallBlind?: unknown; bigBlind?: unknown };
+    };
+    return stored.settings ?? null;
+  });
+  expect(storedBlinds).toMatchObject({ smallBlind: 0.5, bigBlind: 1 });
+
+  await page.reload();
+  await expect(page.getByLabel("德州扑克牌桌")).toBeVisible();
+  await page.getByRole("button", { name: "设置" }).click();
+  await expect(page.getByLabel("小盲")).toHaveValue("0.5");
+  await expect(page.getByLabel("大盲")).toHaveValue("1");
+  expect(pageErrors).toEqual([]);
+});
+
 test("switch the entire interface to English and keep it after reload", async ({
   page,
 }) => {

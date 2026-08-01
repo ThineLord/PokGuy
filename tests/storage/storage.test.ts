@@ -1,11 +1,15 @@
 import {
   appendCompletedHand,
+  DEFAULT_SETTINGS,
   defaultData,
   migrateData,
   loadData,
+  loadDataWithRecovery,
   saveData,
   STORAGE_KEY,
+  migrateDataWithRecovery,
 } from "@/src/storage/storage";
+import { PERSONALITIES } from "@/src/ai/personalities/presets";
 import { parseCards } from "@/src/engine/cards/cards";
 import { startHand, type PokerGameState } from "@/src/engine/state/gameState";
 import { resolveShowdown } from "@/src/engine/showdown/showdown";
@@ -26,6 +30,17 @@ describe("versioned LocalStorage", () => {
   it("recovers from corrupted JSON", () => {
     const storage = { getItem: () => "{bad json" };
     expect(loadData(storage).settings.seatCount).toBe(6);
+    expect(loadDataWithRecovery(storage).recovered).toBe(true);
+  });
+
+  it("does not report recovery for valid current data", () => {
+    const source = defaultData();
+    const storage = { getItem: () => JSON.stringify(source) };
+
+    expect(loadDataWithRecovery(storage)).toEqual({
+      data: source,
+      recovered: false,
+    });
   });
 
   it("falls back from an unknown deck theme", () => {
@@ -57,6 +72,151 @@ describe("versioned LocalStorage", () => {
     });
 
     expect(migrated.trainingRecords).toEqual([validRecord]);
+  });
+
+  it("recovers invalid table settings while preserving unrelated valid data", () => {
+    const migrated = migrateData({
+      ...defaultData(),
+      settings: {
+        ...DEFAULT_SETTINGS,
+        playerName: "Keep Me",
+        seatCount: 2.5,
+        startingStackBb: null,
+        smallBlind: 0,
+        bigBlind: 0,
+        selectedAiIds: null,
+        animations: "yes",
+        animationSpeed: "instant",
+        aiDelayMs: 30_000,
+        hintStrength: "maximum",
+      },
+    });
+
+    expect(migrated.settings.playerName).toBe("Keep Me");
+    expect(migrated.settings.seatCount).toBe(DEFAULT_SETTINGS.seatCount);
+    expect(migrated.settings.startingStackBb).toBe(
+      DEFAULT_SETTINGS.startingStackBb,
+    );
+    expect(migrated.settings.smallBlind).toBeGreaterThan(0);
+    expect(migrated.settings.bigBlind).toBeGreaterThan(
+      migrated.settings.smallBlind,
+    );
+    expect(migrated.settings.selectedAiIds).toEqual(
+      DEFAULT_SETTINGS.selectedAiIds,
+    );
+    expect(migrated.settings.animations).toBe(DEFAULT_SETTINGS.animations);
+    expect(migrated.settings.animationSpeed).toBe(
+      DEFAULT_SETTINGS.animationSpeed,
+    );
+    expect(migrated.settings.aiDelayMs).toBe(DEFAULT_SETTINGS.aiDelayMs);
+    expect(migrated.settings.hintStrength).toBe(DEFAULT_SETTINGS.hintStrength);
+  });
+
+  it("repairs malformed AI profiles without losing valid custom fields", () => {
+    const customizedTag = {
+      ...PERSONALITIES[0],
+      name: "Custom TAG",
+      vpip: 0.31,
+      aggression: 2,
+    };
+    const migrated = migrateData({
+      ...defaultData(),
+      settings: {
+        ...DEFAULT_SETTINGS,
+        selectedAiIds: ["tag", "missing", "tag"],
+      },
+      aiProfiles: [customizedTag, null, null, null, null, null, null, null],
+    });
+
+    const tag = migrated.aiProfiles.find((profile) => profile.id === "tag");
+    expect(migrated.aiProfiles.length).toBeGreaterThanOrEqual(8);
+    expect(new Set(migrated.aiProfiles.map((profile) => profile.id)).size).toBe(
+      migrated.aiProfiles.length,
+    );
+    expect(tag).toMatchObject({
+      name: "Custom TAG",
+      vpip: 0.31,
+      aggression: PERSONALITIES[0].aggression,
+    });
+    expect(migrated.settings.selectedAiIds).toEqual(["tag"]);
+  });
+
+  it("preserves a valid custom-only opponent pool", () => {
+    const source = defaultData();
+    source.aiProfiles = PERSONALITIES.map((profile, index) => ({
+      ...profile,
+      id: `custom-${index}`,
+      name: `Custom ${index}`,
+    }));
+    source.settings.selectedAiIds = [];
+
+    const migrated = migrateData(source);
+    expect(migrated.aiProfiles).toEqual(source.aiProfiles);
+    expect(migrated.settings.selectedAiIds).toEqual([]);
+    expect(migrateDataWithRecovery(source).recovered).toBe(false);
+  });
+
+  it("drops malformed AI habits while preserving complete observations", () => {
+    const source = defaultData();
+    const validHabit = {
+      hands: 12,
+      vpip: 0.3,
+      pfr: 0.2,
+      threeBet: 0.1,
+      foldToThreeBet: 0.4,
+      continuationBet: 0.6,
+      foldToContinuationBet: 0.5,
+      aggressionFactor: 1.8,
+      showdownFrequency: 0.3,
+      bluffFrequencyEstimate: 0.15,
+      riverCallFrequency: 0.45,
+    };
+    source.aiHabits = {
+      tag: validHabit,
+      lag: { hands: 1, vpip: 0.2 } as never,
+    };
+
+    expect(migrateData(source).aiHabits).toEqual({ tag: validHabit });
+  });
+
+  it("rejects blind sizes that overflow the full table stack", () => {
+    const migrated = migrateData({
+      ...defaultData(),
+      settings: {
+        ...DEFAULT_SETTINGS,
+        bigBlind: Number.MAX_VALUE / 200,
+      },
+    });
+
+    expect(migrated.settings.smallBlind).toBe(DEFAULT_SETTINGS.smallBlind);
+    expect(migrated.settings.bigBlind).toBe(DEFAULT_SETTINGS.bigBlind);
+  });
+
+  it("leaves valid settings and customized profiles unchanged", () => {
+    const source = defaultData();
+    source.settings = {
+      ...source.settings,
+      playerName: "River",
+      seatCount: 4,
+      startingStackBb: 250,
+      smallBlind: 1,
+      bigBlind: 2,
+      aiDelayMs: 450,
+    };
+    source.aiProfiles = source.aiProfiles.map((profile, index) => ({
+      ...profile,
+      vpip: Math.min(1, profile.vpip + index / 100),
+    }));
+    source.aiProfiles.push({
+      ...PERSONALITIES[0],
+      id: "custom-profile",
+      name: "Custom profile",
+    });
+    source.settings.selectedAiIds = ["custom-profile", "tag"];
+
+    const migrated = migrateData(source);
+    expect(migrated.settings).toEqual(source.settings);
+    expect(migrated.aiProfiles).toEqual(source.aiProfiles);
   });
 
   it("round-trips data through a storage adapter", () => {

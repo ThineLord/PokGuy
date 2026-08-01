@@ -144,6 +144,8 @@ const ENGLISH: Record<string, string> = {
   导出牌局记录: "Export hand history",
   导入设置: "Import settings",
   无法读取该设置文件: "The settings file could not be read.",
+  "本地数据已迁移或恢复为安全格式，并尽量保留了可用内容。":
+    "Local data was migrated or recovered to a safe format while preserving usable content where possible.",
   "确定重置所有统计？牌局历史不会删除。":
     "Reset all statistics? Your hand history will be preserved.",
   重置统计: "Reset statistics",

@@ -35,8 +35,9 @@ import {
   appendCompletedHand,
   defaultData,
   EMPTY_STATS,
-  loadData,
-  migrateData,
+  loadDataWithRecovery,
+  migrateDataWithRecovery,
+  normalizeSettings,
   saveData,
 } from "../../storage/storage";
 import type {
@@ -1098,11 +1099,13 @@ function SettingsView({
   updateSettings,
   updateProfile,
   replaceData,
+  notifyRecovery,
 }: {
   data: PersistedData;
   updateSettings: (patch: Partial<AppSettings>) => void;
   updateProfile: (id: string, patch: Partial<PokerPersonality>) => void;
   replaceData: (data: PersistedData) => void;
+  notifyRecovery: () => void;
 }) {
   const { aiDescription, aiName, profileLabel, t } = useI18n();
   const [editingId, setEditingId] = useState(
@@ -1113,8 +1116,17 @@ function SettingsView({
     data.aiProfiles[0];
   const habit = profile ? data.aiHabits[profile.id] : undefined;
   const importRef = useRef<HTMLInputElement>(null);
-  const numberSetting = (key: keyof AppSettings, value: string) =>
-    updateSettings({ [key]: Number(value) } as Partial<AppSettings>);
+  const numberSetting = (key: keyof AppSettings, value: number) => {
+    if (Number.isFinite(value))
+      updateSettings({ [key]: value } as Partial<AppSettings>);
+  };
+  const restoreInvalidNumber = (
+    key: keyof AppSettings,
+    input: HTMLInputElement,
+  ) => {
+    if (!Number.isFinite(input.valueAsNumber))
+      input.value = String(data.settings[key]);
+  };
   const toggles: [keyof AppSettings, string][] = [
     ["animations", t("短动画")],
     ["autoAi", t("自动 AI 行动")],
@@ -1186,7 +1198,7 @@ function SettingsView({
             <select
               value={data.settings.seatCount}
               onChange={(event) =>
-                numberSetting("seatCount", event.target.value)
+                numberSetting("seatCount", Number(event.currentTarget.value))
               }
             >
               {[2, 3, 4, 5, 6].map((value) => (
@@ -1202,7 +1214,13 @@ function SettingsView({
               max="500"
               value={data.settings.startingStackBb}
               onChange={(event) =>
-                numberSetting("startingStackBb", event.target.value)
+                numberSetting(
+                  "startingStackBb",
+                  event.currentTarget.valueAsNumber,
+                )
+              }
+              onBlur={(event) =>
+                restoreInvalidNumber("startingStackBb", event.currentTarget)
               }
             />
           </label>
@@ -1211,10 +1229,13 @@ function SettingsView({
             <input
               type="number"
               min="0.01"
-              step="0.5"
+              step="0.01"
               value={data.settings.smallBlind}
               onChange={(event) =>
-                numberSetting("smallBlind", event.target.value)
+                numberSetting("smallBlind", event.currentTarget.valueAsNumber)
+              }
+              onBlur={(event) =>
+                restoreInvalidNumber("smallBlind", event.currentTarget)
               }
             />
           </label>
@@ -1223,10 +1244,13 @@ function SettingsView({
             <input
               type="number"
               min="0.02"
-              step="0.5"
+              step="0.01"
               value={data.settings.bigBlind}
               onChange={(event) =>
-                numberSetting("bigBlind", event.target.value)
+                numberSetting("bigBlind", event.currentTarget.valueAsNumber)
+              }
+              onBlur={(event) =>
+                restoreInvalidNumber("bigBlind", event.currentTarget)
               }
             />
           </label>
@@ -1239,7 +1263,10 @@ function SettingsView({
               step="50"
               value={data.settings.aiDelayMs}
               onChange={(event) =>
-                numberSetting("aiDelayMs", event.target.value)
+                numberSetting("aiDelayMs", event.currentTarget.valueAsNumber)
+              }
+              onBlur={(event) =>
+                restoreInvalidNumber("aiDelayMs", event.currentTarget)
               }
             />
             <small className="form-helper">
@@ -1441,13 +1468,13 @@ function SettingsView({
               if (!file) return;
               try {
                 const parsed = JSON.parse(await file.text());
-                replaceData(
-                  migrateData({
-                    ...data,
-                    settings: { ...data.settings, ...(parsed.settings ?? {}) },
-                    aiProfiles: parsed.aiProfiles ?? data.aiProfiles,
-                  }),
-                );
+                const migrated = migrateDataWithRecovery({
+                  ...data,
+                  settings: { ...data.settings, ...(parsed.settings ?? {}) },
+                  aiProfiles: parsed.aiProfiles ?? data.aiProfiles,
+                });
+                replaceData(migrated.data);
+                if (migrated.recovered) notifyRecovery();
               } catch {
                 window.alert(t("无法读取该设置文件"));
               }
@@ -1637,6 +1664,7 @@ function PokerTrainerApp() {
   const [dealerSeat, setDealerSeat] = useState(0);
   const [betAmount, setBetAmount] = useState(2.5);
   const [error, setError] = useState("");
+  const [recoveryNotice, setRecoveryNotice] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [aiBusy, setAiBusy] = useState(false);
   const [aiTags, setAiTags] = useState<Record<string, string[]>>({});
@@ -1679,11 +1707,12 @@ function PokerTrainerApp() {
   );
 
   useEffect(() => {
-    const loaded = loadData(
+    const loaded = loadDataWithRecovery(
       typeof window !== "undefined" ? window.localStorage : undefined,
     );
-    setData(loaded);
-    startCashHand(loaded, undefined, 0);
+    setData(loaded.data);
+    startCashHand(loaded.data, undefined, 0);
+    if (loaded.recovered) setRecoveryNotice(true);
     setIsReady(true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -2095,7 +2124,14 @@ function PokerTrainerApp() {
     Boolean(hero) &&
     (hero?.stack ?? 0) + CHIP_EPSILON < heroRebuyTarget;
   const updateSettings = (patch: Partial<AppSettings>) =>
-    persist({ ...data, settings: { ...data.settings, ...patch } });
+    persist({
+      ...data,
+      settings: normalizeSettings(
+        { ...data.settings, ...patch },
+        data.settings,
+        new Set(data.aiProfiles.map((profile) => profile.id)),
+      ),
+    });
   const replaceData = (next: PersistedData) => persist(next);
 
   return (
@@ -2151,6 +2187,11 @@ function PokerTrainerApp() {
         </div>
       </header>
       <div className="app-content">
+        {recoveryNotice && (
+          <p className="recovery-message" role="status">
+            {t("本地数据已迁移或恢复为安全格式，并尽量保留了可用内容。")}
+          </p>
+        )}
         {view === "table" && game && (
           <div className="table-view">
             <section className="table-toolbar">
@@ -2426,7 +2467,11 @@ function PokerTrainerApp() {
                     {formatChips(toCall)} · {hero?.positionLabel || "—"}
                   </span>
                   {feedback && <small>{feedback}</small>}
-                  {error && <small className="error-message">{error}</small>}
+                  {error && (
+                    <small className="error-message" role="status">
+                      {error}
+                    </small>
+                  )}
                 </div>
                 <div className="bet-controls">
                   <div className="quick-sizes">
@@ -2586,6 +2631,7 @@ function PokerTrainerApp() {
               })
             }
             replaceData={replaceData}
+            notifyRecovery={() => setRecoveryNotice(true)}
           />
         )}
       </div>
