@@ -96,7 +96,7 @@ test("start a hand, fold, open history and replay", async ({ page }) => {
   await expect(page.getByText(/底池/).first()).toBeVisible();
 });
 
-test("create a real review item and keep Review Lab mobile-safe", async ({
+test("create a real review item and keep Review Lab mobile-safe @webkit", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "单手牌" }).click();
@@ -314,7 +314,7 @@ test("enter a deterministic river scenario and reach showdown", async ({
   await expect(page.getByText("标准现金桌训练", { exact: true })).toBeVisible();
 });
 
-test("edit AI settings, persist after reload, and export hands", async ({
+test("edit AI settings, persist after reload, and export hands @webkit", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "设置" }).click();
@@ -335,7 +335,7 @@ test("edit AI settings, persist after reload, and export hands", async ({
   );
 });
 
-test("rejects invalid blind settings and remains reloadable", async ({
+test("rejects invalid blind settings and remains reloadable @webkit", async ({
   page,
 }) => {
   const pageErrors: Error[] = [];

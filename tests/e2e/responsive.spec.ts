@@ -18,7 +18,7 @@ async function waitForHeroTurn(page: Page) {
   throw new Error("未能在四手内等到用户行动");
 }
 
-test("iPhone layout keeps the live controls reachable and touch sized", async ({
+test("iPhone layout keeps the live controls reachable and touch sized @webkit", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 393, height: 852 });
@@ -62,7 +62,9 @@ test("iPhone layout keeps the live controls reachable and touch sized", async ({
   });
 });
 
-test("iPad landscape has no information/action overlap", async ({ page }) => {
+test("iPad landscape has no information/action overlap @webkit", async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 1194, height: 834 });
   await page.goto("/");
   await waitForHeroTurn(page);
@@ -87,7 +89,7 @@ test("iPad landscape has no information/action overlap", async ({ page }) => {
   expect(metrics.actionBottom).toBeLessThanOrEqual(metrics.viewportHeight);
 });
 
-test("iPhone showdown comparison stays within the viewport", async ({
+test("iPhone showdown comparison stays within the viewport @webkit", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 393, height: 852 });
@@ -129,7 +131,7 @@ test("iPhone showdown comparison stays within the viewport", async ({
   expect(metrics.panelRight).toBeLessThanOrEqual(metrics.viewportWidth);
 });
 
-test("desktop keyboard shortcut can fold without stealing input keystrokes", async ({
+test("desktop keyboard shortcut can fold without stealing input keystrokes @webkit", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });

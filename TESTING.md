@@ -10,13 +10,14 @@ npm run test:watch    # Vitest 监听模式
 npm run test:coverage # V8 覆盖率
 npm run build         # production build
 npm run check         # lint → typecheck → test → build
-npm run test:e2e      # Playwright Chromium
+npm run test:e2e      # 13 项 Playwright Chromium 回归
+npm run test:e2e:webkit # 7 项精选 Playwright WebKit 回归
 ```
 
 Playwright 首次运行前：
 
 ```bash
-npx playwright install chromium
+npx playwright install chromium webkit
 ```
 
 ## 单元测试重点
@@ -65,6 +66,8 @@ npx playwright install chromium
 
 引擎单元测试负责穷举式规则边界；E2E 关注浏览器编排，不重复构造所有规则组合。
 
+默认 `npm run test:e2e` 仍只运行完整的 13 项 Chromium 套件。`npm run test:e2e:webkit` 通过测试标题中的 `@webkit` 标签选取 7 个高价值流程：Review Lab 与刷新、设置持久化与导出、非法盲注恢复、iPhone/iPad 响应式布局、摊牌区域和键盘/输入隔离。这样可以持续覆盖 WebKit 差异，而不会把默认本地门禁翻倍。
+
 ## 手动检查清单
 
 - 1440×900 Mac：六个座位不重叠，信息区与操作栏均完整；
@@ -90,4 +93,4 @@ npx playwright install chromium
 
 vinext/Node 可能打印 `module.register()` deprecation、代理环境和 jsdom LocalStorage experimental warning。这些是当前工具链提示，不代表测试失败。验收以命令退出码和断言结果为准。
 
-当前自动化使用 Playwright Chromium 的设备尺寸回归；本机尚未安装 Playwright WebKit 浏览器二进制。macOS Safari 已通过直接页面操控完成现金桌、牌背切换、河牌场景和摊牌视觉复核，iPhone/iPad 精确尺寸也通过真实浏览器渲染检查；Safari/WebKit 自动化矩阵仍属于后续验证项。
+当前自动化包含完整 Chromium 回归和精选 WebKit 回归。Playwright 的 Desktop Safari 引擎配合显式视口可以验证 WebKit 布局与交互，但不等同于物理 iPhone/iPad 上的 Safari，也不能替代真实设备安全区、触控和地址栏行为检查。macOS Safari 直接实玩与真实设备尺寸检查仍保留在手动清单中。
