@@ -29,6 +29,8 @@
 - Next 稳定版仍固定受影响的 PostCSS/Sharp 范围；由于上游修复同时涉及 vendored bundle、image optimizer 与 Turbopack 代码，本轮不使用不受支持的 override，并保留明确的残余风险记录。
 - 将 React、React DOM 与 `react-server-dom-webpack` 从 `19.2.6` 同步升级到 `19.2.8`，修复 React Server Components 请求可触发资源耗尽的 `GHSA-wx67-qw84-cm4g`；除三件套和根 lock 记录外不改变其他依赖。
 - 将 Vite 从 `8.0.13` 最小升级到首个同时修复 `GHSA-v6wh-96g9-6wx3` 与 `GHSA-fx2h-pf6j-xcff` 的 `8.0.16`；lockfile 保持 724 条记录且无新增/删除依赖，Cloudflare、Wrangler、Miniflare、Next 与 React 版本不变。
+- 将 Cloudflare Vite plugin 从 `1.37.1` 升级到首个完整跨过 Miniflare/Sharp 公告边界的 `1.47.0`，同步 Wrangler `4.114.0` 与 Workers types `5.20260722.1`；显式固定原有 Worker compatibility date `2026-05-15`，避免依赖更新暗中改变运行语义。
+- 完整审计从 13 个 package records / 23 条 sources 降至 7 / 13，Cloudflare、Wrangler、Miniflare、workerd、esbuild、ws 与 undici 链全部消失；真实 workerd、production smoke 和无上传 strict deploy dry-run 均通过。
 
 ## Unreleased — 2026-07-24
 

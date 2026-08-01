@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-- 当前阶段：Phase 8.6 Vite 安全补丁远端精确 SHA CI 验证完成
+- 当前阶段：Phase 8.7 Cloudflare 工具链安全补丁已完成本地全矩阵验证，等待产品提交的远端精确 SHA CI
 - 可运行状态：可安装、启动、连续游戏、训练、复盘、统计、导出和可信局域网访问
 - 当前分支：`main`
 - 当前稳定维护提交、远端同步与精确 SHA CI 状态见 `.codex/CURRENT_STATE.md`
@@ -34,7 +34,8 @@
 - lockfile 的 717 个普通下载地址已统一为 npmjs.org；版本、integrity 与依赖图未因来源规范化而改变
 - `next` 与 `eslint-config-next` 已同步到 `16.2.12`，清除 9 条 Next.js 自身公告且未联动 React、Vite、vinext、Wrangler 或 Cloudflare
 - React、React DOM 与 `react-server-dom-webpack` 已同步到 `19.2.8`；直接 RSC 拒绝服务公告已从完整审计消失，Vite 与 Cloudflare/Wrangler 仍保持独立升级边界
-- Vite 已从 `8.0.13` 最小升级到 `8.0.16`，直接的 Windows 开发服务器路径绕过与凭据暴露公告均已从完整审计消失；Cloudflare/Wrangler 版本保持不变
+- Vite 已从 `8.0.13` 最小升级到 `8.0.16`，直接的 Windows 开发服务器路径绕过与凭据暴露公告均已从完整审计消失
+- Cloudflare Vite plugin `1.47.0`、Wrangler `4.114.0` 与 Workers types `5.20260722.1` 已同步；显式 `2026-05-15` compatibility date 保持既有 Worker 语义，Cloudflare/Miniflare/workerd/esbuild/ws/undici 公告链已从完整审计消失
 - Mac 自适应视口牌桌与 `F/K/C/R/A` 键盘操作
 - iPad 横/竖屏零覆盖布局与 iPhone 自动行动区定位
 - iOS 安全区、动态视口、44px+ 触控目标与输入防缩放
@@ -79,6 +80,7 @@
 - PKG-007 冷缓存 `npm ci`、production audit 前后对比、生产服务器 HTTP 200/title smoke 与精确 SHA GitHub Actions run `30713299084` 通过
 - PKG-008 冷缓存 `npm ci`、peer/lock 边界、完整审计前后对比、生产 RSC/异常请求 smoke、13 项 Chromium、7 项 WebKit 与精确 SHA GitHub Actions run `30714243780` 均通过
 - PKG-009 隔离候选与仓库冷缓存 `npm ci`、peer/lock 边界、完整审计前后对比、Cloudflare workerd preview 与 deploy dry-run、production smoke、13 项 Chromium、7 项 WebKit 与精确 SHA GitHub Actions run `30716519172` 均通过
+- PKG-010 隔离候选与仓库冷缓存 `npm ci`、clean peer graph、完整审计、112 项测试/build、13 项 Chromium、7 项 WebKit、production/workerd HTML/RSC/SVG、产物约束与无上传 strict deploy dry-run 均通过；远端精确 SHA CI 待产品提交后确认
 - 120 手种子化六人桌规则压力测试通过
 - 弃牌动画与确定性河牌摊牌关键流程连续重复 5 轮，共 10 项回归通过
 - iPhone 393×852 正式摊牌比较区无横向溢出
@@ -107,7 +109,7 @@
 - Playwright WebKit 使用 Desktop Safari 引擎与显式移动视口，不等同于物理 iPhone/iPad Safari；真实设备安全区、触控和动态地址栏仍需保留手动检查
 - GitHub Actions 当前报告质量结果，但 `main` 尚未启用 branch protection，因此不会强制阻止绕过门禁的直接推送或合并
 - Next `16.2.12` 稳定版仍精确依赖 PostCSS `8.4.31` 并可选依赖 Sharp `^0.34.5`；production audit 剩余 4 条传递公告。当前应用不构建不可信 CSS、未使用 `next/image`，但风险仅属可达性降低，需等待稳定 Next 纳入上游兼容升级
-- 完整 npm audit 已不再包含直接 React Server Components 或 Vite 公告；仍有 13 个 package-level 记录（11 high、2 low）及 23 条 advisory source，属于 Cloudflare/Wrangler 与 Next 的 PostCSS/Sharp 传递链，必须继续拆分处理，不能直接运行宽泛 `npm audit fix`
+- 完整 npm audit 已不再包含直接 React Server Components、Vite 或 Cloudflare 工具链公告；仍有 7 个 package-level 记录（6 high、1 low）及 13 条 advisory source，分别属于 Next 的 PostCSS/Sharp 与独立开发工具链，必须继续拆分处理，不能直接运行宽泛 `npm audit fix`
 
 ## 重要架构决定
 

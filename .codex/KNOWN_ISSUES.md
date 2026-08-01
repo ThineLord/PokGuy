@@ -49,10 +49,10 @@
 
 ## React and build-toolchain dependency advisories
 
-- Status: Direct React Server Components finding resolved by PKG-008 commit `237ff2b` / CI run `30714243780`; both direct Vite findings resolved by PKG-009 commit `0754a4f` / exact-SHA CI run `30716519172`. The minimum Cloudflare fix is isolated and validated but awaiting approval for its compatibility-preserving config pin.
-- Priority: P1 residual Cloudflare/Wrangler toolchain risk
-- Impact: Vite `8.0.16` removes `GHSA-v6wh-96g9-6wx3` and `GHSA-fx2h-pf6j-xcff`, reducing the complete audit from 14 package records / 25 advisory sources to 13 / 23. Remaining findings belong to Cloudflare/Wrangler and Next's PostCSS/Sharp chains; grouping them would cross separate adapter and production dependency boundaries.
-- Next step: After approval, apply plugin `1.47.0`, Wrangler `4.114.0`, Workers types `5.20260722.1`, and an explicit baseline compatibility date. Then repeat the already-passing isolated runtime/deploy matrix in the repository. Never use an unreviewed broad `npm audit fix`.
+- Status: Direct React Server Components and Vite findings remain resolved. The PKG-010 Cloudflare candidate is applied and passes the complete local matrix; product commit/push/exact-SHA CI remain.
+- Priority: P1 checkpoint verification, then P2 residual development-toolchain risk
+- Impact: Plugin `1.47.0`, Wrangler `4.114.0`, Workers types `5.20260722.1`, and Miniflare `4.20260722.0` remove the Cloudflare/workerd/esbuild/ws/undici audit chain. Complete audit falls from 13 package records / 23 sources to 7 / 13; production remains the separately deferred Next PostCSS/Sharp 3 / 4.
+- Next step: Complete product commit/push/exact-SHA CI, then audit the remaining Babel/brace-expansion/fast-uri/js-yaml development graph separately. Never use an unreviewed broad `npm audit fix`.
 
 ## Quality check is not branch-protected
 

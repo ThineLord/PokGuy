@@ -89,7 +89,7 @@
 - Test method: Advisory-level audit comparison, isolated cold-cache `npm ci`, peer graph, `npm run check`, Chromium/WebKit regressions, production smoke, Cloudflare build/config validation where available, diff/security review, and completed exact-SHA GitHub Actions conclusion.
 - Completion: Commit `0754a4f` applies exact Vite `8.0.16`. Isolated comparison, repository cold install/peer checks, exact 24-record lock boundary, audit reduction from 14 records / 25 sources to 13 / 23, 112 tests/build, 13 Chromium, 7 WebKit, production/workerd smokes, no-upload deploy dry-run, artifact/security/diff review, push verification, and exact-SHA GitHub Actions run `30716519172` all passed.
 
-## PKG-010 — BLOCKED
+## PKG-010 — IN_PROGRESS
 
 - Description: Audit and, if safely compatible, patch the remaining Cloudflare plugin/Wrangler/Miniflare/workerd toolchain advisories without bundling production dependency changes.
 - Priority: P1
@@ -97,4 +97,13 @@
 - Risk: Medium-high because the chain controls local workerd execution, asset routing, deployment packaging, and remote publishing commands.
 - Acceptance criteria: Verify each official advisory/fixed range and Node/peer boundary; produce isolated bounded candidates; preserve hosting redirects/assets/bindings and perform no upload; remove only findings supported by compatible stable releases.
 - Test method: Advisory-level audit comparison, isolated cold-cache `npm ci`, peer graph, `npm run check`, Chromium/WebKit regressions, production smoke, real workerd preview, no-upload Wrangler deploy dry-run, artifact/diff/security review, and completed exact-SHA GitHub Actions conclusion.
-- Progress: Official research and isolated candidates select plugin `1.47.0`, Wrangler `4.114.0`, and exact Workers types `5.20260722.1`. Cold install, peers, 112 tests/build, audits, artifacts, real workerd, and no-upload dry-run pass; the Cloudflare audit chain disappears. Blocker: plugin `1.47.0` changes its implicit compatibility date from the baseline `2026-05-15` to `2026-07-23`, so the safety protocol requires approval before adding the one-line explicit baseline date pin. No repository package/config/product file has changed.
+- Progress: Explicit approval recorded; the exact candidate is applied. Repository cold install/clean dependency graph, audit reduction to 7 records / 13 sources with no Cloudflare chain, 112 tests/build, 13 Chromium, 7 WebKit, production/workerd/artifact/no-upload dry-run, formatting/security/scope, and independent reviews pass. Product commit/push/exact-SHA CI remain.
+
+## PKG-011 — TODO
+
+- Description: Map and, where stable compatible fixes exist, patch the residual `@babel/core`, `brace-expansion`, `fast-uri`, and `js-yaml` development-toolchain audit records without bundling Next/PostCSS/Sharp or product dependency work.
+- Priority: P2
+- File scope: `package.json`, `package-lock.json`, direct ESLint/Babel/Webpack/JSON-schema dependencies and configuration, relevant tests/docs, and `.codex/` state. Next, React, Vite, Cloudflare, product logic, persistence, and deployment resources are excluded.
+- Risk: Medium because these packages participate in lint/build/test tooling and may be pinned through multiple direct dependency trees.
+- Acceptance criteria: Map every advisory via chain and reachability; prefer stable direct upstream adoption; produce isolated bounded candidates; remove only supported findings without overrides or unrelated package movement.
+- Test method: Official advisory comparison, cold `npm ci`, clean peer graph, `npm run check`, Chromium/WebKit, production/workerd smoke where build graph changes, diff/security review, and exact-SHA CI.

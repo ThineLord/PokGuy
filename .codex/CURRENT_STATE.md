@@ -2,15 +2,15 @@
 
 Current branch: `main`
 
-Current HEAD: Recovery-documentation checkpoint on top of validated PKG-010 approval-boundary commit `0e7f0495904c89124376dfb92e642040034b1567`; run `git rev-parse HEAD` for the exact state-only commit after it is created.
+Current HEAD: `e08c2bc9e94f5eea1f366656b8023943d915c7b7` (remote-verified PKG-010 approval checkpoint; pre-product baseline)
 
-Last stable commit: `0e7f0495904c89124376dfb92e642040034b1567` (`origin/main`; GitHub Actions run `30718647980` completed successfully for this exact SHA)
+Last stable commit: `e08c2bc9e94f5eea1f366656b8023943d915c7b7` (`origin/main`; GitHub Actions run `30718725693` completed successfully for this exact SHA)
 
 Current objective: Complete PKG-010 with the smallest stable Cloudflare plugin/Wrangler/Miniflare/workerd boundary while explicitly preserving the Worker compatibility date already emitted by the validated baseline.
 
-Active task: PKG-010 is BLOCKED pending configuration-change approval. The minimum dependency candidate and its single compatibility-preserving config pin are fully validated in isolation; repository package/config files remain unchanged.
+Active task: PKG-010 is IN_PROGRESS. The approved minimum candidate has passed the complete repository validation matrix and awaits bounded product commit, push, and exact-SHA CI.
 
-Modified files: Final PKG-010 approval-boundary recovery records only. No package, lockfile, config, worker, product, persistence, or deployment resource has changed. Four historical conflict-style copies remain untracked, preserved, and excluded.
+Modified files: Twelve intended PKG-010 files: package/lock, one Vite config line, three product docs, and six recovery/status records. Worker/product/persistence/hosting resources remain unchanged. Four historical conflict-style copies remain untracked, preserved, and excluded.
 
 Completed steps:
 
@@ -68,13 +68,22 @@ Completed steps:
 - Confirmed Wrangler `4.114.0` replaces the removed validation flag `--experimental-autoconfig=false` with `--autoconfig=false`; the checked-in dry-run documentation will need the same bounded command update after approval.
 - Created and pushed approval-boundary commit `0e7f049`; local HEAD, `origin/main`, and GitHub matched exact SHA `0e7f0495904c89124376dfb92e642040034b1567`.
 - Waited for GitHub Actions run `30718647980`; Node 22 clean install, `npm run check`, and every job/post step completed successfully for the exact approval-boundary SHA.
+- Confirmed final approval checkpoint `e08c2bc` is present locally/remotely and Quality run `30718725693` completed successfully for that exact SHA.
+- Received explicit approval through the user's `next` response to add the compatibility-date pin and apply the already validated dependency candidate.
+- Applied package/lock files byte-identical to the exact-types isolated candidate (`package.json` SHA-256 `e50e4241…`, lock SHA-256 `96a2625c…`).
+- Rejected a newly published `@speed-highlight/core 1.2.22` lock drift that appeared during regeneration; retained the fully validated candidate's `1.2.20` record.
+- Moved the anomalous 1.1 GB dependency tree to a recoverable sibling backup and completed a cold `npm ci --ignore-scripts` with 593 packages; no backup or historical file was deleted.
+- Confirmed `npm ls --all` has no problem. The lock changes from 724 to 754 records with 16 changed, 58 added, and 28 removed; Next, React, Vite, and vinext records remain unchanged.
+- Reduced complete audit results from 13 records / 23 sources to 7 / 13 (6 high, 1 low, zero critical); every Cloudflare/plugin/Wrangler/Miniflare/workerd/esbuild/ws/undici finding is absent. Production remains the expected Next PostCSS/Sharp 3 / 4.
+- Passed repository lint, strict typecheck, 13 Vitest files / 112 tests, production build, 13 Chromium tests, and 7 WebKit tests.
+- Passed generated artifact assertions, vinext production and real workerd HTML/RSC/SVG/liveness probes, listener cleanup, and credential-unset strict deploy dry-run with no upload or monitored input mutation.
+- Passed changed-file formatting, JSON, whitespace, candidate byte/hash, npmjs-only registry, sensitive/private-path, and two independent read-only dependency/security reviews.
 
 Remaining steps:
 
-- Obtain explicit approval for the one-line compatibility-preserving `vite.config.ts` pin required by the repository safety protocol.
-- Apply only plugin `1.47.0`, Wrangler `4.114.0`, exact Workers types `5.20260722.1`, the compatibility-date pin, and the renamed dry-run documentation flag.
-- Rebuild the repository dependency tree recoverably from the accepted lockfile and rerun project/browser/production/workerd/deploy/artifact/security gates.
-- Commit/push the bounded product checkpoint and a recovery checkpoint, requiring completed exact-SHA GitHub Actions success for both.
+- Review the complete 12-file diff and exact staged boundary, then commit/push the bounded product checkpoint.
+- Require completed GitHub Actions success for the exact product SHA.
+- Finalize `.codex/COMPLETED.md` and recovery/product status, then commit/push the state checkpoint and require its exact-SHA CI success.
 
 Current tests:
 
@@ -117,11 +126,18 @@ Current tests:
 - PKG-010 isolated compatibility-pin `npm run check` — PASS (lint, typecheck, 13 Vitest files / 112 tests, production build).
 - PKG-010 isolated artifact / real workerd / strict no-upload deploy dry-run — PASS (date and asset/binding invariants preserved; HTML/RSC/SVG 200; no listener or upload; monitored inputs unchanged).
 - GitHub Actions `Quality` run `30718647980` — PASS (`completed/success`, exact approval-boundary SHA `0e7f049`; clean install and all quality steps passed).
+- GitHub Actions `Quality` run `30718725693` — PASS (`completed/success`, exact final approval SHA `e08c2bc`).
+- PKG-010 repository cold install / `npm ls --all` — PASS (593 packages; no dependency/peer problem).
+- PKG-010 repository `npm run check` — PASS at 2026-08-02T05:28+08:00 (lint, typecheck, 13 Vitest files / 112 tests, build).
+- PKG-010 repository Chromium / WebKit — PASS (13 / 7 tests).
+- PKG-010 repository audits — expected nonzero results: production 3 records / 4 PostCSS-Sharp sources; complete 7 records / 13 sources; 0 critical and no Cloudflare-chain finding.
+- PKG-010 repository artifact / vinext / workerd / strict dry-run — PASS (HTML/RSC/SVG 200, date/assets/bindings preserved, listeners stopped, no upload/input mutation).
+- PKG-010 changed-file formatting/JSON/whitespace/candidate/registry/sensitive/scope and independent reviews — PASS.
 
-Known failures: Production-only npm audit remains nonzero because stable Next `16.2.12` pins affected PostCSS/Sharp ranges. The repository has not yet received the validated Cloudflare candidate because the compatibility-preserving config line requires approval. Current generated `node_modules` contains 153 conflict-style ` 2` entries, so baseline `npm ls --all` is noisy until a recoverable clean reinstall. Repository-wide `npm run format:check` has 10 pre-existing differences in untouched files. vinext returns a prompt generic HTTP 500 for an unknown Server Action ID while keeping the server live. Four untracked historical conflict copies remain intentionally untouched.
+Known failures: Production-only npm audit remains nonzero because stable Next `16.2.12` pins affected PostCSS/Sharp ranges. Complete audit retains independent Babel/brace-expansion/fast-uri/js-yaml development-chain records. Repository-wide `npm run format:check` has 10 pre-existing differences in untouched files. vinext returns a prompt generic HTTP 500 for an unknown Server Action ID while keeping the server live. Four untracked historical conflict copies remain intentionally untouched.
 
-Risk: Medium and contained. The exact dependency/config candidate is validated outside the repository, but applying only the package updates without the explicit date pin would silently move Worker compatibility behavior from `2026-05-15` to `2026-07-23`.
+Risk: Low-medium pending remote Node 22 verification. Local and isolated matrices pass, the Worker date is preserved explicitly, and no deployment upload or hosting-resource change occurred.
 
-Next command: After explicit approval, add `compatibility_date: "2026-05-15"` to `localBindingConfig`, apply the accepted package/lock candidate and dry-run flag rename, then perform the recoverable repository clean install and full validation matrix.
+Next command: Inspect the complete diff and semantic lock boundary, stage only the 12 intended files, create `security: patch Cloudflare toolchain advisories`, push `main`, and require completed exact-SHA CI.
 
-Resume instructions: Read `.codex/RESUME.md`, verify approval-boundary commit/run `0e7f049` / `30718647980`, then determine from Git history whether this final recovery checkpoint still needs commit/push/CI verification. Preserve all four untracked historical copies and task-owned temp candidates, and do not edit `vite.config.ts` until approval is recorded.
+Resume instructions: Read `.codex/RESUME.md`, verify baseline commit/run `e08c2bc` / `30718725693`, preserve all four untracked historical copies and the sibling dependency backup, then determine whether the 12-file locally validated product checkpoint still needs commit/push/CI. Never upload or run broad `npm audit fix`.
