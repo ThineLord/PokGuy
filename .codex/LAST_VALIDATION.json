@@ -1,10 +1,10 @@
 {
-  "validated_at": "2026-08-02T04:15:01+08:00",
+  "validated_at": "2026-08-02T05:11:16+08:00",
   "branch": "main",
-  "head": "0754a4f1414768aff06cf91df5669c7379c32c7b",
-  "last_stable_commit": "0754a4f1414768aff06cf91df5669c7379c32c7b",
-  "worktree": "recovery-state-checkpoint-after-remote-and-ci-verified-pkg-009",
-  "phase": "remote-and-ci-verified-pkg-009",
+  "head": "2533feb4da3375cf2c509c8a136aa6b519245734",
+  "last_stable_commit": "2533feb4da3375cf2c509c8a136aa6b519245734",
+  "worktree": "pkg-010-isolated-candidate-validated-pending-config-approval",
+  "phase": "blocked-pending-compatibility-date-pin-approval",
   "commands": [
     {
       "command": "startup Git/GitHub recovery and gh auth checks",
@@ -65,6 +65,41 @@
       "command": "gh run watch/view 30716519172",
       "exit_code": 0,
       "result": "Quality run completed successfully for exact head SHA 0754a4f1414768aff06cf91df5669c7379c32c7b; checkout, Node 22 setup, npm ci, npm run check, and all post steps succeeded"
+    },
+    {
+      "command": "startup Git/GitHub recovery and final PKG-009 state-run verification",
+      "exit_code": 0,
+      "result": "Local, tracking, and GitHub SHAs matched 2533feb; final Quality run 30716624979 was completed/success; no stash or interrupted Git operation; four untracked historical copies were preserved"
+    },
+    {
+      "command": "npm run check (unmodified PKG-010 baseline)",
+      "exit_code": 0,
+      "result": "Passed ESLint, strict TypeScript, 13 Vitest files / 112 tests, and the Vite 8.0.16 production build"
+    },
+    {
+      "command": "official-registry production and complete npm audits",
+      "exit_code": 1,
+      "result": "Expected findings: production has 3 package records / 4 PostCSS-Sharp sources; complete has 13 package records / 23 sources including Cloudflare plugin/Wrangler/Miniflare propagation; critical count is zero"
+    },
+    {
+      "command": "official release and isolated minimum/boundary/latest Cloudflare candidate comparison",
+      "exit_code": 0,
+      "result": "Selected plugin 1.47.0 plus Wrangler 4.114.0 as the first complete stable fixed boundary; rejected plugin 1.50.0 because it adds a Miniflare 5 alpha without removing more findings"
+    },
+    {
+      "command": "isolated cold npm ci, npm ls --all, typecheck, build, and exact Workers types comparison",
+      "exit_code": 0,
+      "result": "Installed 593 packages with no dependency problem; exact Workers types 5.20260722.1 passed and keeps the accepted runtime/type date aligned"
+    },
+    {
+      "command": "isolated official-registry production and complete audits",
+      "exit_code": 1,
+      "result": "Expected residual findings: production remains 3 records / 4 PostCSS-Sharp sources; complete drops to 7 records / 13 sources with 6 high, 1 low, zero critical, and no Cloudflare-chain package"
+    },
+    {
+      "command": "isolated compatibility-date pin npm run check, artifact assertions, real workerd preview, and strict no-upload deploy dry-run",
+      "exit_code": 0,
+      "result": "Explicit date 2026-05-15 preserved all artifact invariants; lint, typecheck, 112 tests/build, HTML/RSC/SVG probes, listener cleanup, and wrangler --dry-run --strict --autoconfig=false passed without upload or monitored input mutation"
     }
   ],
   "known_failures": [
@@ -82,15 +117,23 @@
       "command": "npm run format:check",
       "exit_code": 1,
       "result": "10 pre-existing formatting differences in untouched files; changed-file formatting is checked separately"
+    },
+    {
+      "command": "npm ls --all (PKG-010 baseline generated tree)",
+      "exit_code": 1,
+      "result": "153 conflict-style node_modules entries with a suffix are extraneous; tracked package files and lockfile remain unchanged, and candidate work is isolated until a recoverable clean reinstall"
     }
   ],
   "notes": [
     "Only Vite and its required lock resolution changed; product logic, LocalStorage schema/key, hosting resources, user npm configuration, and proxy settings are unchanged.",
     "No npm audit fix, preview/beta package, dependency override, or unrelated direct toolchain update was used.",
-    "Three untracked conflict-style historical copies remain excluded and preserved pending explicit deletion approval.",
+    "Four untracked conflict-style historical copies remain excluded and preserved pending explicit deletion approval.",
     "Task-owned isolated candidates and caches must remain outside the repository and are not cleanup-authorized.",
     "Vite is a development dependency but is exercised by dev, test, vinext production build, and Cloudflare adapter paths; production-only audit omission is not treated as proof of irrelevance.",
     "PKG-009 product commit, push, remote SHA match, and completed exact-SHA GitHub Actions verification all passed.",
-    "At creation of this state record, the recovery-documentation checkpoint still required commit, push, and final CI confirmation; resume must verify current Git history and the exact state-only SHA rather than assume it remains pending."
+    "Final PKG-009 recovery commit 2533feb and exact-SHA Quality run 30716624979 are verified.",
+    "No PKG-010 package, lockfile, config, worker, product, persistence, or deployment resource has changed yet; the isolated candidate is validated and awaits explicit approval for the one-line compatibility-preserving config pin.",
+    "Plugin 1.47.0 would change the implicit Worker compatibility date from the validated baseline 2026-05-15 to 2026-07-23; applying dependency files without the explicit pin is forbidden.",
+    "Wrangler 4.114.0 removed --experimental-autoconfig=false; the successful no-upload replacement is --autoconfig=false and the tracked dry-run documentation remains pending approval-gated implementation."
   ]
 }

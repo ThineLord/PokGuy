@@ -74,3 +74,10 @@ Architecture and poker-rule decisions remain authoritative in `ARCHITECTURE.md` 
 - Prefer the patch candidate over npm's current `8.2.0` suggestion: `8.0.16` retains all 724 lock records and changes 24, while `8.2.0` adds three records and changes 37 across broader Rolldown, Lightning CSS, PostCSS, picomatch, and devtools boundaries.
 - Accept the patch-level transitive refresh required by Vite's own lock resolution only after cold install, peer, project, browser, production, and Cloudflare runtime/deploy gates pass.
 - Keep `@cloudflare/vite-plugin`, Wrangler, Miniflare, Next, React, persistence, and deployment resources version/configuration-stable. Their remaining advisories belong to separate checkpoints.
+
+## 2026-08-02 — Preserve the Worker compatibility date across the Cloudflare patch
+
+- Select `@cloudflare/vite-plugin 1.47.0` and Wrangler `4.114.0`, the first coherent stable pair whose pinned Miniflare/Sharp boundary clears the complete Cloudflare advisory chain; reject plugin `1.50.0` because it adds a Miniflare 5 alpha without security benefit for this task.
+- Align `@cloudflare/workers-types` exactly to `5.20260722.1`, matching Wrangler's peer lower bound and the accepted workerd release rather than bringing unrelated later daily type declarations into the minimal checkpoint.
+- Do not accept the candidate without explicitly pinning the existing `2026-05-15` Worker compatibility date. Plugin `1.47.0` changes its implicit default to `2026-07-23`, so an apparently dependency-only update would otherwise change runtime semantics.
+- Treat the one-line date pin as configuration work requiring explicit approval. After approval, preserve all existing flags, bindings, assets, redirects, and deployment resources; perform only dry-run deployment validation with no upload.

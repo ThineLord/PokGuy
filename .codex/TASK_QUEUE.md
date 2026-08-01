@@ -89,7 +89,7 @@
 - Test method: Advisory-level audit comparison, isolated cold-cache `npm ci`, peer graph, `npm run check`, Chromium/WebKit regressions, production smoke, Cloudflare build/config validation where available, diff/security review, and completed exact-SHA GitHub Actions conclusion.
 - Completion: Commit `0754a4f` applies exact Vite `8.0.16`. Isolated comparison, repository cold install/peer checks, exact 24-record lock boundary, audit reduction from 14 records / 25 sources to 13 / 23, 112 tests/build, 13 Chromium, 7 WebKit, production/workerd smokes, no-upload deploy dry-run, artifact/security/diff review, push verification, and exact-SHA GitHub Actions run `30716519172` all passed.
 
-## PKG-010 — TODO
+## PKG-010 — BLOCKED
 
 - Description: Audit and, if safely compatible, patch the remaining Cloudflare plugin/Wrangler/Miniflare/workerd toolchain advisories without bundling production dependency changes.
 - Priority: P1
@@ -97,3 +97,4 @@
 - Risk: Medium-high because the chain controls local workerd execution, asset routing, deployment packaging, and remote publishing commands.
 - Acceptance criteria: Verify each official advisory/fixed range and Node/peer boundary; produce isolated bounded candidates; preserve hosting redirects/assets/bindings and perform no upload; remove only findings supported by compatible stable releases.
 - Test method: Advisory-level audit comparison, isolated cold-cache `npm ci`, peer graph, `npm run check`, Chromium/WebKit regressions, production smoke, real workerd preview, no-upload Wrangler deploy dry-run, artifact/diff/security review, and completed exact-SHA GitHub Actions conclusion.
+- Progress: Official research and isolated candidates select plugin `1.47.0`, Wrangler `4.114.0`, and exact Workers types `5.20260722.1`. Cold install, peers, 112 tests/build, audits, artifacts, real workerd, and no-upload dry-run pass; the Cloudflare audit chain disappears. Blocker: plugin `1.47.0` changes its implicit compatibility date from the baseline `2026-05-15` to `2026-07-23`, so the safety protocol requires approval before adding the one-line explicit baseline date pin. No repository package/config/product file has changed.
