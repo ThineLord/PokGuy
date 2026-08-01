@@ -19,3 +19,11 @@ Architecture and poker-rule decisions remain authoritative in `ARCHITECTURE.md` 
 - Do not change the poker engine, public behavior, LocalStorage key, or v2 schema during PKG-001.
 - Do not infer a new license, product rebrand, or tournament behavior.
 - Do not begin the proposed v3 decision-snapshot migration without a separate design checkpoint because it changes stored data.
+
+## 2026-08-02 — Recover fields without rewriting the storage contract
+
+- Keep `riverlab-poker-v2` and schema version 2 unchanged.
+- Preserve any complete, unique pool of at least eight valid AI profiles, including custom-only pools; repair only malformed entries and only pad damaged short pools to eight.
+- Treat an explicit empty AI selection as “use the complete profile pool,” matching existing behavior.
+- Drop incomplete AI habit observations rather than passing unsafe partial objects to the UI or silently inventing statistics.
+- Keep repaired startup data in memory until the next normal save. Do not immediately overwrite the raw record because an unknown future schema could otherwise be destructively downgraded.

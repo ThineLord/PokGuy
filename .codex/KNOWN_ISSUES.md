@@ -1,11 +1,17 @@
 # Known Issues
 
-## Invalid persisted settings can block startup
+## Invalid persisted settings can block startup — resolved
 
-- Status: Reproduced; queued
-- Priority: P1
-- Impact: An empty or incompatible blind value can be saved as an invalid number and later make `startHand` reject the table; malformed imported AI profiles can also fail during rendering or startup.
-- Next step: PKG-002 in `TASK_QUEUE.md`; normalize settings/import structures while preserving valid v1/v2 data.
+- Status: Fixed in `4aec6ee`
+- Priority: Closed P1
+- Resolution: Numeric settings, profile pools, selected IDs, and AI habit records are normalized before use; startup and import recovery are covered by unit, component, and Chromium tests.
+
+## Recovered startup data is not rewritten immediately
+
+- Status: Accepted safety tradeoff
+- Priority: P3
+- Impact: If a damaged or old record is recovered and the user performs no action that saves data, a refresh can show the migration/recovery notice again.
+- Next step: Only consider automatic rewrite together with version-aware backup/forward-compatibility rules; do not overwrite unknown future schemas based on the current broad migration signal.
 
 ## WebKit automation is not configured
 

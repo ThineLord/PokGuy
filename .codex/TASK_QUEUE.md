@@ -1,6 +1,6 @@
 # Task Queue
 
-## PKG-001 — IN_PROGRESS
+## PKG-001 — DONE
 
 - Description: Complete the existing Phase 8.0 Review Lab and social-preview checkpoint safely.
 - Priority: P1
@@ -8,9 +8,9 @@
 - Risk: Medium because the worktree predates this maintenance cycle and is currently on `main`; no engine or storage-schema change is intended.
 - Acceptance criteria: Existing Review Lab intent is preserved; old records degrade without false action pairing; metadata works for supported local and hosted origins; no secret or machine path is introduced; recovery state is truthful; commit and remote branch agree.
 - Test method: Targeted unit tests, `npm run check`, `npm run test:e2e`, `git diff --check`, sensitive-pattern scan, staged-diff review, remote SHA verification.
-- Progress: Product commit `256d789`; all local gates passed. Mark this item `DONE` only after the documentation checkpoint is pushed and `origin/main` is verified.
+- Completion: Product commit `256d789` and documentation checkpoint `59bae14`; all local gates passed, push succeeded, and `origin/main` was verified at `59bae143a2209b1b0ee4c313d80dd5431794988c`.
 
-## PKG-002 — TODO
+## PKG-002 — DONE
 
 - Description: Prevent invalid or malformed persisted settings from blocking application startup or the next hand.
 - Priority: P1
@@ -18,6 +18,7 @@
 - Risk: Medium; normalization must preserve valid user settings and existing LocalStorage v1/v2 data.
 - Acceptance criteria: Empty, non-finite, out-of-range, or incompatible blind/stack/seat/delay values recover safely; malformed AI profiles cannot crash startup; valid settings remain byte-for-byte equivalent where practical; users receive a clear message when recovery occurs.
 - Test method: Migration fixtures, malformed LocalStorage startup test, settings-input browser test, `npm run check`, and `npm run test:e2e`.
+- Completion: Product commit `4aec6ee`; 112 Vitest and 13 Chromium tests passed, recovery UI was inspected in a real browser with zero console errors/warnings, and the product commit was pushed to `origin/main`.
 
 ## PKG-003 — TODO
 

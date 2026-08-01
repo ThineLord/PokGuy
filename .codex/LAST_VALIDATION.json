@@ -1,40 +1,45 @@
 {
-  "validated_at": "2026-08-01T23:46:02+08:00",
+  "validated_at": "2026-08-02T00:22:44+08:00",
   "branch": "main",
-  "head": "256d789c618e8ceca8983faaad689c4dc134eb98",
-  "last_stable_commit": "256d789c618e8ceca8983faaad689c4dc134eb98",
-  "worktree": "documentation-state-refresh",
-  "phase": "postcommit-prepush",
+  "head": "4aec6ee0e5ce89ea25a409402676556ff41412df",
+  "last_stable_commit": "4aec6ee0e5ce89ea25a409402676556ff41412df",
+  "worktree": "recovery-state-checkpoint-after-validated-product-commit",
+  "phase": "remote-verified-pkg-002-product",
   "commands": [
     {
       "command": "npm run check",
       "exit_code": 0,
-      "result": "ESLint passed; TypeScript passed; 13 Vitest files and 103 tests passed; production build passed"
+      "result": "ESLint passed; TypeScript passed; 13 Vitest files and 112 tests passed; production build passed"
     },
     {
       "command": "npm run test:e2e",
       "exit_code": 0,
-      "result": "12 Chromium tests passed"
+      "result": "13 Chromium tests passed"
     },
     {
-      "command": "npm exec vitest run tests/app/review.test.ts tests/app/siteOrigin.test.ts tests/storage/storage.test.ts",
+      "command": "npm exec vitest run tests/storage/storage.test.ts tests/app-shell.test.tsx",
       "exit_code": 0,
-      "result": "3 test files and 28 targeted tests passed"
+      "result": "2 test files and 17 targeted tests passed"
     },
     {
-      "command": "local metadata HTTP smoke",
+      "command": "Playwright CLI recovery smoke",
       "exit_code": 0,
-      "result": "localhost, private IPv4, bracketed IPv6, and og.png checks passed; untrusted public Host headers were rejected by the development server"
+      "result": "Recovery notice and a usable six-seat table were visible; browser console had 0 errors and 0 warnings"
     },
     {
       "command": "git diff --check",
       "exit_code": 0,
-      "result": "No whitespace errors in the final tracked diff before state refresh"
+      "result": "No whitespace errors in the final product diff"
     },
     {
-      "command": "sensitive-pattern scan",
+      "command": "changed-file Prettier check and sensitive-pattern scan",
       "exit_code": 0,
-      "result": "No common token, private-key, credential, or absolute user-path pattern found in the current tracked tree and diff"
+      "result": "All changed files matched Prettier; no common token, private-key, credential, or absolute user-path pattern was found in the diff"
+    },
+    {
+      "command": "git push origin main with explicit existing HTTPS proxy",
+      "exit_code": 0,
+      "result": "Fast-forwarded origin/main from 59bae14 to 4aec6ee; local HEAD and origin/main matched"
     }
   ],
   "known_failures": [
@@ -45,7 +50,9 @@
     }
   ],
   "notes": [
-    "Rerun final validation if code changes after this record.",
-    "WebKit automation has not been run."
+    "Only documentation and recovery-state files changed after the validated product commit.",
+    "WebKit automation has not been run.",
+    "A separate GitHub API SHA probe timed out during TLS handshake after the successful push; it was not counted as verification.",
+    "Recovered startup data is not immediately rewritten, preserving the raw record until a normal save."
   ]
 }
