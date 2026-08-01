@@ -2,15 +2,15 @@
 
 Current branch: `main`
 
-Current HEAD: `e08c2bc9e94f5eea1f366656b8023943d915c7b7` (remote-verified PKG-010 approval checkpoint; pre-product baseline)
+Current HEAD: Recovery-documentation checkpoint on top of validated PKG-010 product commit `448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10`; run `git rev-parse HEAD` for the exact state-only commit after it is created.
 
-Last stable commit: `e08c2bc9e94f5eea1f366656b8023943d915c7b7` (`origin/main`; GitHub Actions run `30718725693` completed successfully for this exact SHA)
+Last stable commit: `448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10` (`origin/main`; GitHub Actions run `30719418742` completed successfully for this exact SHA)
 
-Current objective: Complete PKG-010 with the smallest stable Cloudflare plugin/Wrangler/Miniflare/workerd boundary while explicitly preserving the Worker compatibility date already emitted by the validated baseline.
+Current objective: Preserve the completed PKG-010 Cloudflare security checkpoint and select the next highest-value bounded dependency task.
 
-Active task: PKG-010 is IN_PROGRESS. The approved minimum candidate has passed the complete repository validation matrix and awaits bounded product commit, push, and exact-SHA CI.
+Active task: None. PKG-010 is complete; PKG-011 is queued as the next P2 development-toolchain security audit.
 
-Modified files: Twelve intended PKG-010 files: package/lock, one Vite config line, three product docs, and six recovery/status records. Worker/product/persistence/hosting resources remain unchanged. Four historical conflict-style copies remain untracked, preserved, and excluded.
+Modified files: This final checkpoint contains eight recovery/status documentation files only. The validated PKG-010 product commit is already pushed. Four historical conflict-style copies remain untracked, preserved, and excluded.
 
 Completed steps:
 
@@ -78,12 +78,13 @@ Completed steps:
 - Passed repository lint, strict typecheck, 13 Vitest files / 112 tests, production build, 13 Chromium tests, and 7 WebKit tests.
 - Passed generated artifact assertions, vinext production and real workerd HTML/RSC/SVG/liveness probes, listener cleanup, and credential-unset strict deploy dry-run with no upload or monitored input mutation.
 - Passed changed-file formatting, JSON, whitespace, candidate byte/hash, npmjs-only registry, sensitive/private-path, and two independent read-only dependency/security reviews.
+- Created and pushed product commit `448a243`; local HEAD, `origin/main`, remote, and GitHub matched exact SHA `448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10`.
+- Waited for GitHub Actions run `30719418742`; Node 22 normal `npm ci`, `npm run check`, and every job/post step completed successfully for the exact product SHA.
 
 Remaining steps:
 
-- Review the complete 12-file diff and exact staged boundary, then commit/push the bounded product checkpoint.
-- Require completed GitHub Actions success for the exact product SHA.
-- Finalize `.codex/COMPLETED.md` and recovery/product status, then commit/push the state checkpoint and require its exact-SHA CI success.
+- Stage and commit only the eight recovery/status documentation files without including the four preserved untracked files.
+- Push the state-only checkpoint and require completed GitHub Actions success for its exact SHA; no additional self-referential state commit is needed solely to record that run.
 
 Current tests:
 
@@ -133,11 +134,12 @@ Current tests:
 - PKG-010 repository audits — expected nonzero results: production 3 records / 4 PostCSS-Sharp sources; complete 7 records / 13 sources; 0 critical and no Cloudflare-chain finding.
 - PKG-010 repository artifact / vinext / workerd / strict dry-run — PASS (HTML/RSC/SVG 200, date/assets/bindings preserved, listeners stopped, no upload/input mutation).
 - PKG-010 changed-file formatting/JSON/whitespace/candidate/registry/sensitive/scope and independent reviews — PASS.
+- GitHub Actions `Quality` run `30719418742` — PASS at 2026-08-02T05:35+08:00 (`completed/success`, exact product SHA `448a243`; Node 22 normal install and all quality steps passed).
 
-Known failures: Production-only npm audit remains nonzero because stable Next `16.2.12` pins affected PostCSS/Sharp ranges. Complete audit retains independent Babel/brace-expansion/fast-uri/js-yaml development-chain records. Repository-wide `npm run format:check` has 10 pre-existing differences in untouched files. vinext returns a prompt generic HTTP 500 for an unknown Server Action ID while keeping the server live. Four untracked historical conflict copies remain intentionally untouched.
+Known failures: Production-only npm audit remains nonzero because stable Next `16.2.12` pins affected PostCSS/Sharp ranges. Complete audit retains independent Babel/brace-expansion/fast-uri/js-yaml development-chain records queued for PKG-011. Repository-wide `npm run format:check` has 10 pre-existing differences in untouched files. vinext returns a prompt generic HTTP 500 for an unknown Server Action ID while keeping the server live. Four untracked historical conflict copies remain intentionally untouched.
 
-Risk: Low-medium pending remote Node 22 verification. Local and isolated matrices pass, the Worker date is preserved explicitly, and no deployment upload or hosting-resource change occurred.
+Risk: Low for the completed checkpoint. Product commit, push, remote SHA, and Node 22 exact-SHA CI are verified; residual production and development-toolchain findings remain explicitly separated.
 
-Next command: Inspect the complete diff and semantic lock boundary, stage only the 12 intended files, create `security: patch Cloudflare toolchain advisories`, push `main`, and require completed exact-SHA CI.
+Next command: Stage and commit only the eight state/status files, push the checkpoint, and require completed CI for its exact SHA.
 
-Resume instructions: Read `.codex/RESUME.md`, verify baseline commit/run `e08c2bc` / `30718725693`, preserve all four untracked historical copies and the sibling dependency backup, then determine whether the 12-file locally validated product checkpoint still needs commit/push/CI. Never upload or run broad `npm audit fix`.
+Resume instructions: Read `.codex/RESUME.md`, verify product commit/run `448a243` / `30719418742`, then determine from Git history whether this final recovery checkpoint still needs commit/push/CI verification. Preserve all four untracked historical copies and the sibling dependency backup.

@@ -85,3 +85,13 @@ Append stable maintenance checkpoints here after their commit and remote status 
 - Commit: `0754a4f` (`security: patch Vite advisories`).
 - Push: Verified by matching local HEAD, `origin/main`, and GitHub at `0754a4f1414768aff06cf91df5669c7379c32c7b`.
 - CI: GitHub Actions run `30716519172` completed successfully for the exact product SHA; Node 22 clean install and every quality-gate step passed.
+
+## 2026-08-02 — Cloudflare toolchain security patch
+
+- Updated Cloudflare Vite plugin `1.37.1→1.47.0`, Wrangler `4.92.0→4.114.0`, and Workers types to exact `5.20260722.1`; explicitly pinned compatibility date `2026-05-15` to preserve baseline Worker semantics.
+- Accepted the exact isolated package/lock candidate: 724→754 records, 16 changed, 58 added, 28 removed; Next, React, Vite, vinext, product logic, persistence, hosting resources, and deployment state remained unchanged.
+- Reduced complete audit results from 13 records / 23 sources to 7 / 13; the Cloudflare/plugin/Wrangler/Miniflare/workerd/esbuild/ws/undici chain disappeared and critical count remained zero.
+- Passed cold install, clean dependency graph, 112 tests/build, 13 Chromium, 7 WebKit, production/workerd HTML/RSC/SVG, artifact invariants, listener cleanup, strict no-upload deploy dry-run, formatting, structural, sensitive-data, and independent reviews.
+- Commit: `448a243` (`security: patch Cloudflare toolchain advisories`).
+- Push: Verified by matching local HEAD, `origin/main`, and GitHub at `448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10`.
+- CI: GitHub Actions run `30719418742` completed successfully for the exact product SHA; Node 22 normal `npm ci`, `npm run check`, and every job/post step passed.

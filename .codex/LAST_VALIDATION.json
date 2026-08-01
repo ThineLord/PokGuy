@@ -1,10 +1,10 @@
 {
-  "validated_at": "2026-08-02T05:31:22+08:00",
+  "validated_at": "2026-08-02T05:35:36+08:00",
   "branch": "main",
-  "head": "e08c2bc9e94f5eea1f366656b8023943d915c7b7",
-  "last_stable_commit": "e08c2bc9e94f5eea1f366656b8023943d915c7b7",
-  "worktree": "pkg-010-locally-validated-pending-product-commit",
-  "phase": "local-validation-complete-pkg-010",
+  "head": "448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10",
+  "last_stable_commit": "448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10",
+  "worktree": "final-recovery-checkpoint-after-validated-pkg-010-product",
+  "phase": "remote-and-ci-verified-pkg-010-product",
   "commands": [
     {
       "command": "startup Git/GitHub recovery and gh auth checks",
@@ -145,6 +145,16 @@
       "command": "changed-file formatting, JSON, whitespace, exact candidate hashes, registry, sensitive/private-path, scope, and independent reviews",
       "exit_code": 0,
       "result": "All local gates pass; npmjs-only lock; no secret/private path; two read-only reviews found no blocker"
+    },
+    {
+      "command": "push PKG-010 product checkpoint and verify local/tracking/remote/GitHub SHA",
+      "exit_code": 0,
+      "result": "Fast-forwarded origin/main to 448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10; every local and remote SHA matched exactly"
+    },
+    {
+      "command": "gh run watch/view 30719418742",
+      "exit_code": 0,
+      "result": "Quality run completed successfully for exact product SHA 448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10; Node 22 checkout, normal npm ci, npm run check, and every post step passed"
     }
   ],
   "known_failures": [
@@ -176,6 +186,7 @@
     "Plugin 1.47.0 would change the implicit Worker compatibility date from the validated baseline 2026-05-15 to 2026-07-23; applying dependency files without the explicit pin is forbidden.",
     "Wrangler 4.114.0 removed --experimental-autoconfig=false; the tracked documentation now uses the verified no-upload replacement --autoconfig=false.",
     "The original anomalous node_modules tree and all task-owned candidate/evidence directories remain preserved outside Git; none was deleted.",
-    "At creation of this state record, the locally validated product checkpoint still required commit, push, and exact-SHA CI confirmation; resume must inspect Git history rather than assume it remains pending."
+    "PKG-010 product commit 448a243, push, remote SHA match, and exact-SHA Quality run 30719418742 are verified.",
+    "At creation of this state record, the final recovery-documentation checkpoint still required commit, push, and exact-SHA CI confirmation; resume must inspect Git history rather than assume it remains pending."
   ]
 }

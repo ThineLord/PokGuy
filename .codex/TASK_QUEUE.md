@@ -89,7 +89,7 @@
 - Test method: Advisory-level audit comparison, isolated cold-cache `npm ci`, peer graph, `npm run check`, Chromium/WebKit regressions, production smoke, Cloudflare build/config validation where available, diff/security review, and completed exact-SHA GitHub Actions conclusion.
 - Completion: Commit `0754a4f` applies exact Vite `8.0.16`. Isolated comparison, repository cold install/peer checks, exact 24-record lock boundary, audit reduction from 14 records / 25 sources to 13 / 23, 112 tests/build, 13 Chromium, 7 WebKit, production/workerd smokes, no-upload deploy dry-run, artifact/security/diff review, push verification, and exact-SHA GitHub Actions run `30716519172` all passed.
 
-## PKG-010 — IN_PROGRESS
+## PKG-010 — DONE
 
 - Description: Audit and, if safely compatible, patch the remaining Cloudflare plugin/Wrangler/Miniflare/workerd toolchain advisories without bundling production dependency changes.
 - Priority: P1
@@ -97,7 +97,7 @@
 - Risk: Medium-high because the chain controls local workerd execution, asset routing, deployment packaging, and remote publishing commands.
 - Acceptance criteria: Verify each official advisory/fixed range and Node/peer boundary; produce isolated bounded candidates; preserve hosting redirects/assets/bindings and perform no upload; remove only findings supported by compatible stable releases.
 - Test method: Advisory-level audit comparison, isolated cold-cache `npm ci`, peer graph, `npm run check`, Chromium/WebKit regressions, production smoke, real workerd preview, no-upload Wrangler deploy dry-run, artifact/diff/security review, and completed exact-SHA GitHub Actions conclusion.
-- Progress: Explicit approval recorded; the exact candidate is applied. Repository cold install/clean dependency graph, audit reduction to 7 records / 13 sources with no Cloudflare chain, 112 tests/build, 13 Chromium, 7 WebKit, production/workerd/artifact/no-upload dry-run, formatting/security/scope, and independent reviews pass. Product commit/push/exact-SHA CI remain.
+- Completion: Commit `448a243` applies plugin `1.47.0`, Wrangler `4.114.0`, exact Workers types `5.20260722.1`, and an explicit baseline compatibility date. Candidate/repository cold installs, clean peer graph, 724→754 semantic lock boundary, audit reduction from 13/23 to 7/13 with no Cloudflare chain, 112 tests/build, 13 Chromium, 7 WebKit, production/workerd/artifact/no-upload dry-run, formatting/security/independent reviews, push verification, and exact-SHA CI run `30719418742` all passed.
 
 ## PKG-011 — TODO
 

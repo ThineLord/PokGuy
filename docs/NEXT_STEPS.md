@@ -2,7 +2,7 @@
 
 ## 下一项具体任务
 
-Phase 8.7 已把 Cloudflare Vite plugin、Wrangler 与 Workers types 最小升级到 `1.47.0`、`4.114.0` 与 `5.20260722.1`，并显式保持既有 Worker compatibility date `2026-05-15`。隔离/仓库冷安装、peer、112 项单元测试、13 项 Chromium、7 项 WebKit、production/workerd、产物约束与无上传 strict deploy dry-run 均通过；远端精确 SHA CI 待产品提交后确认。
+Phase 8.7 已把 Cloudflare Vite plugin、Wrangler 与 Workers types 最小升级到 `1.47.0`、`4.114.0` 与 `5.20260722.1`，并显式保持既有 Worker compatibility date `2026-05-15`。隔离/仓库冷安装、peer、112 项单元测试、13 项 Chromium、7 项 WebKit、production/workerd、产物约束、无上传 strict deploy dry-run 与精确 SHA GitHub Actions run `30719418742` 均通过。
 
 PKG-010 的无上传部署回归命令为 `npx wrangler deploy --dry-run --strict --autoconfig=false`；不得省略 `--dry-run` 或在自动维护中执行真实上传。
 

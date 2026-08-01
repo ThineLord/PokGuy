@@ -15,24 +15,23 @@ Also confirm there is no `MERGE_HEAD`, `REBASE_HEAD`, `CHERRY_PICK_HEAD`, `REVER
 
 ## Current task
 
-PKG-010 is locally validated after explicit approval. Baseline checkpoint `e08c2bc` is pushed and verified by exact-SHA GitHub Actions run `30718725693`. The 12-file product checkpoint awaits commit/push/exact-SHA CI; four untracked historical conflict copies and the recoverable sibling dependency backup remain preserved.
+PKG-010 product commit `448a243` is complete, pushed, and verified by exact-SHA GitHub Actions run `30719418742`. This file belongs to the final recovery-documentation checkpoint on top of that product commit; on resume, determine from Git history whether the state checkpoint still needs commit/push/CI verification. Four untracked historical conflict copies and the recoverable sibling dependency backup remain preserved.
 
 ## Exact resume sequence
 
 1. Read `.codex/TASK_QUEUE.md` and verify Git status/history against this file.
-2. Confirm local HEAD, `origin/main`, and GitHub contain baseline commit `e08c2bc`; GitHub Actions run `30718725693` must remain `completed/success` for that exact SHA.
-3. Confirm the product scope is exactly package/lock, one Vite config line, `CHANGELOG.md`, two product status/next docs, and six recovery records. Worker/product/persistence/hosting resources are excluded.
+2. Confirm local HEAD, `origin/main`, and GitHub contain product commit `448a243`; GitHub Actions run `30719418742` must remain `completed/success` for that exact SHA.
+3. If recovery/status documentation is modified, confirm it is the eight-file state checkpoint. If it is already committed, inspect the current state-only HEAD instead.
 4. Preserve `.codex/CURRENT_STATE 2.md`, `.codex/LAST_VALIDATION 2.json`, `.codex/LAST_VALIDATION 3.json`, and `docs/NEXT_STEPS 2.md` as untracked files unless explicit deletion approval is given. They must not be committed.
-5. Approval is recorded: apply only plugin `1.47.0`, Wrangler `4.114.0`, exact Workers types `5.20260722.1`, the approved `2026-05-15` date pin, and the dry-run documentation rename to `--autoconfig=false`.
-6. Package/lock candidate hashes and every local gate already pass. Preserve sibling backup `PokGuy.node_modules-backup-PKG010-20260802T0527`; do not delete it without approval.
-7. Review the complete diff and semantic 724→754 lock boundary, then stage only the 12 intended files and create the bounded product commit.
-8. Push `main`, require completed GitHub Actions success for the exact product SHA, then finalize recovery status and repeat commit/push/exact-SHA CI for the state checkpoint.
-9. Preserve PostCSS/Sharp and residual development-chain findings. Do not run broad `npm audit fix`, upload, or change deployment resources.
+5. Preserve sibling backup `PokGuy.node_modules-backup-PKG010-20260802T0527`; do not delete it without approval.
+6. If the eight-file state checkpoint is uncommitted, run formatting, JSON, whitespace, sensitive-data, and staged-boundary checks before commit/push. In either case require completed exact-SHA CI for the final state commit.
+7. PKG-011 owns residual Babel/brace-expansion/fast-uri/js-yaml development findings. Preserve Next PostCSS/Sharp as the separate stable-upstream waiting item.
+8. Do not run broad `npm audit fix`, upload, change deployment resources, or adopt preview dependencies.
 
 ## Recovery boundary
 
-- Last remote-verified stable checkpoint: `0e7f0495904c89124376dfb92e642040034b1567`.
-- GitHub Actions evidence: run `30718647980`, `completed/success`, exact head SHA `0e7f0495904c89124376dfb92e642040034b1567`.
+- Last remote-verified stable product commit: `448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10`.
+- GitHub Actions evidence: run `30719418742`, `completed/success`, exact head SHA `448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10`.
 - No stash or interrupted Git operation existed at startup.
 - The poker engine, LocalStorage key/schema, package manifest, dependency versions, hosting configuration, and deployment state remained unchanged by PKG-006; only lockfile registry hostnames and recovery records changed.
 - The workflow token has only `contents: read`; browser E2E remains a separate local gate, and branch protection is not enabled.
