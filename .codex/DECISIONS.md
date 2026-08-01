@@ -44,3 +44,11 @@ Architecture and poker-rule decisions remain authoritative in `ARCHITECTURE.md` 
 - Pin official action releases to full commit SHAs, grant only `contents: read`, and disable checkout credential persistence.
 - Do not enable branch protection automatically. Requiring the check would change repository governance and the current direct-main maintenance workflow.
 - Do not rewrite mixed lockfile registry URLs inside CI. Audit and any normalization belong to separately approved PKG-006.
+
+## 2026-08-02 — Normalize lockfile origins without overriding user npm configuration
+
+- Replace only the exact `https://registry.npmmirror.com/` origin in the 98 affected `packages[*].resolved` values; keep every package version, integrity hash, tarball pathname, dependency edge, flag, package key, root field, and lockfile version unchanged.
+- Require npmjs metadata parity and a cold-cache integrity-checked install before applying the transformation to the repository.
+- Do not use `npm install --package-lock-only` as a registry-normalization mechanism because npm does not guarantee that it rewrites existing custom registry origins.
+- Do not add a project `.npmrc` in this task. Registry choice remains a user/operator preference, while committed lockfile provenance is reviewed independently.
+- Treat npm audit advisory remediation as separate dependency-maintenance work; do not change dependency versions inside this provenance-only checkpoint.

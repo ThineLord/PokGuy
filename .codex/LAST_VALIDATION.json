@@ -1,13 +1,28 @@
 {
-  "validated_at": "2026-08-02T01:13:00+08:00",
+  "validated_at": "2026-08-02T01:28:00+08:00",
   "branch": "main",
-  "head": "527367430d663bdbd89c62f1b10a472281209ec3",
-  "last_stable_commit": "527367430d663bdbd89c62f1b10a472281209ec3",
-  "worktree": "recovery-state-checkpoint-after-remote-and-ci-verified-commit",
-  "phase": "remote-and-ci-verified-pkg-004",
+  "head": "6377692002052361d428af7561959c5b2acfe4f1",
+  "last_stable_commit": "6377692002052361d428af7561959c5b2acfe4f1",
+  "worktree": "validated-pkg-006-candidate-awaiting-diff-review-and-remote-ci",
+  "phase": "local-validation-pkg-006",
   "commands": [
     {
-      "command": "npm run check (baseline and final)",
+      "command": "npm run check (unmodified baseline)",
+      "exit_code": 0,
+      "result": "Passed ESLint, TypeScript, 13 Vitest files and 112 tests, and the production build"
+    },
+    {
+      "command": "npmjs metadata parity and before/after structural lockfile comparison",
+      "exit_code": 0,
+      "result": "All 98 mirror name/version records matched npmjs integrity and tarball pathname; only the exact resolved hostname changed and every other field remained identical"
+    },
+    {
+      "command": "isolated cold-cache npm ci with empty config files and explicit npmjs registry",
+      "exit_code": 0,
+      "result": "Installed 590 packages with integrity verification and did not rewrite the normalized lockfile"
+    },
+    {
+      "command": "npm run check (isolated candidate and repository candidate)",
       "exit_code": 0,
       "result": "Both runs passed ESLint, TypeScript, 13 Vitest files and 112 tests, and the production build"
     },
@@ -22,24 +37,9 @@
       "result": "7 selected WebKit tests passed"
     },
     {
-      "command": "official action release and tag-ref verification",
+      "command": "changed-file Prettier/JSON parse, git diff --check, structural provenance assertion, and sensitive/private-path scans",
       "exit_code": 0,
-      "result": "Pinned actions/checkout v7.0.1 and actions/setup-node v7.0.0 to their verified full commit SHAs"
-    },
-    {
-      "command": "changed-file Prettier/YAML parse, git diff --check, staged path, workflow-boundary, sensitive-pattern, and machine-path checks",
-      "exit_code": 0,
-      "result": "Formatting and whitespace passed; no privileged workflow feature, dependency/lockfile change, credential-like addition, or private path was found"
-    },
-    {
-      "command": "scoped GitHub-specific HTTPS proxy push and remote SHA verification",
-      "exit_code": 0,
-      "result": "Fast-forwarded origin/main from 1c48344 to 5273674 without changing global Git configuration; local, tracking, and GitHub SHAs matched"
-    },
-    {
-      "command": "gh run watch/view 30709790461",
-      "exit_code": 0,
-      "result": "Quality run completed successfully for exact head SHA 527367430d663bdbd89c62f1b10a472281209ec3; checkout, Node setup, npm ci, npm run check, and post steps all succeeded"
+      "result": "Formatting and whitespace passed; lockfile contains 717 npmjs and zero mirror URLs with no other field drift; no credential-like addition or private path was found"
     }
   ],
   "known_failures": [
@@ -47,13 +47,17 @@
       "command": "npm run format:check",
       "exit_code": 1,
       "result": "10 pre-existing formatting differences in untouched files"
+    },
+    {
+      "command": "first isolated npm ci config-isolation attempt",
+      "exit_code": 1,
+      "result": "npm rejected using /dev/null as both user and global config before dependency resolution; using two distinct empty config files corrected the harness and the subsequent cold-cache install passed"
     }
   ],
   "notes": [
-    "The workflow has contents read permission only, does not persist checkout credentials, and contains no secrets, deployment, browser download, or write step.",
-    "No npm dependency, package-lock, product, persistence, hosting, or deployment file changed.",
-    "The lockfile currently has 98 npmmirror.com and 619 npmjs.org resolved URLs; clean GitHub Actions installation succeeded, while provenance normalization remains separate PKG-006.",
-    "Main has no branch protection, so the Quality result is reported but not required.",
-    "An API fallback rehearsal created an unreferenced commit object after GitHub normalized the commit timezone; no branch or tag referenced it, and the actual push preserved the exact local commit through scoped Git transport."
+    "The candidate has 717 npmjs and zero npmmirror resolved URLs; all package versions, integrity hashes, paths, dependency edges, flags, and lockfile metadata remain unchanged.",
+    "No project, user, or global npm configuration was added or modified; no proxy value, credential, token, or machine path is recorded.",
+    "The isolated npm install reported 15 existing audit findings. Advisory triage is read-only and separate from this hostname-only checkpoint.",
+    "Final diff/security review passed; commit, push, and completed exact-SHA GitHub Actions verification remain."
   ]
 }

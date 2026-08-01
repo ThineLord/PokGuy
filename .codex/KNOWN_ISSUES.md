@@ -36,10 +36,10 @@
 
 ## Lockfile uses mixed npm registries
 
-- Status: Open; clean GitHub Actions install currently succeeds
+- Status: PKG-006 normalization validated locally; commit and exact-SHA CI verification pending
 - Priority: P2
-- Impact: `package-lock.json` contains 98 npmmirror.com and 619 npmjs.org resolved URLs. This mixes dependency provenance and could make clean installs depend on two registry domains even though integrity hashes are present.
-- Next step: PKG-006 must first identify the generating configuration, then compare versions/integrity/dependency topology before any scoped lockfile normalization. Never commit local registry or proxy credentials.
+- Impact: The previous lockfile contained 98 npmmirror.com and 619 npmjs.org resolved URLs, making clean installs depend on two domains. The candidate now contains 717 npmjs.org URLs and no mirror URL while preserving every integrity hash and dependency field.
+- Next step: Complete diff/security review, commit, push, and require completed GitHub Actions success for the exact commit before marking this resolved. Never commit local registry or proxy credentials.
 
 ## Quality check is not branch-protected
 

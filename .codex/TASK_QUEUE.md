@@ -49,7 +49,7 @@
 - Acceptance criteria: Requires a separately approved design; v1/v2 data migrate without loss; snapshots contain only information visible at action time.
 - Test method: Migration fixtures, privacy boundary tests, unit tests, Chromium/WebKit flows, clean-profile import/export smoke test.
 
-## PKG-006 — TODO
+## PKG-006 — IN_PROGRESS
 
 - Description: Audit mixed npm registry provenance in `package-lock.json` and, only if mechanically safe, normalize ordinary package downloads without changing dependency versions or integrity.
 - Priority: P2
@@ -57,3 +57,4 @@
 - Risk: Medium because a lockfile rewrite changes dependency configuration and may affect clean installs despite unchanged versions.
 - Acceptance criteria: Registry origin is documented; package versions, integrity hashes, dependency graph, and lockfile version remain unchanged; no credentials or machine configuration enter the repository; local and clean Linux gates pass.
 - Test method: Before/after structural lockfile comparison, isolated `npm ci`, `npm run check`, Chromium/WebKit regressions, diff/security review, and completed GitHub Actions conclusion.
+- Progress: The 98 mirror records match npmjs metadata and were changed by exact hostname substitution only. Structural comparison, isolated cold-cache `npm ci`, repository checks, 13 Chromium tests, 7 WebKit tests, and final diff/security checks pass; commit, push, exact-SHA CI, and final synchronization remain.
