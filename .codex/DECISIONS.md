@@ -60,3 +60,10 @@ Architecture and poker-rule decisions remain authoritative in `ARCHITECTURE.md` 
 - Do not override Next's exact PostCSS `8.4.31` or Sharp `^0.34.5` declarations. Upstream safe-version adoption changes vendored PostCSS bundles, image optimization, tests, and Turbopack tracing, so a version-only override is not equivalent to the upstream fix.
 - Do not adopt preview/canary Next builds for this application. Revisit the residual findings when a stable release incorporates PostCSS `>=8.5.18` and Sharp `>=0.35.0` with its compatibility changes.
 - Treat reduced reachability as mitigation, not resolution: PokGuy does not build untrusted CSS or use `next/image`, but the affected packages remain installed.
+
+## 2026-08-02 — Keep the React Server Components runtime trio aligned
+
+- Update React, React DOM, and `react-server-dom-webpack` together from `19.2.6` to the official stable `19.2.8` boundary; the RSC package's patched peer range requires the same React and React DOM line.
+- Treat `react-server-dom-webpack` as production-relevant even though it is declared in `devDependencies`: vinext bundles its decoding and rendering path into the production server output, so `npm audit --omit=dev` is not a sufficient reachability decision.
+- Accept only the root plus the three package lock records changing, with no added/removed package and no version movement in Next, Vite, vinext, Webpack, Wrangler, or Cloudflare.
+- Keep Vite and Cloudflare/Wrangler remediation in separate checkpoints because each crosses a different adapter and transitive dependency boundary.

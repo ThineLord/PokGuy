@@ -69,7 +69,7 @@
 - Test method: Before/after dependency and audit comparison, isolated clean `npm ci`, `npm run check`, Chromium/WebKit regressions, production build/smoke test, diff/security review, and completed exact-SHA GitHub Actions conclusion.
 - Completion: Commit `2c2782d` updates Next and `eslint-config-next` to `16.2.12`. Isolated/repository clean install, 112 tests/build, 13 Chromium, 7 WebKit, production smoke, advisory-level reduction from 13 to 4, final diff/security checks, push verification, and exact-SHA GitHub Actions run `30713299084` all passed. PostCSS/Sharp overrides are explicitly deferred with reachability mitigation and stable-upstream resume conditions.
 
-## PKG-008 — TODO
+## PKG-008 — IN_PROGRESS
 
 - Description: Audit and apply the smallest coherent React Server Components security patch across React, React DOM, and `react-server-dom-webpack`.
 - Priority: P1
@@ -77,3 +77,13 @@
 - Risk: Medium because the three packages have exact compatibility and peer boundaries across client rendering, RSC serialization, and the vinext adapter.
 - Acceptance criteria: Use an official patched version trio; remove the direct RSC advisory without introducing peer warnings or unrelated dependency drift; preserve UI, LocalStorage, poker rules, and deployment configuration.
 - Test method: Advisory-level before/after audit, isolated cold-cache `npm ci`, `npm run check`, Chromium/WebKit regressions, production smoke, diff/security review, and completed exact-SHA GitHub Actions conclusion.
+- Progress: Exact `19.2.8` trio is applied. Isolated/repository cold installs, exact four-record lock boundary, peer checks, 112 tests/build, 13 Chromium, 7 WebKit, complete/production audit delta, and production RSC/abnormal-request smoke all pass. Commit, push, and completed exact-SHA GitHub Actions remain before DONE.
+
+## PKG-009 — TODO
+
+- Description: Audit and, if mechanically compatible, patch the two direct Vite advisories without bundling the Cloudflare/Wrangler upgrade.
+- Priority: P1
+- File scope: `package.json`, `package-lock.json`, Vite/Vitest configuration, directly affected tests/docs, and `.codex/` recovery state. Cloudflare plugin, Wrangler, Miniflare, Next, React, and persistence are excluded unless a peer constraint proves the task blocked.
+- Risk: Medium because Vite is shared by development, tests, the vinext production build, and the Cloudflare adapter.
+- Acceptance criteria: Confirm the official affected/fixed ranges and every direct peer; produce an isolated bounded lock delta; remove the direct Vite advisories without unrelated toolchain drift; preserve application, LocalStorage, and deployment behavior.
+- Test method: Advisory-level audit comparison, isolated cold-cache `npm ci`, peer graph, `npm run check`, Chromium/WebKit regressions, production smoke, Cloudflare build/config validation where available, diff/security review, and completed exact-SHA GitHub Actions conclusion.

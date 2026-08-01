@@ -27,6 +27,7 @@
 - LocalStorage v2 key 与数据格式保持不变；旧版迁移、启动恢复和导入修复会显示可理解提示，且不会自动覆盖未知版本的原始浏览器数据。
 - 将 `next` 与 `eslint-config-next` 从 `16.2.6` 同步升级到 `16.2.12`，消除当前审计中的 9 条 Next.js 自身安全公告；lockfile 只更新 12 个 Next 自有条目，不改变 React、Vite、vinext、Wrangler 或 Cloudflare 版本。
 - Next 稳定版仍固定受影响的 PostCSS/Sharp 范围；由于上游修复同时涉及 vendored bundle、image optimizer 与 Turbopack 代码，本轮不使用不受支持的 override，并保留明确的残余风险记录。
+- 将 React、React DOM 与 `react-server-dom-webpack` 从 `19.2.6` 同步升级到 `19.2.8`，修复 React Server Components 请求可触发资源耗尽的 `GHSA-wx67-qw84-cm4g`；除三件套和根 lock 记录外不改变其他依赖。
 
 ## Unreleased — 2026-07-24
 
