@@ -67,3 +67,10 @@ Architecture and poker-rule decisions remain authoritative in `ARCHITECTURE.md` 
 - Treat `react-server-dom-webpack` as production-relevant even though it is declared in `devDependencies`: vinext bundles its decoding and rendering path into the production server output, so `npm audit --omit=dev` is not a sufficient reachability decision.
 - Accept only the root plus the three package lock records changing, with no added/removed package and no version movement in Next, Vite, vinext, Webpack, Wrangler, or Cloudflare.
 - Keep Vite and Cloudflare/Wrangler remediation in separate checkpoints because each crosses a different adapter and transitive dependency boundary.
+
+## 2026-08-02 — Use the first fixed Vite patch and keep Cloudflare separate
+
+- Update only the direct Vite declaration from `8.0.13` to exact `8.0.16`, the first Vite 8 release fixing both `GHSA-v6wh-96g9-6wx3` and `GHSA-fx2h-pf6j-xcff`.
+- Prefer the patch candidate over npm's current `8.2.0` suggestion: `8.0.16` retains all 724 lock records and changes 24, while `8.2.0` adds three records and changes 37 across broader Rolldown, Lightning CSS, PostCSS, picomatch, and devtools boundaries.
+- Accept the patch-level transitive refresh required by Vite's own lock resolution only after cold install, peer, project, browser, production, and Cloudflare runtime/deploy gates pass.
+- Keep `@cloudflare/vite-plugin`, Wrangler, Miniflare, Next, React, persistence, and deployment resources version/configuration-stable. Their remaining advisories belong to separate checkpoints.

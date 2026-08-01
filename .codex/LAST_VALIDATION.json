@@ -1,97 +1,72 @@
 {
-  "validated_at": "2026-08-02T03:13:16+08:00",
+  "validated_at": "2026-08-02T04:13:11+08:00",
   "branch": "main",
-  "head": "237ff2b68fde421a56a4aabdacdecfe8be57041d",
-  "last_stable_commit": "237ff2b68fde421a56a4aabdacdecfe8be57041d",
-  "worktree": "recovery-state-checkpoint-after-remote-and-ci-verified-pkg-008",
-  "phase": "remote-and-ci-verified-pkg-008",
+  "head": "51821add9f7648d3f4fd92528559894a709a8356",
+  "last_stable_commit": "51821add9f7648d3f4fd92528559894a709a8356",
+  "worktree": "pkg-009-locally-validated-preserving-three-untracked-history-copies",
+  "phase": "local-validation-pkg-009",
   "commands": [
     {
       "command": "startup Git/GitHub recovery and gh auth checks",
       "exit_code": 0,
-      "result": "Tracked-clean main startup; local, tracking, and GitHub SHAs matched 72fb430; prior Quality run 30713421819 was completed/success; three documented untracked history copies were preserved"
+      "result": "Tracked-clean main startup; local, tracking, and GitHub SHAs matched 51821ad; final PKG-008 Quality run 30714376713 was completed/success; no stash or interrupted Git operation; three documented untracked history copies were preserved"
     },
     {
-      "command": "npm run check (unmodified PKG-008 baseline)",
+      "command": "npm run check (unmodified PKG-009 baseline)",
       "exit_code": 0,
-      "result": "Passed ESLint, TypeScript, 13 Vitest files and 112 tests, and the production build"
+      "result": "Passed ESLint, strict TypeScript, 13 Vitest files / 112 tests, and the Vite 8.0.13 production build"
     },
     {
-      "command": "official React advisory, release, npm metadata, peer graph, and server-bundle reachability review",
-      "exit_code": 0,
-      "result": "Selected exact 19.2.8 for React, React DOM, and react-server-dom-webpack; it is the stable/latest and minimum fix for GHSA-wx67-qw84-cm4g, satisfies current peer ranges, and the RSC path is present in the production server bundle"
-    },
-    {
-      "command": "first isolated npm install --prefix candidate boundary assertion",
+      "command": "official-registry production and complete npm audits",
       "exit_code": 1,
-      "result": "Harness rejected before repository application because npm rewrote package-lock keys relative to the absolute prefix; no repository file changed and this candidate was not used"
+      "result": "Expected findings: production has 3 package records / 4 PostCSS-Sharp sources; complete has 14 package records / 25 sources including two direct Vite advisories; critical count is zero"
     },
     {
-      "command": "clean git-archive candidate package-lock-only generation and structural comparison",
+      "command": "official Vite advisories, release, npm metadata, peer graph, and configuration review",
       "exit_code": 0,
-      "result": "Retained 724 lock entries; changed exactly the root, react, react-dom, and react-server-dom-webpack records; added/removed zero packages and introduced zero mirror URLs"
+      "result": "Moderate GHSA-v6wh-96g9-6wx3 and high GHSA-fx2h-pf6j-xcff both affect Vite 8.0.0 through 8.0.15 and are first fixed in 8.0.16; npm latest 8.2.0 has a wider dependency delta"
     },
     {
-      "command": "isolated cold-cache npm ci, npm ls --all, audits, and npm run check",
+      "command": "isolated Vite 8.0.16 and 8.2.0 candidate comparison",
       "exit_code": 0,
-      "result": "Installed 590 packages with no peer problems; the trio was exactly 19.2.8; complete audit dropped to 14 package records / 25 advisory sources and no RSC finding; 112 tests/build passed"
+      "result": "Selected 8.0.16: it retains 724 lock records, changes 24, adds/removes none, and clears both Vite findings; rejected broader 8.2.0 because it changes 37 records and adds three"
     },
     {
-      "command": "repository candidate hash/byte comparison, npm ci, npm ls --all, and version-boundary checks",
+      "command": "isolated and repository cold-cache npm ci plus npm ls --all",
       "exit_code": 0,
-      "result": "Repository package files matched the accepted candidate; 590 packages installed, peer problems were empty, only the trio moved to 19.2.8, and Next/vinext/Vite/Cloudflare/Wrangler stayed unchanged"
+      "result": "Installed 590 packages; accepted package files are byte-identical; peer problems are empty; Vite is 8.0.16 and excluded direct packages are unchanged"
     },
     {
       "command": "official-registry production and complete npm audits after update",
       "exit_code": 1,
-      "result": "Expected residual findings: production remains 3 package records / 4 PostCSS-Sharp sources; complete has 14 package records / 25 sources; GHSA-wx67-qw84-cm4g is absent and critical count is zero"
+      "result": "Expected residual findings: production remains 3 package records / 4 PostCSS-Sharp sources; complete drops to 13 package records / 23 sources; both direct Vite findings are absent and critical count is zero"
     },
     {
-      "command": "npm run check",
+      "command": "npm run check, npm run test:e2e, and npm run test:e2e:webkit",
       "exit_code": 0,
-      "result": "Passed ESLint, strict TypeScript, 13 Vitest files / 112 tests, and production build"
+      "result": "Passed lint, strict TypeScript, 13 Vitest files / 112 tests, Vite 8.0.16 production build, 13 Chromium tests, and 7 selected WebKit tests"
     },
     {
-      "command": "npm run test:e2e",
+      "command": "production and Cloudflare runtime/deploy smoke",
       "exit_code": 0,
-      "result": "Passed all 13 Chromium tests"
+      "result": "Production HTML/RSC/SVG requests passed; workerd preview passed; Wrangler used the generated redirect and completed deploy dry-run without upload; hosting artifacts matched; listeners stopped"
     },
     {
-      "command": "npm run test:e2e:webkit",
+      "command": "final formatting, JSON, whitespace, candidate/hash, lock/package boundary, mirror, sensitive/private-path, scope, diff, and independent review",
       "exit_code": 0,
-      "result": "Passed all 7 selected WebKit tests"
-    },
-    {
-      "command": "vinext production server plus HTML, RSC, multipart, unknown-action, liveness, and stopped-listener smoke",
-      "exit_code": 0,
-      "result": "HTML returned 200, /.rsc returned a 200 text/x-component stream, multipart returned 200, vinext rejected an unknown Action ID promptly with generic 500, a following HTML request returned 200, and port 43218 was closed"
-    },
-    {
-      "command": "final changed-file Prettier, JSON, whitespace, candidate byte/hash, lock-boundary, mirror, sensitive/private-path, listener, status, and complete diff review",
-      "exit_code": 0,
-      "result": "All checks passed for the 11 intended tracked files; package files match the accepted candidate, 724 entries remain, only four lock records changed, no package/mirror/secret/private path/listener appeared, and three historical untracked copies remain excluded"
-    },
-    {
-      "command": "scoped GitHub-specific HTTPS proxy push and remote SHA verification",
-      "exit_code": 0,
-      "result": "Fast-forwarded origin/main from 72fb430 to 237ff2b without changing global Git configuration; local, tracking, and GitHub SHAs matched exactly"
-    },
-    {
-      "command": "gh run watch/view 30714243780",
-      "exit_code": 0,
-      "result": "Quality run completed successfully for exact head SHA 237ff2b68fde421a56a4aabdacdecfe8be57041d; checkout, Node 22 setup, npm ci, npm run check, and all post steps succeeded"
+      "result": "All gates passed for exactly 11 intended tracked files; 724 lock records remain with 24 changed and zero added/removed; three historical untracked copies remain excluded; independent read-only review found no blocker"
     }
   ],
   "known_failures": [
     {
       "command": "npm audit --omit=dev --json",
       "exit_code": 1,
-      "result": "Stable Next still installs affected PostCSS/Sharp versions; four distinct residual advisories are documented and unsupported overrides remain deferred"
+      "result": "Stable Next still installs affected PostCSS/Sharp versions; four distinct residual sources remain documented and unsupported overrides are deferred"
     },
     {
       "command": "npm audit --json",
       "exit_code": 1,
-      "result": "14 package-level findings and 25 advisory sources remain in separately scoped Vite, Cloudflare/Wrangler, and PostCSS/Sharp chains; the direct RSC advisory is gone and no finding is critical"
+      "result": "13 package-level findings and 23 advisory sources remain in separately scoped Cloudflare/Wrangler and PostCSS/Sharp chains; direct RSC and Vite findings are absent; no critical finding"
     },
     {
       "command": "npm run format:check",
@@ -100,12 +75,11 @@
     }
   ],
   "notes": [
-    "No product logic, LocalStorage schema/key, hosting resource, user npm configuration, or proxy setting changed.",
-    "No npm audit fix, preview/canary package, dependency override, or unrelated toolchain update was used.",
+    "Only Vite and its required lock resolution changed; product logic, LocalStorage schema/key, hosting resources, user npm configuration, and proxy settings are unchanged.",
+    "No npm audit fix, preview/beta package, dependency override, or unrelated direct toolchain update was used.",
     "Three untracked conflict-style historical copies remain excluded and preserved pending explicit deletion approval.",
-    "Task-owned isolated candidates and npm caches remain outside the repository pending explicit cleanup approval.",
-    "The direct RSC package is declared in devDependencies but is bundled into production server output; production-only audit omission was not treated as proof of non-reachability.",
-    "PKG-008 product commit, push, remote SHA match, and completed exact-SHA GitHub Actions verification all passed.",
-    "At creation of this state record, the recovery-documentation checkpoint still required commit, push, and final CI confirmation; resume must verify current Git history and the exact state-only SHA rather than assume it remains pending."
+    "Task-owned isolated candidates and caches must remain outside the repository and are not cleanup-authorized.",
+    "Vite is a development dependency but is exercised by dev, test, vinext production build, and Cloudflare adapter paths; production-only audit omission is not treated as proof of irrelevance.",
+    "Local PKG-009 validation and final review are complete; commit, push, and exact-SHA CI remain."
   ]
 }

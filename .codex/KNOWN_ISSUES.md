@@ -49,10 +49,10 @@
 
 ## React and build-toolchain dependency advisories
 
-- Status: Direct React Server Components finding resolved by PKG-008 commit `237ff2b`; exact-SHA CI run `30714243780` passed. Remaining build-toolchain findings are open.
-- Priority: P1 for direct Vite advisories; Cloudflare/Wrangler requires a later scoped checkpoint
-- Impact: Updating the React/React DOM/RSC trio to `19.2.8` removes `GHSA-wx67-qw84-cm4g` and reduces the complete audit from 15 package records / 26 advisory sources to 14 / 25. Vite, Cloudflare/Wrangler, and their transitive packages remain; grouping their fixes would cross several peer and adapter boundaries.
-- Next step: Inspect Vite `8.2.0` as PKG-009 without moving Cloudflare/Wrangler. Never use an unreviewed broad `npm audit fix`.
+- Status: Direct React Server Components finding resolved by PKG-008 commit `237ff2b` and exact-SHA CI run `30714243780`. Both direct Vite findings are resolved locally by PKG-009; product commit/push/exact-SHA CI are pending.
+- Priority: P1 residual Cloudflare/Wrangler toolchain risk
+- Impact: Vite `8.0.16` removes `GHSA-v6wh-96g9-6wx3` and `GHSA-fx2h-pf6j-xcff`, reducing the complete audit from 14 package records / 25 advisory sources to 13 / 23. Remaining findings belong to Cloudflare/Wrangler and Next's PostCSS/Sharp chains; grouping them would cross separate adapter and production dependency boundaries.
+- Next step: Audit the Cloudflare plugin/Wrangler/Miniflare/workerd chain as PKG-010 with isolated candidates and real runtime/deploy validation. Never use an unreviewed broad `npm audit fix`.
 
 ## Quality check is not branch-protected
 

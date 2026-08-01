@@ -79,7 +79,7 @@
 - Test method: Advisory-level before/after audit, isolated cold-cache `npm ci`, `npm run check`, Chromium/WebKit regressions, production smoke, diff/security review, and completed exact-SHA GitHub Actions conclusion.
 - Completion: Commit `237ff2b` applies exact `19.2.8` across the trio. Isolated/repository cold installs, exact four-record lock boundary, peer checks, 112 tests/build, 13 Chromium, 7 WebKit, complete/production audit delta, production RSC/abnormal-request smoke, push verification, and exact-SHA GitHub Actions run `30714243780` all passed.
 
-## PKG-009 — TODO
+## PKG-009 — IN_PROGRESS
 
 - Description: Audit and, if mechanically compatible, patch the two direct Vite advisories without bundling the Cloudflare/Wrangler upgrade.
 - Priority: P1
@@ -87,3 +87,13 @@
 - Risk: Medium because Vite is shared by development, tests, the vinext production build, and the Cloudflare adapter.
 - Acceptance criteria: Confirm the official affected/fixed ranges and every direct peer; produce an isolated bounded lock delta; remove the direct Vite advisories without unrelated toolchain drift; preserve application, LocalStorage, and deployment behavior.
 - Test method: Advisory-level audit comparison, isolated cold-cache `npm ci`, peer graph, `npm run check`, Chromium/WebKit regressions, production smoke, Cloudflare build/config validation where available, diff/security review, and completed exact-SHA GitHub Actions conclusion.
+- Progress: Selected exact `8.0.16` after isolated comparison with `8.2.0`. The accepted candidate retains 724 lock records, changes 24, adds/removes none, clears both direct Vite findings, and leaves all excluded direct packages unchanged. Repository cold install/peer/check, 13 Chromium, 7 WebKit, production smoke, Cloudflare workerd preview, deploy dry-run, artifact, and listener gates pass. Product commit/push/exact-SHA CI remain.
+
+## PKG-010 — TODO
+
+- Description: Audit and, if safely compatible, patch the remaining Cloudflare plugin/Wrangler/Miniflare/workerd toolchain advisories without bundling production dependency changes.
+- Priority: P1
+- File scope: `package.json`, `package-lock.json`, `vite.config.ts`, `worker/`, `.openai/hosting.json`, directly affected tests/docs, and `.codex/` recovery state. Next, React, product logic, persistence, and deployment resources are excluded unless compatibility proves the task blocked.
+- Risk: Medium-high because the chain controls local workerd execution, asset routing, deployment packaging, and remote publishing commands.
+- Acceptance criteria: Verify each official advisory/fixed range and Node/peer boundary; produce isolated bounded candidates; preserve hosting redirects/assets/bindings and perform no upload; remove only findings supported by compatible stable releases.
+- Test method: Advisory-level audit comparison, isolated cold-cache `npm ci`, peer graph, `npm run check`, Chromium/WebKit regressions, production smoke, real workerd preview, no-upload Wrangler deploy dry-run, artifact/diff/security review, and completed exact-SHA GitHub Actions conclusion.
