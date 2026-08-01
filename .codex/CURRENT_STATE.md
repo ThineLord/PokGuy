@@ -2,15 +2,15 @@
 
 Current branch: `main`
 
-Current HEAD: `2533feb4da3375cf2c509c8a136aa6b519245734` (remote-verified PKG-009 recovery checkpoint; pre-PKG-010 baseline)
+Current HEAD: Recovery-documentation checkpoint on top of validated PKG-010 approval-boundary commit `0e7f0495904c89124376dfb92e642040034b1567`; run `git rev-parse HEAD` for the exact state-only commit after it is created.
 
-Last stable commit: `2533feb4da3375cf2c509c8a136aa6b519245734` (`origin/main`; GitHub Actions run `30716624979` completed successfully for this exact SHA)
+Last stable commit: `0e7f0495904c89124376dfb92e642040034b1567` (`origin/main`; GitHub Actions run `30718647980` completed successfully for this exact SHA)
 
 Current objective: Complete PKG-010 with the smallest stable Cloudflare plugin/Wrangler/Miniflare/workerd boundary while explicitly preserving the Worker compatibility date already emitted by the validated baseline.
 
 Active task: PKG-010 is BLOCKED pending configuration-change approval. The minimum dependency candidate and its single compatibility-preserving config pin are fully validated in isolation; repository package/config files remain unchanged.
 
-Modified files: PKG-010 recovery/status records only. No package, lockfile, config, worker, product, persistence, or deployment resource has changed. Four historical conflict-style copies remain untracked, preserved, and excluded.
+Modified files: Final PKG-010 approval-boundary recovery records only. No package, lockfile, config, worker, product, persistence, or deployment resource has changed. Four historical conflict-style copies remain untracked, preserved, and excluded.
 
 Completed steps:
 
@@ -66,6 +66,8 @@ Completed steps:
 - Confirmed the baseline plugin and generated artifact use compatibility date `2026-05-15`, while plugin `1.47.0` defaults to `2026-07-23`. A dependency-only edit would therefore silently change Worker runtime semantics.
 - Validated the isolated candidate with a temporary explicit `compatibility_date: "2026-05-15"` pin: lint, typecheck, 13 Vitest files / 112 tests, build, hosting artifacts, real workerd HTML/RSC/SVG requests, listener cleanup, and strict no-upload deploy dry-run all pass.
 - Confirmed Wrangler `4.114.0` replaces the removed validation flag `--experimental-autoconfig=false` with `--autoconfig=false`; the checked-in dry-run documentation will need the same bounded command update after approval.
+- Created and pushed approval-boundary commit `0e7f049`; local HEAD, `origin/main`, and GitHub matched exact SHA `0e7f0495904c89124376dfb92e642040034b1567`.
+- Waited for GitHub Actions run `30718647980`; Node 22 clean install, `npm run check`, and every job/post step completed successfully for the exact approval-boundary SHA.
 
 Remaining steps:
 
@@ -114,6 +116,7 @@ Current tests:
 - PKG-010 isolated candidate complete audit — expected nonzero result reduced to 7 package records / 13 sources (6 high, 1 low, zero critical); the complete Cloudflare chain is absent. Production remains 3 records / 4 PostCSS-Sharp sources.
 - PKG-010 isolated compatibility-pin `npm run check` — PASS (lint, typecheck, 13 Vitest files / 112 tests, production build).
 - PKG-010 isolated artifact / real workerd / strict no-upload deploy dry-run — PASS (date and asset/binding invariants preserved; HTML/RSC/SVG 200; no listener or upload; monitored inputs unchanged).
+- GitHub Actions `Quality` run `30718647980` — PASS (`completed/success`, exact approval-boundary SHA `0e7f049`; clean install and all quality steps passed).
 
 Known failures: Production-only npm audit remains nonzero because stable Next `16.2.12` pins affected PostCSS/Sharp ranges. The repository has not yet received the validated Cloudflare candidate because the compatibility-preserving config line requires approval. Current generated `node_modules` contains 153 conflict-style ` 2` entries, so baseline `npm ls --all` is noisy until a recoverable clean reinstall. Repository-wide `npm run format:check` has 10 pre-existing differences in untouched files. vinext returns a prompt generic HTTP 500 for an unknown Server Action ID while keeping the server live. Four untracked historical conflict copies remain intentionally untouched.
 
@@ -121,4 +124,4 @@ Risk: Medium and contained. The exact dependency/config candidate is validated o
 
 Next command: After explicit approval, add `compatibility_date: "2026-05-15"` to `localBindingConfig`, apply the accepted package/lock candidate and dry-run flag rename, then perform the recoverable repository clean install and full validation matrix.
 
-Resume instructions: Read `.codex/RESUME.md`, verify the latest recovery checkpoint and exact-SHA CI, preserve all four untracked historical copies and task-owned temp candidates, and do not edit `vite.config.ts` until approval is recorded. Never run broad `npm audit fix` or upload.
+Resume instructions: Read `.codex/RESUME.md`, verify approval-boundary commit/run `0e7f049` / `30718647980`, then determine from Git history whether this final recovery checkpoint still needs commit/push/CI verification. Preserve all four untracked historical copies and task-owned temp candidates, and do not edit `vite.config.ts` until approval is recorded.

@@ -1,10 +1,10 @@
 {
-  "validated_at": "2026-08-02T05:11:16+08:00",
+  "validated_at": "2026-08-02T05:14:09+08:00",
   "branch": "main",
-  "head": "2533feb4da3375cf2c509c8a136aa6b519245734",
-  "last_stable_commit": "2533feb4da3375cf2c509c8a136aa6b519245734",
-  "worktree": "pkg-010-isolated-candidate-validated-pending-config-approval",
-  "phase": "blocked-pending-compatibility-date-pin-approval",
+  "head": "0e7f0495904c89124376dfb92e642040034b1567",
+  "last_stable_commit": "0e7f0495904c89124376dfb92e642040034b1567",
+  "worktree": "final-recovery-checkpoint-after-validated-pkg-010-approval-boundary",
+  "phase": "remote-and-ci-verified-pkg-010-approval-boundary",
   "commands": [
     {
       "command": "startup Git/GitHub recovery and gh auth checks",
@@ -100,6 +100,16 @@
       "command": "isolated compatibility-date pin npm run check, artifact assertions, real workerd preview, and strict no-upload deploy dry-run",
       "exit_code": 0,
       "result": "Explicit date 2026-05-15 preserved all artifact invariants; lint, typecheck, 112 tests/build, HTML/RSC/SVG probes, listener cleanup, and wrangler --dry-run --strict --autoconfig=false passed without upload or monitored input mutation"
+    },
+    {
+      "command": "push approval-boundary checkpoint and verify local/tracking/GitHub SHA",
+      "exit_code": 0,
+      "result": "Fast-forwarded origin/main to 0e7f0495904c89124376dfb92e642040034b1567; local, tracking, remote, and GitHub SHAs matched exactly"
+    },
+    {
+      "command": "gh run watch/view 30718647980",
+      "exit_code": 0,
+      "result": "Quality run completed successfully for exact head SHA 0e7f0495904c89124376dfb92e642040034b1567; checkout, Node 22 setup, npm ci, npm run check, and all post steps succeeded"
     }
   ],
   "known_failures": [
@@ -134,6 +144,7 @@
     "Final PKG-009 recovery commit 2533feb and exact-SHA Quality run 30716624979 are verified.",
     "No PKG-010 package, lockfile, config, worker, product, persistence, or deployment resource has changed yet; the isolated candidate is validated and awaits explicit approval for the one-line compatibility-preserving config pin.",
     "Plugin 1.47.0 would change the implicit Worker compatibility date from the validated baseline 2026-05-15 to 2026-07-23; applying dependency files without the explicit pin is forbidden.",
-    "Wrangler 4.114.0 removed --experimental-autoconfig=false; the successful no-upload replacement is --autoconfig=false and the tracked dry-run documentation remains pending approval-gated implementation."
+    "Wrangler 4.114.0 removed --experimental-autoconfig=false; the successful no-upload replacement is --autoconfig=false and the tracked dry-run documentation remains pending approval-gated implementation.",
+    "At creation of this state record, the final recovery-documentation checkpoint still required commit, push, and exact-SHA CI confirmation; resume must inspect Git history rather than assume it remains pending."
   ]
 }

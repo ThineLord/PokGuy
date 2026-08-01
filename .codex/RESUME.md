@@ -15,13 +15,13 @@ Also confirm there is no `MERGE_HEAD`, `REBASE_HEAD`, `CHERRY_PICK_HEAD`, `REVER
 
 ## Current task
 
-PKG-010 is blocked only on explicit configuration-change approval. The minimum Cloudflare dependency candidate and a compatibility-preserving date pin passed the complete isolated validation matrix; no repository package/config/product file has changed. Four untracked historical conflict copies remain preserved outside Git.
+PKG-010 is blocked only on explicit configuration-change approval. Approval-boundary commit `0e7f049` is pushed and verified by exact-SHA GitHub Actions run `30718647980`. This file belongs to the final recovery checkpoint on top of that commit; on resume, determine from Git history whether the state checkpoint still needs commit/push/CI verification. No repository package/config/product file changed, and four untracked historical conflict copies remain preserved outside Git.
 
 ## Exact resume sequence
 
 1. Read `.codex/TASK_QUEUE.md` and verify Git status/history against this file.
-2. Confirm local HEAD, `origin/main`, and GitHub match the latest PKG-010 recovery checkpoint and its completed exact-SHA Quality run.
-3. Confirm only PKG-010 recovery records are modified; package/config/product files must remain unchanged until approval.
+2. Confirm local HEAD, `origin/main`, and GitHub contain approval-boundary commit `0e7f049`; GitHub Actions run `30718647980` must remain `completed/success` for that exact SHA.
+3. If final recovery/status documentation is modified, confirm it is the state-only checkpoint. If it is already committed, inspect the current state-only HEAD instead. Package/config/product files must remain unchanged until approval.
 4. Preserve `.codex/CURRENT_STATE 2.md`, `.codex/LAST_VALIDATION 2.json`, `.codex/LAST_VALIDATION 3.json`, and `docs/NEXT_STEPS 2.md` as untracked files unless explicit deletion approval is given. They must not be committed.
 5. Require explicit approval before adding `compatibility_date: "2026-05-15"` to `localBindingConfig`; this preserves the baseline date because plugin `1.47.0` otherwise defaults to `2026-07-23`.
 6. After approval, apply only plugin `1.47.0`, Wrangler `4.114.0`, exact Workers types `5.20260722.1`, the approved date pin, and the dry-run documentation rename to `--autoconfig=false`.
@@ -31,8 +31,8 @@ PKG-010 is blocked only on explicit configuration-change approval. The minimum C
 
 ## Recovery boundary
 
-- Last remote-verified stable checkpoint: `2533feb4da3375cf2c509c8a136aa6b519245734`.
-- GitHub Actions evidence: run `30716624979`, `completed/success`, exact head SHA `2533feb4da3375cf2c509c8a136aa6b519245734`.
+- Last remote-verified stable checkpoint: `0e7f0495904c89124376dfb92e642040034b1567`.
+- GitHub Actions evidence: run `30718647980`, `completed/success`, exact head SHA `0e7f0495904c89124376dfb92e642040034b1567`.
 - No stash or interrupted Git operation existed at startup.
 - The poker engine, LocalStorage key/schema, package manifest, dependency versions, hosting configuration, and deployment state remained unchanged by PKG-006; only lockfile registry hostnames and recovery records changed.
 - The workflow token has only `contents: read`; browser E2E remains a separate local gate, and branch protection is not enabled.
