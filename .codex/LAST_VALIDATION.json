@@ -1,10 +1,10 @@
 {
   "validated_at": "2026-08-01T23:46:02+08:00",
   "branch": "main",
-  "head": "24c075700abc80721e8cc877900ac1d50ad9b10e",
-  "last_stable_commit": "24c075700abc80721e8cc877900ac1d50ad9b10e",
-  "worktree": "dirty",
-  "phase": "final-precommit",
+  "head": "256d789c618e8ceca8983faaad689c4dc134eb98",
+  "last_stable_commit": "256d789c618e8ceca8983faaad689c4dc134eb98",
+  "worktree": "documentation-state-refresh",
+  "phase": "postcommit-prepush",
   "commands": [
     {
       "command": "npm run check",

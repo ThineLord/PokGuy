@@ -8,6 +8,7 @@
 - Risk: Medium because the worktree predates this maintenance cycle and is currently on `main`; no engine or storage-schema change is intended.
 - Acceptance criteria: Existing Review Lab intent is preserved; old records degrade without false action pairing; metadata works for supported local and hosted origins; no secret or machine path is introduced; recovery state is truthful; commit and remote branch agree.
 - Test method: Targeted unit tests, `npm run check`, `npm run test:e2e`, `git diff --check`, sensitive-pattern scan, staged-diff review, remote SHA verification.
+- Progress: Product commit `256d789`; all local gates passed. Mark this item `DONE` only after the documentation checkpoint is pushed and `origin/main` is verified.
 
 ## PKG-002 — TODO
 

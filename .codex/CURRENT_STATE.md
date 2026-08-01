@@ -2,15 +2,15 @@
 
 Current branch: `main`
 
-Current HEAD: `24c075700abc80721e8cc877900ac1d50ad9b10e`
+Current HEAD: `256d789c618e8ceca8983faaad689c4dc134eb98` (validated product checkpoint; this state refresh is the following documentation-only commit)
 
-Last stable commit: `24c075700abc80721e8cc877900ac1d50ad9b10e` (`origin/main`)
+Last stable commit: `256d789c618e8ceca8983faaad689c4dc134eb98` (validated locally; remote push pending)
 
-Current objective: Finish and checkpoint the existing Phase 8.0 Review Lab work without changing poker rules or LocalStorage v2.
+Current objective: Push and remotely verify the Phase 8.0 checkpoint, then harden invalid persisted settings without changing the LocalStorage v2 format.
 
-Active task: Audit the pre-existing Review Lab and social-preview changes, repair only verified issues, validate, commit, and push.
+Active task: Finish the documentation-only checkpoint and push `main`; next queued work is PKG-002.
 
-Modified files: The pre-existing Phase 8.0 worktree plus scoped compatibility repairs in `src/storage/storage.ts`, `tests/storage/storage.test.ts`, `src/features/app/siteOrigin.ts`, and `tests/app/siteOrigin.test.ts`; this `.codex/` recovery layer is also new. Use `git status --short` for the exact live list.
+Modified files: Recovery/product-status Markdown and `.codex/LAST_VALIDATION.json` only during this documentation checkpoint. Use `git status --short` for the exact live list.
 
 Completed steps:
 
@@ -22,12 +22,13 @@ Completed steps:
 - Filtered malformed training records and made legacy action pairing conservative when newest-first order cannot be verified.
 - Made social-preview origins safe for localhost, private IPv4, bracketed IPv6, invalid host/port input, and explicitly trusted proxy protocol headers.
 - Re-ran the final core and Chromium gates successfully.
+- Created validated product commit `256d789` with no unstaged product changes remaining.
 
 Remaining steps:
 
-- Review the exact staged scope and generated asset.
-- Commit the stable checkpoint and push `main` without force.
-- Verify the remote branch SHA and record the final validation state.
+- Commit this documentation-only state refresh.
+- Push `main` without force.
+- Verify `origin/main` resolves to the pushed documentation checkpoint.
 
 Current tests:
 
@@ -39,8 +40,8 @@ Current tests:
 
 Known failures: The repository-wide `npm run format:check` reports 10 pre-existing formatting differences in untouched files. A separate P1 audit also reproduced that invalid persisted blind settings can prevent startup or the next hand; this remains outside PKG-001 and is queued next. WebKit automation is not yet installed or configured.
 
-Risk: Low for PKG-001 after full validation, but not complete until committed and remotely verified. The poker engine and LocalStorage v2 format remain unchanged.
+Risk: Low for PKG-001; the product checkpoint is committed and fully validated, but remote verification is still pending. The poker engine and LocalStorage v2 format remain unchanged.
 
-Next command: `git diff --check`
+Next command: `git push origin main`
 
 Resume instructions: Read `.codex/RESUME.md`, rerun the startup Git checks, inspect `git diff` before editing, and continue the `IN_PROGRESS` item in `.codex/TASK_QUEUE.md`.

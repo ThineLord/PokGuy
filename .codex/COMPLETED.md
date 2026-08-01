@@ -11,5 +11,5 @@ Append stable maintenance checkpoints here after their commit and remote status 
 - Created the required `.codex/` recovery layer.
 - Repaired malformed-record recovery, conservative action pairing, and local/proxied metadata-origin handling.
 - Passed the final `npm run check` with 103 Vitest tests, 12 Chromium E2E tests, and local metadata HTTP smoke checks.
-- Commit: Pending until PKG-001 is fully reviewed and validated.
+- Commit: `256d789` (`feat: add review lab and social previews`).
 - Push: Pending.
