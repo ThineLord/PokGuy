@@ -29,7 +29,7 @@ RiverLab 是一个完全在浏览器本地运行的单机德州扑克训练应�
 
 - Node.js 22.13 或更高版本；
 - npm；
-- E2E 首次运行需要安装 Playwright Chromium。
+- E2E 首次运行需要安装 Playwright Chromium 与 WebKit。
 
 ## 安装与启动
 
@@ -65,11 +65,14 @@ npm run check
 首次运行 E2E：
 
 ```bash
-npx playwright install chromium
+npx playwright install chromium webkit
 npm run test:e2e
+npm run test:e2e:webkit
 ```
 
 `npm run check` 依次执行 ESLint、TypeScript、Vitest 和 production build。E2E 独立执行，以便没有浏览器运行时的环境仍能完成核心检查。
+
+GitHub Actions 会在 `main` push 和面向 `main` 的 pull request 上使用最新 Node.js 22 LTS 补丁版本（`22.x`）执行干净的 `npm ci` 与 `npm run check`。浏览器 E2E 仍作为独立本地门禁，避免首个 CI 工作流隐式下载浏览器或显著增加运行时间。
 
 ## 项目结构
 
@@ -113,7 +116,7 @@ AI 决策接口只接收自己的底牌和公开信息。牌局结束前，其�
 2. 增加可分享但不含隐藏信息的手牌文本格式；
 3. 将 Monte Carlo 批次迁移到 Web Worker，并加入明确标注的范围加权缓存；
 4. 扩展单手牌场景的底池、前序行动与对手范围编辑；
-5. 增加 WebKit 自动化矩阵与可安装的离线 PWA 外壳。
+5. 扩展物理 iOS Safari 验证能力，并增加可安装的离线 PWA 外壳。
 
 ## 免责声明
 

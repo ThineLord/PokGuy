@@ -30,11 +30,11 @@
 - Test method: Install/verify Playwright WebKit, run targeted WebKit cases, then the complete project gates.
 - Completion: Product commit `9542fa9`; 7 selected WebKit and 13 complete Chromium tests passed, 112 Vitest tests and the production build remained green, no dependency or lockfile changed, and remote `main` was verified at `9542fa9b350a023936c497dd88dcaaee09b74362` before the state-only checkpoint.
 
-## PKG-004 — TODO
+## PKG-004 — IN_PROGRESS
 
 - Description: Add a minimal GitHub Actions quality gate for pull requests and pushes.
 - Priority: P2
-- File scope: `.github/workflows/` and concise contributor/testing documentation.
+- File scope: `.github/workflows/ci.yml`, `README.md`, `TESTING.md`, release/status documentation, and `.codex/` recovery state. No dependency or lockfile change is intended.
 - Risk: Low to medium; CI runtime and Node version must match the supported toolchain.
 - Acceptance criteria: Clean install plus `npm run check` succeeds in CI; no secrets or deployment permissions are required.
 - Test method: Validate workflow syntax locally where possible, push on a branch/checkpoint, and wait for a completed GitHub Actions conclusion.

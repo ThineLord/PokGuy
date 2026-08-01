@@ -68,6 +68,10 @@ npx playwright install chromium webkit
 
 默认 `npm run test:e2e` 仍只运行完整的 13 项 Chromium 套件。`npm run test:e2e:webkit` 通过测试标题中的 `@webkit` 标签选取 7 个高价值流程：Review Lab 与刷新、设置持久化与导出、非法盲注恢复、iPhone/iPad 响应式布局、摊牌区域和键盘/输入隔离。这样可以持续覆盖 WebKit 差异，而不会把默认本地门禁翻倍。
 
+## GitHub Actions
+
+`.github/workflows/ci.yml` 在 `main` push 和面向 `main` 的 pull request 上运行。它使用最新 Node.js 22 LTS 补丁版本（`22.x`）、`npm ci` 和 `npm run check`，token 权限仅为读取仓库内容；不读取 secrets、不部署，也不运行需要浏览器下载的 E2E。Chromium 与 WebKit E2E 继续作为提交前的独立本地验证。
+
 ## 手动检查清单
 
 - 1440×900 Mac：六个座位不重叠，信息区与操作栏均完整；
