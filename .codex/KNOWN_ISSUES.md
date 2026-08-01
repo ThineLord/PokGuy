@@ -34,6 +34,20 @@
 - Impact: `npm run format:check` reports 10 untouched files, so it cannot yet serve as a repository-wide gate without a separate formatting-only change.
 - Next step: Keep changed-file formatting clean; schedule any baseline normalization as an isolated, reviewable task.
 
+## Lockfile uses mixed npm registries
+
+- Status: Open; clean GitHub Actions install currently succeeds
+- Priority: P2
+- Impact: `package-lock.json` contains 98 npmmirror.com and 619 npmjs.org resolved URLs. This mixes dependency provenance and could make clean installs depend on two registry domains even though integrity hashes are present.
+- Next step: PKG-006 must first identify the generating configuration, then compare versions/integrity/dependency topology before any scoped lockfile normalization. Never commit local registry or proxy credentials.
+
+## Quality check is not branch-protected
+
+- Status: Open governance boundary
+- Priority: P3
+- Impact: GitHub Actions reports failures, but `main` currently permits direct pushes and merges without requiring the `Quality` check.
+- Next step: Consider branch protection only as a separately approved repository-policy change because it would alter the direct-main maintenance workflow.
+
 ## Toolchain warnings during successful checks
 
 - Status: Observed, non-failing

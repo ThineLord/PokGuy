@@ -35,3 +35,12 @@ Architecture and poker-rule decisions remain authoritative in `ARCHITECTURE.md` 
 - Keep the WebKit runtime in Playwright's user cache. Do not add a dependency or change `package-lock.json` merely to install a browser binary.
 - Treat Desktop Safari WebKit plus explicit mobile viewports as browser-engine coverage, not proof of physical iOS safe-area, touch, or dynamic-address-bar behavior.
 - Preserve `.openai/hosting.json` and deployment state because PKG-003 changes only local test infrastructure.
+
+## 2026-08-02 — Start CI with one read-only core gate
+
+- Trigger on pushes to `main` and pull requests targeting `main`; use ordinary `pull_request`, never the higher-trust `pull_request_target` event for untrusted code tests.
+- Run only clean dependency installation and the canonical `npm run check`; keep browser downloads and E2E local until their CI cost is evaluated separately.
+- Use the latest patched Node 22 LTS line (`22.x`) instead of freezing the sole gate to the older minimum 22.13.0 patch. A minimum-version compatibility job can be designed separately if needed.
+- Pin official action releases to full commit SHAs, grant only `contents: read`, and disable checkout credential persistence.
+- Do not enable branch protection automatically. Requiring the check would change repository governance and the current direct-main maintenance workflow.
+- Do not rewrite mixed lockfile registry URLs inside CI. Audit and any normalization belong to separately approved PKG-006.

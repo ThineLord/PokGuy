@@ -2,10 +2,10 @@
 
 ## 当前状态
 
-- 当前阶段：Phase 8.2 WebKit 浏览器回归门禁完成
+- 当前阶段：Phase 8.3 GitHub Actions 质量门禁完成
 - 可运行状态：可安装、启动、连续游戏、训练、复盘、统计、导出和可信局域网访问
 - 当前分支：`main`
-- 当前稳定产品提交：`9542fa9`；远端同步状态见 `.codex/CURRENT_STATE.md`
+- 当前稳定产品提交：`5273674`；远端同步与 CI 状态见 `.codex/CURRENT_STATE.md`
 
 ## 已完成模块
 
@@ -30,6 +30,7 @@
 - 设置、AI profile 与 AI 习惯记录逐字段安全恢复；合法 v1/v2 和纯自定义对手池保持兼容
 - 启动与设置导入发生迁移/修复时显示全局双语提示，空数字输入不会写入非法盲注
 - 完整 13 项 Chromium 回归保持默认门禁，7 项精选 WebKit 回归覆盖复盘、持久化、导出、响应式布局、摊牌和键盘输入边界
+- `main` push 与面向 `main` 的 pull request 会触发只读 GitHub Actions 门禁，以 Node `22.x` 干净安装并运行 `npm run check`
 - Mac 自适应视口牌桌与 `F/K/C/R/A` 键盘操作
 - iPad 横/竖屏零覆盖布局与 iPhone 自动行动区定位
 - iOS 安全区、动态视口、44px+ 触控目标与输入防缩放
@@ -70,6 +71,7 @@
 - vinext/Vite production build 通过
 - 13 项 Chromium E2E 通过
 - 7 项精选 WebKit E2E 通过
+- GitHub Actions `Quality / Node 22 quality gate` 首次干净 Linux 运行通过（run `30709790461`）
 - 120 手种子化六人桌规则压力测试通过
 - 弃牌动画与确定性河牌摊牌关键流程连续重复 5 轮，共 10 项回归通过
 - iPhone 393×852 正式摊牌比较区无横向溢出
@@ -96,6 +98,8 @@
 - 当前 UI 为单路由客户端导航；不含账户、后端或跨设备同步
 - 旧版训练记录不含行动时 equity / pot odds / 推荐动作快照；当前仅在记录数与 Hero 动作数完全一致、且最新优先存储顺序可验证时做顺序关联
 - Playwright WebKit 使用 Desktop Safari 引擎与显式移动视口，不等同于物理 iPhone/iPad Safari；真实设备安全区、触控和动态地址栏仍需保留手动检查
+- GitHub Actions 当前报告质量结果，但 `main` 尚未启用 branch protection，因此不会强制阻止绕过门禁的直接推送或合并
+- `package-lock.json` 同时包含 npmjs.org 与 npmmirror.com 下载地址；首次 CI 已成功，但依赖来源一致性需要单独审计
 
 ## 重要架构决定
 

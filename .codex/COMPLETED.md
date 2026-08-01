@@ -35,3 +35,13 @@ Append stable maintenance checkpoints here after their commit and remote status 
 - Passed changed-file formatting, whitespace, sensitive-pattern, and machine-path scans.
 - Commit: `9542fa9` (`test: add selected WebKit gate`).
 - Push: Verified by matching local `HEAD`, `origin/main`, and remote `main` at `9542fa9b350a023936c497dd88dcaaee09b74362` before the state-only checkpoint.
+
+## 2026-08-02 — Minimal read-only GitHub Actions gate
+
+- Added the first workflow for `main` pushes and pull requests: clean `npm ci` followed by `npm run check` on Node `22.x`.
+- Pinned official checkout/setup actions to immutable SHAs, granted only `contents: read`, disabled persisted checkout credentials, and added concurrency cancellation plus a 15-minute timeout.
+- Kept browser downloads, E2E, secrets, write permissions, deployment, dependencies, and the lockfile outside the CI change.
+- Passed local `npm run check`, 13 Chromium tests, 7 WebKit tests, changed-file formatting, whitespace, workflow-boundary, sensitive-pattern, and private-path checks.
+- Commit: `5273674` (`ci: add read-only quality gate`).
+- Push: Verified by matching local `HEAD`, `origin/main`, and GitHub at `527367430d663bdbd89c62f1b10a472281209ec3`.
+- CI: GitHub Actions run `30709790461` completed successfully for the exact commit SHA; clean install and every quality-gate step passed.

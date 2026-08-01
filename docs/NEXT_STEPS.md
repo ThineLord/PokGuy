@@ -2,30 +2,32 @@
 
 ## 下一项具体任务
 
-Phase 8.2 已完成精选 Playwright WebKit 自动化矩阵：默认 13 项 Chromium 回归保持不变，7 项 WebKit 流程覆盖复盘与刷新、设置持久化和导出、非法盲注恢复、响应式布局、摊牌区域及键盘/输入边界。下一项 P2 是建立不需要 secrets 或部署权限的最小 GitHub Actions 质量门禁。Review Lab v1.1 的决策快照仍需独立设计 v3 迁移，不能与 CI 工作混合。
+Phase 8.3 已完成首个 GitHub Actions 质量门禁：官方 Actions 固定到不可变 SHA，token 仅可读取仓库内容，Node `22.x` 会执行 `npm ci` 与 `npm run check`；首次干净 Linux run 已完成且成功。下一项 P2 是审计 `package-lock.json` 中混合的 npmjs.org / npmmirror.com 下载来源，并在不改变版本、integrity 或依赖图的前提下决定是否规范化。若执行规范化会重写锁文件，因此必须单独经过配置/依赖安全检查点。
 
 ## 相关文件
 
-- `.github/workflows/`
-- `package.json`
 - `package-lock.json`
+- `package.json`
+- 用户级与项目级 npm registry 配置（只读审计，不提交本机配置）
+- `.github/workflows/ci.yml`
 - `TESTING.md`
 - `.codex/TASK_QUEUE.md`
 - `.codex/CURRENT_STATE.md`
 
 ## 验收标准
 
-- pull request 和 `main` push 会运行一个最小、可重复的质量工作流
-- CI 使用与项目兼容的 Node 版本和 `npm ci`，不改动锁文件
-- `npm run check` 在干净安装后通过，失败会阻止质量门禁成功
-- 工作流不读取 secrets，不获得部署或写仓库权限
-- 本地现有 112 项单元测试、13 项 Chromium E2E 和 7 项 WebKit E2E 继续通过
-- 浏览器二进制下载与 E2E 是否进入 CI 必须按运行成本单独决定；首个工作流不应无意中放大范围
+- 解释 98 个 npmmirror.com 与 619 个 npmjs.org `resolved` 条目的来源，不把首次 CI 成功误当成来源一致性证明
+- 若规范化，所有包版本、integrity、依赖关系和 lockfile v3 保持不变，只允许必要的 `resolved` 来源差异
+- 不把本机 npm registry、代理、凭据或绝对路径写入仓库
+- 在隔离干净安装和 GitHub Actions 中验证 `npm ci` 与 `npm run check`
+- 本地 112 项单元测试、13 项 Chromium E2E 和 7 项 WebKit E2E 继续通过
+- 若无法证明机械改写安全，记录审计结论并保持锁文件不变
 
 ## 推荐执行命令
 
 ```bash
+npm config get registry
+git diff -- package-lock.json
+npm ci
 npm run check
-npm run test:e2e
-npm run test:e2e:webkit
 ```

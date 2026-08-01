@@ -1,30 +1,15 @@
 {
-  "validated_at": "2026-08-02T00:44:00+08:00",
+  "validated_at": "2026-08-02T01:13:00+08:00",
   "branch": "main",
-  "head": "9542fa9b350a023936c497dd88dcaaee09b74362",
-  "last_stable_commit": "9542fa9b350a023936c497dd88dcaaee09b74362",
-  "worktree": "recovery-state-checkpoint-after-remote-verified-product-commit",
-  "phase": "remote-verified-pkg-003-product",
+  "head": "527367430d663bdbd89c62f1b10a472281209ec3",
+  "last_stable_commit": "527367430d663bdbd89c62f1b10a472281209ec3",
+  "worktree": "recovery-state-checkpoint-after-remote-and-ci-verified-commit",
+  "phase": "remote-and-ci-verified-pkg-004",
   "commands": [
     {
-      "command": "PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT=120000 npm exec playwright -- install webkit",
+      "command": "npm run check (baseline and final)",
       "exit_code": 0,
-      "result": "Installed WebKit 26.5 revision 2311 in the Playwright user cache without installing OS dependencies"
-    },
-    {
-      "command": "Playwright WebKit executable and launch smoke",
-      "exit_code": 0,
-      "result": "Executable was present and launchable; reported WebKit 26.5"
-    },
-    {
-      "command": "npm run test:e2e -- --list && npm run test:e2e:webkit -- --list",
-      "exit_code": 0,
-      "result": "Default Chromium project selected 13 tests; WebKit project selected exactly 7 tagged tests"
-    },
-    {
-      "command": "npm run test:e2e:webkit",
-      "exit_code": 0,
-      "result": "7 selected WebKit tests passed"
+      "result": "Both runs passed ESLint, TypeScript, 13 Vitest files and 112 tests, and the production build"
     },
     {
       "command": "npm run test:e2e",
@@ -32,19 +17,29 @@
       "result": "13 complete Chromium tests passed"
     },
     {
-      "command": "npm run check",
+      "command": "npm run test:e2e:webkit",
       "exit_code": 0,
-      "result": "ESLint passed; TypeScript passed; 13 Vitest files and 112 tests passed; production build passed"
+      "result": "7 selected WebKit tests passed"
     },
     {
-      "command": "git diff --check, changed-file Prettier check, and staged sensitive/machine-path scans",
+      "command": "official action release and tag-ref verification",
       "exit_code": 0,
-      "result": "No whitespace, formatting, common credential-like, private-key, or private absolute-path issue was found"
+      "result": "Pinned actions/checkout v7.0.1 and actions/setup-node v7.0.0 to their verified full commit SHAs"
     },
     {
-      "command": "git push origin main and remote SHA verification",
+      "command": "changed-file Prettier/YAML parse, git diff --check, staged path, workflow-boundary, sensitive-pattern, and machine-path checks",
       "exit_code": 0,
-      "result": "Fast-forwarded origin/main from c3b57de to 9542fa9; local HEAD, origin/main, and remote main matched"
+      "result": "Formatting and whitespace passed; no privileged workflow feature, dependency/lockfile change, credential-like addition, or private path was found"
+    },
+    {
+      "command": "scoped GitHub-specific HTTPS proxy push and remote SHA verification",
+      "exit_code": 0,
+      "result": "Fast-forwarded origin/main from 1c48344 to 5273674 without changing global Git configuration; local, tracking, and GitHub SHAs matched"
+    },
+    {
+      "command": "gh run watch/view 30709790461",
+      "exit_code": 0,
+      "result": "Quality run completed successfully for exact head SHA 527367430d663bdbd89c62f1b10a472281209ec3; checkout, Node setup, npm ci, npm run check, and post steps all succeeded"
     }
   ],
   "known_failures": [
@@ -55,9 +50,10 @@
     }
   ],
   "notes": [
-    "Only documentation and recovery-state files changed after the validated product commit.",
-    "No npm dependency or package-lock change was made; the browser runtime is stored in the Playwright user cache.",
-    "Desktop Safari WebKit with explicit mobile viewports does not replace physical iPhone or iPad Safari validation.",
-    "The existing hosting configuration and deployment state were intentionally unchanged."
+    "The workflow has contents read permission only, does not persist checkout credentials, and contains no secrets, deployment, browser download, or write step.",
+    "No npm dependency, package-lock, product, persistence, hosting, or deployment file changed.",
+    "The lockfile currently has 98 npmmirror.com and 619 npmjs.org resolved URLs; clean GitHub Actions installation succeeded, while provenance normalization remains separate PKG-006.",
+    "Main has no branch protection, so the Quality result is reported but not required.",
+    "An API fallback rehearsal created an unreferenced commit object after GitHub normalized the commit timezone; no branch or tag referenced it, and the actual push preserved the exact local commit through scoped Git transport."
   ]
 }

@@ -30,7 +30,7 @@
 - Test method: Install/verify Playwright WebKit, run targeted WebKit cases, then the complete project gates.
 - Completion: Product commit `9542fa9`; 7 selected WebKit and 13 complete Chromium tests passed, 112 Vitest tests and the production build remained green, no dependency or lockfile changed, and remote `main` was verified at `9542fa9b350a023936c497dd88dcaaee09b74362` before the state-only checkpoint.
 
-## PKG-004 — IN_PROGRESS
+## PKG-004 — DONE
 
 - Description: Add a minimal GitHub Actions quality gate for pull requests and pushes.
 - Priority: P2
@@ -38,6 +38,7 @@
 - Risk: Low to medium; CI runtime and Node version must match the supported toolchain.
 - Acceptance criteria: Clean install plus `npm run check` succeeds in CI; no secrets or deployment permissions are required.
 - Test method: Validate workflow syntax locally where possible, push on a branch/checkpoint, and wait for a completed GitHub Actions conclusion.
+- Completion: Commit `5273674`; local gates passed with 112 Vitest, 13 Chromium, and 7 WebKit tests. GitHub Actions run `30709790461` completed successfully for the exact commit SHA after clean `npm ci`; no dependency, lockfile, product, persistence, hosting, or deployment change was made.
 
 ## PKG-005 — DEFERRED
 
@@ -47,3 +48,12 @@
 - Risk: High because it requires a versioned data migration and careful hidden-information boundaries.
 - Acceptance criteria: Requires a separately approved design; v1/v2 data migrate without loss; snapshots contain only information visible at action time.
 - Test method: Migration fixtures, privacy boundary tests, unit tests, Chromium/WebKit flows, clean-profile import/export smoke test.
+
+## PKG-006 — TODO
+
+- Description: Audit mixed npm registry provenance in `package-lock.json` and, only if mechanically safe, normalize ordinary package downloads without changing dependency versions or integrity.
+- Priority: P2
+- File scope: `package-lock.json`, concise dependency/testing documentation, and `.codex/` recovery state. User-level npm/proxy configuration is read-only and must never be committed.
+- Risk: Medium because a lockfile rewrite changes dependency configuration and may affect clean installs despite unchanged versions.
+- Acceptance criteria: Registry origin is documented; package versions, integrity hashes, dependency graph, and lockfile version remain unchanged; no credentials or machine configuration enter the repository; local and clean Linux gates pass.
+- Test method: Before/after structural lockfile comparison, isolated `npm ci`, `npm run check`, Chromium/WebKit regressions, diff/security review, and completed GitHub Actions conclusion.
