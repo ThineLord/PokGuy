@@ -2,15 +2,15 @@
 
 Current branch: `main`
 
-Current HEAD: Locally validated PKG-011 product checkpoint on top of approval commit `6f3f4d06b510cc3639cb6dd1eaf2322584007faf`; run `git rev-parse HEAD` for the exact product commit after it is created.
+Current HEAD: Before the documentation-only completion commit, `8fafbe9e97323ac595e3404eca93077144262d03`. After that commit, obtain the exact immediate-descendant SHA with `git rev-parse HEAD`, then verify tracking, remote, GitHub, and exact-SHA CI before selecting new work.
 
-Last stable commit: `6f3f4d06b510cc3639cb6dd1eaf2322584007faf` (`origin/main`; GitHub Actions run `30720162214` completed successfully for this exact SHA)
+Last stable commit: `8fafbe9e97323ac595e3404eca93077144262d03` (`security: patch development toolchain advisories`; exact-SHA GitHub Actions run `30723138038` succeeded)
 
-Current objective: Remove the four residual development-toolchain audit records through the smallest compatible lock-only refresh, without changing direct dependencies or excluded product/runtime packages.
+Current objective: If the PKG-011 documentation-only checkpoint is not yet remote/CI verified, finish that exact boundary; otherwise select the next approved bounded task.
 
-Active task: PKG-011 is in progress. Explicit approval was received, the exact six-record lock-only candidate is applied, and every local dependency/project/browser/runtime gate passes; product commit, push, and exact-SHA CI remain.
+Active task: Conditional recovery state. PKG-011 product work is complete and remote-verified. If HEAD is `8fafbe9`, create the state-only immediate descendant; if that descendant is not remote/CI verified, finish verification; once verified, no task is active and PKG-012 remains TODO pending separate approval.
 
-Modified files: `package-lock.json` plus scoped recovery/status documentation. `package.json`, product code, persistence, hosting, Worker configuration, and deployment resources are unchanged. Four historical conflict-style copies remain untracked, preserved, and excluded.
+Modified files: Before the state-only commit, the eight recovery/status documents listed by `git diff --name-only`; after it, no tracked modification is expected. Four historical conflict-style copies remain untracked, preserved, and excluded.
 
 Completed steps:
 
@@ -94,12 +94,14 @@ Completed steps:
 - Passed `npm run check` with lint, strict typecheck, 13 Vitest files / 112 tests, and production build; passed 13 Chromium and 7 selected WebKit tests.
 - Passed artifact invariants and vinext production plus real-workerd HTML/RSC/SVG/liveness probes on isolated ports; all listeners were stopped. A Wrangler deploy dry-run was intentionally not repeated because every deployment/runtime record and generated invariant is unchanged.
 - Passed changed-lock formatting, whitespace, exact candidate/hash, sensitive/private-path, registry, scope, stopped-listener, and independent read-only lock review. Repository-wide format check retains exactly 10 pre-existing untouched differences.
+- Created and pushed product commit `8fafbe9`; local HEAD, `origin/main`, remote, and GitHub all matched exact SHA `8fafbe9e97323ac595e3404eca93077144262d03`.
+- Waited for GitHub Actions run `30723138038`; Node 22 clean install, `npm run check`, and every job/post step completed successfully for the exact product SHA.
 
 Remaining steps:
 
-- Stage only the intended package-lock and recovery/status files, create the PKG-011 product commit, and push `main` without force.
-- Require completed GitHub Actions success for the exact product SHA.
-- After product CI succeeds, update final recovery/completion records, commit/push the state checkpoint, and verify its exact-SHA CI before selecting the next task.
+- If HEAD is `8fafbe9`, stage only the intended recovery/status files, commit the final PKG-011 state checkpoint, and push `main` without force.
+- If the immediate descendant is not yet remote/CI verified, require completed GitHub Actions success for that exact state-only SHA; do not create another commit solely to record its own run.
+- Once that descendant is verified, PKG-011 has no remaining step. Select the next approved bounded task; production PostCSS/Sharp remains an upstream-release waiting item, and the 10-file formatting baseline requires a separate approval boundary.
 
 Current tests:
 
@@ -162,11 +164,12 @@ Current tests:
 - PKG-011 Chromium / WebKit — PASS (13 / 7 tests).
 - PKG-011 artifact / vinext production / real-workerd — PASS (date/flags/main/assets/bindings/redirect invariant; HTML/RSC/SVG/liveness 200; listeners stopped).
 - PKG-011 formatting/hash/lock/registry/sensitive/scope/independent review — PASS; repository-wide formatter remains the known 10-file untouched baseline.
+- GitHub Actions `Quality` run `30723138038` — PASS (`completed/success`, exact product SHA `8fafbe9e97323ac595e3404eca93077144262d03`; Node 22 clean install and all quality steps passed).
 
-Known failures: Production and complete audits remain nonzero because stable Next `16.2.12` pins affected PostCSS/Sharp ranges; the four PKG-011 development records are removed locally. Repository-wide `npm run format:check` has exactly 10 pre-existing differences in untouched files. vinext returns a prompt generic HTTP 500 for an unknown Server Action ID while keeping the server live. Four untracked historical conflict copies remain intentionally untouched.
+Known failures: Production and complete audits remain nonzero because stable Next `16.2.12` pins affected PostCSS/Sharp ranges; PKG-011 removed all four development-toolchain records. Repository-wide `npm run format:check` has exactly 10 pre-existing differences in untouched files. vinext returns a prompt generic HTTP 500 for an unknown Server Action ID while keeping the server live. Four untracked historical conflict copies remain intentionally untouched.
 
-Risk: Low to medium pending remote verification. The exact isolated lock-only candidate is applied and all local gates pass; the last remote-verified stable state remains approval checkpoint `6f3f4d0` until product push and exact-SHA CI succeed.
+Risk: Low. The product commit is pushed and exact-SHA CI-verified. Remaining work is documentation-only checkpoint publication; residual production advisories remain separately documented and are not safe to override.
 
-Next command: Review and stage only the intended product checkpoint files, commit `security: patch development toolchain advisories`, push `main`, and wait for exact-SHA Quality completion.
+Next command: Run `git rev-parse HEAD` and `git status --short --branch`. At `8fafbe9`, publish the state-only checkpoint; at its unverified immediate descendant, verify remote and exact-SHA CI; after verified success, select the next approved task.
 
-Resume instructions: Read `.codex/RESUME.md`, verify whether the locally validated product checkpoint is uncommitted, pushed, or awaiting CI, and continue from that exact boundary. Preserve all four untracked historical copies and the sibling dependency backup.
+Resume instructions: Read `.codex/RESUME.md`, verify product commit `8fafbe9` and run `30723138038`, then inspect whether the final state-only checkpoint is uncommitted, pushed, or awaiting CI. Preserve all four untracked historical copies and the sibling dependency backup.

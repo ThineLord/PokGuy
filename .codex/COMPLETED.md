@@ -95,3 +95,13 @@ Append stable maintenance checkpoints here after their commit and remote status 
 - Commit: `448a243` (`security: patch Cloudflare toolchain advisories`).
 - Push: Verified by matching local HEAD, `origin/main`, and GitHub at `448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10`.
 - CI: GitHub Actions run `30719418742` completed successfully for the exact product SHA; Node 22 normal `npm ci`, `npm run check`, and every job/post step passed.
+
+## 2026-08-02 — Development toolchain security patch
+
+- Refreshed only six transitive lock records: `@babel/core` and `@babel/generator` to `7.29.6`, brace-expansion to `1.1.18` and `5.0.9`, fast-uri to `3.1.5`, and js-yaml to `4.3.1`; `package.json` remained byte-identical.
+- Retained all 754 lock records with exactly six changed and zero added/removed package; Next, PostCSS, Sharp, React/RSC, Vite, vinext, Cloudflare, product, persistence, hosting, and deployment records remained unchanged.
+- Reduced the complete audit from 7 package records / 13 advisory sources to the separately deferred Next/PostCSS/Sharp 3 high records / 4 independent sources; production audit remained 3 / 4 and low/critical counts are zero.
+- Passed cold install, clean dependency graph, 112 tests/build, 13 Chromium, 7 WebKit, production/workerd HTML/RSC/SVG, artifact invariants, listener cleanup, changed-file formatting, hash/lock/registry, sensitive-data, scope, and independent reviews.
+- Commit: `8fafbe9` (`security: patch development toolchain advisories`).
+- Push: Verified by matching local HEAD, `origin/main`, remote, and GitHub at `8fafbe9e97323ac595e3404eca93077144262d03`.
+- CI: GitHub Actions run `30723138038` completed successfully for the exact product SHA; Node 22 clean install, `npm run check`, and every job/post step passed.

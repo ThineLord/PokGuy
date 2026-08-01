@@ -15,17 +15,17 @@ Also confirm there is no `MERGE_HEAD`, `REBASE_HEAD`, `CHERRY_PICK_HEAD`, `REVER
 
 ## Current task
 
-PKG-011 explicit approval was received. The exact six-record lock-only candidate is applied and every local dependency/project/browser/runtime gate passes; product commit, push, and exact-SHA CI remain. Approval checkpoint `6f3f4d0` is remote-verified by GitHub Actions run `30720162214`. Four untracked historical conflict copies and the recoverable sibling dependency backup remain preserved.
+PKG-011 product work is complete. Product commit `8fafbe9e97323ac595e3404eca93077144262d03` is pushed and remote-verified by exact-SHA GitHub Actions run `30723138038`. Only the documentation-only completion checkpoint may still be uncommitted, unpushed, or awaiting CI. Four untracked historical conflict copies and the recoverable sibling dependency backup remain preserved.
 
 ## Exact resume sequence
 
 1. Read `.codex/TASK_QUEUE.md` and verify Git status/history against this file.
-2. Confirm local HEAD, `origin/main`, and GitHub contain approval commit `6f3f4d0`; GitHub Actions run `30720162214` must remain `completed/success`, then inspect whether a newer PKG-011 product commit exists.
-3. If the product checkpoint is uncommitted, require `package.json` SHA `e50e4241…`, lock SHA `b1ee4dec…`, exactly six changed records, and the recorded local gates before staging. If already committed/pushed, verify its exact SHA and CI instead of regenerating it.
+2. Confirm local history, `origin/main`, and GitHub contain product commit `8fafbe9e97323ac595e3404eca93077144262d03`; GitHub Actions run `30723138038` must remain `completed/success` for that exact SHA.
+3. Inspect whether a newer documentation-only completion checkpoint exists. If uncommitted, validate and stage only the intended recovery/status files; if committed or pushed, verify its exact scope, SHA, remote state, and CI instead of recreating it.
 4. Preserve `.codex/CURRENT_STATE 2.md`, `.codex/LAST_VALIDATION 2.json`, `.codex/LAST_VALIDATION 3.json`, and `docs/NEXT_STEPS 2.md` as untracked files unless explicit deletion approval is given. They must not be committed.
 5. Preserve sibling backup `PokGuy.node_modules-backup-PKG010-20260802T0527`; do not delete it without approval.
-6. Stage only `package-lock.json` and the intended recovery/status files; exclude all four historical untracked copies. Commit with `security: patch development toolchain advisories`, push without force, and require completed exact-SHA Quality success.
-7. After product CI succeeds, update completion/recovery records, create the final state-only checkpoint, push it, and require completed exact-SHA CI. Do not create an additional commit solely to record that final run.
+6. Commit the final recovery/status files with `docs: record development toolchain checkpoint`, push without force, and require completed exact-SHA Quality success. Do not create another commit solely to record that final run.
+7. After the final state checkpoint is remote-verified, keep PKG-011 closed and select the next bounded task. PKG-012 formatting normalization requires a separate approval boundary before rewriting its exact 10 files.
 8. Preserve Next PostCSS/Sharp as the separate stable-upstream waiting item. Do not run broad `npm audit fix`, upload, change deployment resources, or adopt preview dependencies.
 
 Reproduction commands after approval:
@@ -37,8 +37,8 @@ npm update --registry=https://registry.npmjs.org --package-lock-only --ignore-sc
 
 ## Recovery boundary
 
-- Last remote-verified stable commit: `6f3f4d06b510cc3639cb6dd1eaf2322584007faf`.
-- GitHub Actions evidence: run `30720162214`, `completed/success`, exact head SHA `6f3f4d06b510cc3639cb6dd1eaf2322584007faf`.
+- Last remote-verified stable commit: `8fafbe9e97323ac595e3404eca93077144262d03`.
+- GitHub Actions evidence: run `30723138038`, `completed/success`, exact head SHA `8fafbe9e97323ac595e3404eca93077144262d03`.
 - No stash or interrupted Git operation existed at startup.
 - The poker engine, LocalStorage key/schema, package manifest, dependency versions, hosting configuration, and deployment state remained unchanged by PKG-006; only lockfile registry hostnames and recovery records changed.
 - The workflow token has only `contents: read`; browser E2E remains a separate local gate, and branch protection is not enabled.
@@ -64,5 +64,5 @@ npm update --registry=https://registry.npmjs.org --package-lock-only --ignore-sc
 - Isolated cold install, clean dependency graph, complete audit, lint, strict typecheck, 13 Vitest files / 112 tests, and production build pass. Candidate complete audit retains only Next/PostCSS/Sharp 3 records / 4 sources.
 - Explicit approval was received and the repository lock is byte-identical to the accepted candidate. Package manifest remains unchanged; lock SHA-256 is `b1ee4dec8caa44b2e8d2bbfac6e5e9c4d27a9cde75aacc56699cfd42eb25856c` with exactly six changed and zero added/removed records.
 - Repository cold install and clean dependency graph pass. Current complete and production audits both contain only Next/PostCSS/Sharp 3 high records / 4 independent sources; 112 tests/build, 13 Chromium, 7 WebKit, artifact invariants, vinext production, real-workerd, stopped listeners, and final local scope/security checks pass.
-- PKG-011 is not complete until its product commit and final state checkpoint are both pushed and exact-SHA CI-verified.
+- PKG-011 product commit `8fafbe9`, push, remote SHA match, and exact-SHA Quality run `30723138038` are verified; only the state-only completion checkpoint may remain pending when resuming.
 - If any final gate fails, record the exact command and failure in `CURRENT_STATE.md` and `LAST_VALIDATION.json`; do not mark the task done or push an unverified checkpoint.

@@ -1,10 +1,10 @@
 {
-  "validated_at": "2026-08-02T07:14:38+08:00",
+  "validated_at": "2026-08-02T07:29:13+08:00",
   "branch": "main",
-  "head": "6f3f4d06b510cc3639cb6dd1eaf2322584007faf",
-  "last_stable_commit": "6f3f4d06b510cc3639cb6dd1eaf2322584007faf",
-  "worktree": "locally-validated-pkg-011-product-checkpoint",
-  "phase": "approved-six-record-lock-candidate-awaiting-product-commit-push-ci",
+  "head": "8fafbe9e97323ac595e3404eca93077144262d03",
+  "last_stable_commit": "8fafbe9e97323ac595e3404eca93077144262d03",
+  "worktree": "pkg-011-product-remote-verified-state-checkpoint-pending",
+  "phase": "remote-and-ci-verified-pkg-011-product",
   "commands": [
     {
       "command": "startup Git/GitHub recovery and gh auth checks",
@@ -240,6 +240,31 @@
       "command": "changed-file formatting, whitespace, exact hashes, scope, registry, sensitive/private-path, and listener checks",
       "exit_code": 0,
       "result": "All intended local gates passed for package-lock plus recovery/status documentation; package.json/product/persistence/hosting/deployment files are unchanged; repository-wide formatter retains exactly 10 pre-existing untouched differences"
+    },
+    {
+      "command": "git commit security: patch development toolchain advisories and scoped main push",
+      "exit_code": 0,
+      "result": "Created product commit 8fafbe9e97323ac595e3404eca93077144262d03 from exactly seven approved files and pushed main without force; four historical untracked copies remained excluded"
+    },
+    {
+      "command": "local/tracking/ls-remote/GitHub SHA verification",
+      "exit_code": 0,
+      "result": "Local HEAD, origin/main, remote refs/heads/main, and GitHub all matched 8fafbe9e97323ac595e3404eca93077144262d03"
+    },
+    {
+      "command": "gh run view 30723138038 exact-SHA Quality verification",
+      "exit_code": 0,
+      "result": "Run 30723138038 was completed/success for exact head SHA 8fafbe9e97323ac595e3404eca93077144262d03; Node 22 clean install, npm run check, and every job/post step passed"
+    },
+    {
+      "command": "final state documentation JSON, Prettier, whitespace, scope, sensitive/private-path, Git-sentinel, stash, and listener checks",
+      "exit_code": 0,
+      "result": "All eight intended recovery/status files passed; exactly four historical untracked copies remained excluded; no interrupted Git operation, stash, sensitive/private path, mirror URL, or test-server listener was present"
+    },
+    {
+      "command": "independent read-only final recovery-state review",
+      "exit_code": 0,
+      "result": "No blocker remained after making Current State conditional across pre-commit, remote-verification, and completed-CI phases; exact eight-file staged allowlist and four excluded untracked copies were confirmed"
     }
   ],
   "known_failures": [
@@ -279,6 +304,7 @@
     "Approval checkpoint 6f3f4d0, push, remote SHA match, and exact-SHA Quality run 30720162214 are verified.",
     "PKG-011 did not change Wrangler, workerd, Vite, Worker or hosting configuration; artifact and real-workerd gates passed, so repeating deploy dry-run would add unrelated surface and was intentionally omitted.",
     "The original dependency backup, task-owned external candidates/evidence, and four historical untracked copies remain preserved; none was deleted or staged.",
-    "At creation of this state record, the locally validated PKG-011 product checkpoint still required commit, push, and exact-SHA CI confirmation; resume must inspect Git history rather than assume it remains pending."
+    "PKG-011 product commit 8fafbe9, push, local/tracking/remote/GitHub SHA match, and exact-SHA Quality run 30723138038 are verified.",
+    "At creation of this state record, only the documentation-only completion checkpoint still required commit, push, and exact-SHA CI confirmation; do not create a follow-up commit solely to record that checkpoint's own run."
   ]
 }
