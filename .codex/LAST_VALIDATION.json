@@ -1,45 +1,50 @@
 {
-  "validated_at": "2026-08-02T00:22:44+08:00",
+  "validated_at": "2026-08-02T00:44:00+08:00",
   "branch": "main",
-  "head": "4aec6ee0e5ce89ea25a409402676556ff41412df",
-  "last_stable_commit": "4aec6ee0e5ce89ea25a409402676556ff41412df",
-  "worktree": "recovery-state-checkpoint-after-validated-product-commit",
-  "phase": "remote-verified-pkg-002-product",
+  "head": "9542fa9b350a023936c497dd88dcaaee09b74362",
+  "last_stable_commit": "9542fa9b350a023936c497dd88dcaaee09b74362",
+  "worktree": "recovery-state-checkpoint-after-remote-verified-product-commit",
+  "phase": "remote-verified-pkg-003-product",
   "commands": [
+    {
+      "command": "PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT=120000 npm exec playwright -- install webkit",
+      "exit_code": 0,
+      "result": "Installed WebKit 26.5 revision 2311 in the Playwright user cache without installing OS dependencies"
+    },
+    {
+      "command": "Playwright WebKit executable and launch smoke",
+      "exit_code": 0,
+      "result": "Executable was present and launchable; reported WebKit 26.5"
+    },
+    {
+      "command": "npm run test:e2e -- --list && npm run test:e2e:webkit -- --list",
+      "exit_code": 0,
+      "result": "Default Chromium project selected 13 tests; WebKit project selected exactly 7 tagged tests"
+    },
+    {
+      "command": "npm run test:e2e:webkit",
+      "exit_code": 0,
+      "result": "7 selected WebKit tests passed"
+    },
+    {
+      "command": "npm run test:e2e",
+      "exit_code": 0,
+      "result": "13 complete Chromium tests passed"
+    },
     {
       "command": "npm run check",
       "exit_code": 0,
       "result": "ESLint passed; TypeScript passed; 13 Vitest files and 112 tests passed; production build passed"
     },
     {
-      "command": "npm run test:e2e",
+      "command": "git diff --check, changed-file Prettier check, and staged sensitive/machine-path scans",
       "exit_code": 0,
-      "result": "13 Chromium tests passed"
+      "result": "No whitespace, formatting, common credential-like, private-key, or private absolute-path issue was found"
     },
     {
-      "command": "npm exec vitest run tests/storage/storage.test.ts tests/app-shell.test.tsx",
+      "command": "git push origin main and remote SHA verification",
       "exit_code": 0,
-      "result": "2 test files and 17 targeted tests passed"
-    },
-    {
-      "command": "Playwright CLI recovery smoke",
-      "exit_code": 0,
-      "result": "Recovery notice and a usable six-seat table were visible; browser console had 0 errors and 0 warnings"
-    },
-    {
-      "command": "git diff --check",
-      "exit_code": 0,
-      "result": "No whitespace errors in the final product diff"
-    },
-    {
-      "command": "changed-file Prettier check and sensitive-pattern scan",
-      "exit_code": 0,
-      "result": "All changed files matched Prettier; no common token, private-key, credential, or absolute user-path pattern was found in the diff"
-    },
-    {
-      "command": "git push origin main with explicit existing HTTPS proxy",
-      "exit_code": 0,
-      "result": "Fast-forwarded origin/main from 59bae14 to 4aec6ee; local HEAD and origin/main matched"
+      "result": "Fast-forwarded origin/main from c3b57de to 9542fa9; local HEAD, origin/main, and remote main matched"
     }
   ],
   "known_failures": [
@@ -51,8 +56,8 @@
   ],
   "notes": [
     "Only documentation and recovery-state files changed after the validated product commit.",
-    "WebKit automation has not been run.",
-    "A separate GitHub API SHA probe timed out during TLS handshake after the successful push; it was not counted as verification.",
-    "Recovered startup data is not immediately rewritten, preserving the raw record until a normal save."
+    "No npm dependency or package-lock change was made; the browser runtime is stored in the Playwright user cache.",
+    "Desktop Safari WebKit with explicit mobile viewports does not replace physical iPhone or iPad Safari validation.",
+    "The existing hosting configuration and deployment state were intentionally unchanged."
   ]
 }

@@ -13,12 +13,12 @@
 - Impact: If a damaged or old record is recovered and the user performs no action that saves data, a refresh can show the migration/recovery notice again.
 - Next step: Only consider automatic rewrite together with version-aware backup/forward-compatibility rules; do not overwrite unknown future schemas based on the current broad migration signal.
 
-## WebKit automation is not configured
+## Physical iOS Safari is not automated
 
-- Status: Open
-- Priority: P2
-- Impact: Chromium and direct Safari checks exist in project history, but WebKit is not part of the repeatable Playwright gate.
-- Next step: PKG-003 in `TASK_QUEUE.md`.
+- Status: Reduced by PKG-003; accepted manual boundary
+- Priority: P3
+- Impact: Seven repeatable Playwright WebKit tests now cover the browser engine and explicit iPhone/iPad-sized viewports, but desktop WebKit emulation cannot prove physical-device safe areas, touch behavior, or dynamic browser chrome.
+- Next step: Retain the real-device checks in `TESTING.md`; add device-farm automation only when its cost and privacy boundary are justified.
 
 ## Older training records lack action-time snapshots
 

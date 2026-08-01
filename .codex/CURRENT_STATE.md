@@ -2,45 +2,46 @@
 
 Current branch: `main`
 
-Current HEAD: validated product commit `4aec6ee0e5ce89ea25a409402676556ff41412df` plus the recovery-state checkpoints containing this file; resolve the exact checkpoint SHA with `git rev-parse HEAD`.
+Current HEAD: recovery-documentation checkpoint on top of validated product commit `9542fa9b350a023936c497dd88dcaaee09b74362`; run `git rev-parse HEAD` for the exact state-only commit.
 
-Last stable commit: `4aec6ee0e5ce89ea25a409402676556ff41412df` (`origin/main`, fast-forward push verified)
+Last stable commit: `9542fa9b350a023936c497dd88dcaaee09b74362` (`origin/main`, remote verified before this state-only checkpoint)
 
-Current objective: Preserve the verified PKG-002 recovery checkpoint and prepare the next bounded WebKit automation task.
+Current objective: Preserve the completed PKG-003 WebKit checkpoint and prepare the next bounded maintenance cycle.
 
-Active task: PKG-002 is complete. PKG-003 is queued but has not started because it adds a browser runtime and changes Playwright configuration.
+Active task: None. PKG-003 is complete; PKG-004 is queued but has not started because it changes CI configuration and requires a new safety checkpoint.
 
-Modified files: None expected after the recovery-state checkpoint; always confirm with `git status --short`.
+Modified files: None expected after the recovery-documentation commit; verify with `git status --short`.
 
 Completed steps:
 
-- Preserved and completed the pre-existing Phase 8 Review Lab checkpoint (`256d789` + `59bae14`).
-- Reproduced invalid persisted blinds, malformed profile pools, and incomplete AI habit records.
-- Added field-level recovery while preserving valid v1/v2 settings, customized profiles, and custom-only opponent pools.
-- Prevented empty or incompatible numeric settings from being persisted and added startup/import recovery notices.
-- Added migration, component, import, and Chromium input/reload regressions.
-- Passed changed-file formatting, whitespace, sensitive-pattern, and machine-path checks.
-- Passed final core, build, browser, and visible recovery-UI validation.
-- Created and pushed product commit `4aec6ee`; local HEAD and `origin/main` matched after the push.
+- Installed Playwright WebKit 26.5 revision 2311 in the user browser cache without changing npm dependencies or `package-lock.json`.
+- Added a `webkit` Playwright project that selects seven existing high-value tests by `@webkit` title tag.
+- Kept `npm run test:e2e` explicitly scoped to the complete 13-test Chromium project and added `npm run test:e2e:webkit` for the selected matrix.
+- Covered Review Lab refresh, settings persistence/export, invalid blinds recovery, iPhone/iPad viewports, showdown layout, and keyboard/input isolation.
+- Reduced the test diff to title-only tags instead of accepting unrelated block reformatting.
+- Passed WebKit launch, list, E2E, Chromium regression, full project, formatting, whitespace, sensitive-pattern, and machine-path checks.
+- Created and pushed product commit `9542fa9`; local `HEAD`, `origin/main`, and remote `main` matched before the state-only documentation checkpoint.
 
 Remaining steps:
 
-- PKG-002 has no remaining implementation, validation, commit, or push work.
-- Before PKG-003, explain the WebKit browser installation and Playwright configuration impact under the repository safety protocol.
+- None for PKG-003 after this documentation-only recovery checkpoint is committed and synchronized.
+- For the next cycle, reassess Git/GitHub state and obtain the required safety checkpoint before adding `.github/workflows/`.
 - Do not begin the v3 review-snapshot migration without a separate design decision.
 
 Current tests:
 
-- Targeted Vitest — PASS at 2026-08-02T00:11+08:00 (2 files / 17 storage and application-shell tests).
-- `npm run check` — PASS at 2026-08-02T00:14+08:00 (lint, typecheck, 13 Vitest files / 112 tests, production build).
-- `npm run test:e2e` — PASS at 2026-08-02T00:15+08:00 (13 Chromium tests).
-- Playwright CLI recovery smoke — PASS; notice and usable table were visible, with 0 browser console errors and 0 warnings.
+- `npm run check` — PASS at 2026-08-02T00:41+08:00 (lint, typecheck, 13 Vitest files / 112 tests, production build).
+- `npm run test:e2e -- --list` — PASS (13 Chromium tests selected).
+- `npm run test:e2e:webkit -- --list` — PASS (7 WebKit tests selected).
+- `npm run test:e2e:webkit` — PASS at 2026-08-02T00:43+08:00 (7 WebKit tests).
+- `npm run test:e2e` — PASS at 2026-08-02T00:43+08:00 (13 Chromium tests).
+- Playwright WebKit executable/launch smoke — PASS (`WebKit 26.5`).
 - Toolchain warnings only: Node `module.register()` deprecation, jsdom LocalStorage experimental warning, proxy detection, and Playwright color-variable warning.
 
-Known failures: The repository-wide `npm run format:check` reports 10 pre-existing formatting differences in untouched files. WebKit automation is not yet installed or configured. Git HTTPS required the existing explicit proxy after initial connection timeouts; the final checkpoint push and `ls-remote` SHA verification succeeded.
+Known failures: The repository-wide `npm run format:check` reports 10 pre-existing formatting differences in untouched files. Playwright WebKit viewport tests do not replace physical iPhone/iPad Safari checks. Git HTTPS uses the existing explicit proxy in this environment.
 
-Risk: Low for completed PKG-002. PKG-003 is medium risk because browser runtime availability and WebKit timing/layout behavior can differ.
+Risk: Low for PKG-003. No application, persistence, dependency, lockfile, hosting, or deployment behavior changed.
 
 Next command: `git status --short --branch && git log --oneline --decorate -5`
 
-Resume instructions: Read `.codex/RESUME.md`, rerun the startup Git checks, verify the checkpoint is on `origin/main`, and select PKG-003 only after applying the configuration/dependency safety gate.
+Resume instructions: Read `.codex/RESUME.md`, rerun all startup Git checks, confirm the PKG-003 state checkpoint is clean and remote-synchronized, then assess PKG-004 without editing CI configuration until its required safety checkpoint is satisfied.

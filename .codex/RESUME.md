@@ -15,20 +15,20 @@ Also confirm there is no `MERGE_HEAD`, `REBASE_HEAD`, `CHERRY_PICK_HEAD`, `REVER
 
 ## Current task
 
-PKG-002 is complete and its product commit `4aec6ee` was pushed. PKG-003 (WebKit automation) is the next queued task and has not started.
+PKG-003 is complete. Product commit `9542fa9` was validated and pushed; the following documentation-only checkpoint records the recovery state. PKG-004 (minimal GitHub Actions quality gate) is next but has not started.
 
 ## Exact resume sequence
 
 1. Read `.codex/TASK_QUEUE.md` and verify Git status/history against this file.
-2. Run `npm run check` if the tree or environment differs from the recorded checkpoint.
-3. For PKG-003, first explain that Playwright WebKit installation adds a browser runtime and that `playwright.config.ts` will change; follow the repository approval gate before those operations.
-4. Keep Chromium green, add only selected WebKit coverage, and do not weaken assertions to accommodate timing.
-5. Run targeted WebKit checks, `npm run check`, the complete Chromium suite, changed-file formatting, diff/security review, then commit and push a bounded checkpoint.
+2. Confirm local `HEAD`, `origin/main`, and remote `main` agree and the worktree is clean.
+3. Run `npm run check` if the tree or environment differs from the recorded checkpoint; WebKit can be rechecked with `npm run test:e2e:webkit`.
+4. Before PKG-004 changes `.github/workflows/`, explain the CI configuration change, impact, and validation plan, then satisfy the repository safety checkpoint.
+5. Keep the first CI workflow limited to a clean install and `npm run check`; do not add secrets, deployment permissions, or an expensive browser matrix implicitly.
 
 ## Recovery boundary
 
-- Last remote-verified stable product commit: `4aec6ee0e5ce89ea25a409402676556ff41412df`.
+- Last remote-verified stable product commit: `9542fa9b350a023936c497dd88dcaaee09b74362`.
 - No stash or interrupted Git operation existed at startup.
-- The poker engine, LocalStorage key, and LocalStorage v2 schema remain unchanged by PKG-002.
-- Recovered startup data intentionally remains in memory until a normal save, avoiding destructive overwrite of an unknown future schema.
+- The poker engine, LocalStorage key/schema, npm dependencies, `package-lock.json`, hosting configuration, and deployment state remain unchanged by PKG-003.
+- The Playwright WebKit runtime lives in the user cache and may need `npx playwright install webkit` on a clean machine.
 - If any final gate fails, record the exact command and failure in `CURRENT_STATE.md` and `LAST_VALIDATION.json`; do not mark the task done or push an unverified checkpoint.

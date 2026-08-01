@@ -20,14 +20,15 @@
 - Test method: Migration fixtures, malformed LocalStorage startup test, settings-input browser test, `npm run check`, and `npm run test:e2e`.
 - Completion: Product commit `4aec6ee`; 112 Vitest and 13 Chromium tests passed, recovery UI was inspected in a real browser with zero console errors/warnings, and the product commit was pushed to `origin/main`.
 
-## PKG-003 — TODO
+## PKG-003 — DONE
 
 - Description: Add a WebKit automation project and validate the Review Lab, LocalStorage refresh, export, responsive layout, and keyboard/input boundaries.
 - Priority: P2
-- File scope: `playwright.config.ts`, `tests/e2e/`, and testing documentation only.
+- File scope: `playwright.config.ts`, `package.json`, selected existing tests in `tests/e2e/`, testing documentation, and `.codex/` recovery state only. No dependency or lockfile change is intended.
 - Risk: Medium; browser runtime availability and WebKit-specific layout/timing behavior may differ.
 - Acceptance criteria: Chromium remains green; selected WebKit flows pass without weakening assertions; no product behavior is changed merely to satisfy timing.
 - Test method: Install/verify Playwright WebKit, run targeted WebKit cases, then the complete project gates.
+- Completion: Product commit `9542fa9`; 7 selected WebKit and 13 complete Chromium tests passed, 112 Vitest tests and the production build remained green, no dependency or lockfile changed, and remote `main` was verified at `9542fa9b350a023936c497dd88dcaaee09b74362` before the state-only checkpoint.
 
 ## PKG-004 — TODO
 

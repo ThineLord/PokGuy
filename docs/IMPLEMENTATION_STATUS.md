@@ -2,17 +2,17 @@
 
 ## 当前状态
 
-- 当前阶段：Phase 8.1 本地数据安全恢复完成
+- 当前阶段：Phase 8.2 WebKit 浏览器回归门禁完成
 - 可运行状态：可安装、启动、连续游戏、训练、复盘、统计、导出和可信局域网访问
 - 当前分支：`main`
-- 当前稳定产品提交：`4aec6ee`；远端同步状态见 `.codex/CURRENT_STATE.md`
+- 当前稳定产品提交：`9542fa9`；远端同步状态见 `.codex/CURRENT_STATE.md`
 
 ## 已完成模块
 
 - React 19 + TypeScript 5 + Vite/vinext 项目基线
 - Tailwind CSS 4
 - ESLint、Prettier、Vitest、Testing Library、Playwright 配置
-- `lint`、`typecheck`、`test`、`test:e2e`、`build`、`check` 命令
+- `lint`、`typecheck`、`test`、`test:e2e`、`test:e2e:webkit`、`build`、`check` 命令
 - 52 张牌、可注入 seed 的 Fisher-Yates 洗牌与发牌
 - 最佳五张评估器与完整牌型/kicker 比较
 - 统一动作验证器、下注轮、短码 all-in 重新开放逻辑
@@ -29,6 +29,7 @@
 - RiverLab 专属社交预览图与动态 Open Graph / X 元数据
 - 设置、AI profile 与 AI 习惯记录逐字段安全恢复；合法 v1/v2 和纯自定义对手池保持兼容
 - 启动与设置导入发生迁移/修复时显示全局双语提示，空数字输入不会写入非法盲注
+- 完整 13 项 Chromium 回归保持默认门禁，7 项精选 WebKit 回归覆盖复盘、持久化、导出、响应式布局、摊牌和键盘输入边界
 - Mac 自适应视口牌桌与 `F/K/C/R/A` 键盘操作
 - iPad 横/竖屏零覆盖布局与 iPhone 自动行动区定位
 - iOS 安全区、动态视口、44px+ 触控目标与输入防缩放
@@ -68,6 +69,7 @@
 - TypeScript strict typecheck 通过
 - vinext/Vite production build 通过
 - 13 项 Chromium E2E 通过
+- 7 项精选 WebKit E2E 通过
 - 120 手种子化六人桌规则压力测试通过
 - 弃牌动画与确定性河牌摊牌关键流程连续重复 5 轮，共 10 项回归通过
 - iPhone 393×852 正式摊牌比较区无横向溢出
@@ -93,7 +95,7 @@
 - 当前 Monte Carlo 对未知对手牌采用均匀随机范围，不代表某个具体 AI 的加权持牌范围
 - 当前 UI 为单路由客户端导航；不含账户、后端或跨设备同步
 - 旧版训练记录不含行动时 equity / pot odds / 推荐动作快照；当前仅在记录数与 Hero 动作数完全一致、且最新优先存储顺序可验证时做顺序关联
-- Playwright WebKit 浏览器二进制尚未安装；Safari 已直接实玩验证，但尚未纳入自动化矩阵
+- Playwright WebKit 使用 Desktop Safari 引擎与显式移动视口，不等同于物理 iPhone/iPad Safari；真实设备安全区、触控和动态地址栏仍需保留手动检查
 
 ## 重要架构决定
 
@@ -109,6 +111,8 @@
 cd PokGuy
 npm install
 npm run check
+npm run test:e2e
+npm run test:e2e:webkit
 npm run dev
 ```
 
