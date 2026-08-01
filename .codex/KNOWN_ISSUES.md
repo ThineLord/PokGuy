@@ -49,10 +49,10 @@
 
 ## React and build-toolchain dependency advisories
 
-- Status: Direct React Server Components, Vite, and Cloudflare toolchain findings are resolved through PKG-010 product commit `448a243`; exact-SHA CI run `30719418742` passed.
+- Status: Direct React Server Components, Vite, and Cloudflare toolchain findings are resolved through PKG-010 product commit `448a243`; exact-SHA CI run `30719418742` passed. A PKG-011 lock-only candidate for the four remaining development records is validated but not yet applied.
 - Priority: P2 residual development-toolchain risk
-- Impact: Plugin `1.47.0`, Wrangler `4.114.0`, Workers types `5.20260722.1`, and Miniflare `4.20260722.0` remove the Cloudflare/workerd/esbuild/ws/undici audit chain. Complete audit falls from 13 package records / 23 sources to 7 / 13; production remains the separately deferred Next PostCSS/Sharp 3 / 4.
-- Next step: Audit the remaining Babel/brace-expansion/fast-uri/js-yaml development graph separately as PKG-011. Never use an unreviewed broad `npm audit fix`.
+- Impact: The current repository complete audit has 7 package records / 13 sources (6 high, 1 low, zero critical). The isolated six-record candidate removes Babel/brace-expansion/fast-uri/js-yaml and leaves only the separately deferred Next/PostCSS/Sharp 3 records / 4 sources, but repository risk is unchanged until approval and application.
+- Next step: After explicit dependency-change approval, apply only the exact six-record candidate and run the complete repository/browser/runtime/CI gates. Never use an unreviewed broad `npm audit fix`.
 
 ## Quality check is not branch-protected
 

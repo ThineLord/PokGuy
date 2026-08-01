@@ -82,3 +82,12 @@ Architecture and poker-rule decisions remain authoritative in `ARCHITECTURE.md` 
 - Do not accept the candidate without explicitly pinning the existing `2026-05-15` Worker compatibility date. Plugin `1.47.0` changes its implicit default to `2026-07-23`, so an apparently dependency-only update would otherwise change runtime semantics.
 - Treat the one-line date pin as configuration work requiring explicit approval. After approval, preserve all existing flags, bindings, assets, redirects, and deployment resources; perform only dry-run deployment validation with no upload.
 - Keep the validated `@speed-highlight/core 1.2.20` lock record. Version `1.2.22` appeared during repository lock generation and is unrelated to PKG-010; do not replace a fully tested candidate with a minutes-old transitive release solely because its range permits it.
+
+## 2026-08-02 — Prefer the six-record first-fixed PKG-011 lock refresh
+
+- Keep `package.json` unchanged and resolve all four remaining development-toolchain findings through existing parent ranges; do not add transitive packages as direct devDependencies or introduce overrides.
+- Select Babel core `7.29.6`, the first patched 7.x release, plus its required generator `7.29.6`. Reject the provenance-only `7.29.7` republish because it moves 16 Babel-family records without additional audit benefit; Babel 8 is outside the parent and project Node boundaries.
+- Select brace-expansion `1.1.18` / `5.0.9`, fast-uri `3.1.5`, and js-yaml `4.3.1`. These follow-up patches close bypass or analogous parser paths beyond the first advisory boundaries while staying within the installed parents' declared ranges.
+- Require exactly six changed lock records, zero additions/removals, zero mirror URL, unchanged excluded package records, and lock SHA-256 `b1ee4dec8caa44b2e8d2bbfac6e5e9c4d27a9cde75aacc56699cfd42eb25856c` before repository testing.
+- Keep Next/PostCSS/Sharp, React, Vite, vinext, Cloudflare, ESLint major, Webpack, product logic, persistence, and deployment configuration outside PKG-011. Do not use broad `npm update`, `npm audit fix`, force, or preview releases.
+- Because the accepted candidate changes dependency configuration, record the validated boundary first and wait for explicit approval before applying it to the repository.

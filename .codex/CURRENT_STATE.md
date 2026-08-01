@@ -2,15 +2,15 @@
 
 Current branch: `main`
 
-Current HEAD: Recovery-documentation checkpoint on top of validated PKG-010 product commit `448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10`; run `git rev-parse HEAD` for the exact state-only commit after it is created.
+Current HEAD: PKG-011 approval-boundary documentation checkpoint on top of validated state commit `d3866d5e5013dfca1266598b3335b6ae28be1269`; run `git rev-parse HEAD` for the exact documentation-only commit after it is created.
 
-Last stable commit: `448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10` (`origin/main`; GitHub Actions run `30719418742` completed successfully for this exact SHA)
+Last stable commit: `d3866d5e5013dfca1266598b3335b6ae28be1269` (`origin/main`; GitHub Actions run `30719518356` completed successfully for this exact SHA)
 
-Current objective: Preserve the completed PKG-010 Cloudflare security checkpoint and select the next highest-value bounded dependency task.
+Current objective: Remove the four residual development-toolchain audit records through the smallest compatible lock-only refresh, without changing direct dependencies or excluded product/runtime packages.
 
-Active task: None. PKG-010 is complete; PKG-011 is queued as the next P2 development-toolchain security audit.
+Active task: PKG-011 is blocked at the dependency-change safety gate. A six-record isolated candidate is fully mapped and locally validated; the repository package manifest and lockfile remain unchanged pending explicit approval.
 
-Modified files: This final checkpoint contains eight recovery/status documentation files only. The validated PKG-010 product commit is already pushed. Four historical conflict-style copies remain untracked, preserved, and excluded.
+Modified files: This approval checkpoint contains recovery/status documentation only. `package.json` and `package-lock.json` remain unchanged. Four historical conflict-style copies remain untracked, preserved, and excluded.
 
 Completed steps:
 
@@ -80,11 +80,18 @@ Completed steps:
 - Passed changed-file formatting, JSON, whitespace, candidate byte/hash, npmjs-only registry, sensitive/private-path, and two independent read-only dependency/security reviews.
 - Created and pushed product commit `448a243`; local HEAD, `origin/main`, remote, and GitHub matched exact SHA `448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10`.
 - Waited for GitHub Actions run `30719418742`; Node 22 normal `npm ci`, `npm run check`, and every job/post step completed successfully for the exact product SHA.
+- Verified final PKG-010 state commit `d3866d5`; local HEAD, `origin/main`, and GitHub match, and exact-SHA Quality run `30719518356` completed successfully.
+- Mapped the remaining complete-audit findings through existing transitive ranges: Babel through `eslint-config-next` / React Hooks, both brace-expansion lines through minimatch, fast-uri through AJV/Webpack schema-utils, and js-yaml through ESLint eslintrc.
+- Confirmed stable compatible targets: Babel core/generator `7.29.6`, brace-expansion `1.1.18` and `5.0.9`, fast-uri `3.1.5`, and js-yaml `4.3.1`; no direct dependency, override, major version, or Node-range change is required.
+- Rejected the ordinary Babel `7.29.7` update because its provenance-only republish moves 16 Babel-family records with no additional audit benefit; rejected a mirror-contaminated exploratory candidate before repository use.
+- Built the minimum official-registry candidate with 754 lock records unchanged in count: exactly six records change, none is added/removed, `package.json` is byte-identical, zero npmmirror URL appears, and all Next/React/Vite/vinext/Cloudflare records remain identical.
+- Passed isolated cold `npm ci` with 593 packages, `npm ls --all`, the official-registry audit, and `npm run check` with lint, strict typecheck, 13 Vitest files / 112 tests, and the production build. The candidate audit retains only the separately deferred Next/PostCSS/Sharp 3 records / 4 sources.
 
 Remaining steps:
 
-- Stage and commit only the eight recovery/status documentation files without including the four preserved untracked files.
-- Push the state-only checkpoint and require completed GitHub Actions success for its exact SHA; no additional self-referential state commit is needed solely to record that run.
+- Obtain explicit approval for the six-record dependency lock change required by the repository safety protocol.
+- After approval, reproduce or apply only the validated lock candidate and require SHA-256 `b1ee4dec8caa44b2e8d2bbfac6e5e9c4d27a9cde75aacc56699cfd42eb25856c`; keep `package.json` unchanged.
+- Run repository cold install, peer/dependency graph, complete and production audits, canonical checks, Chromium/WebKit, production/workerd smoke, final diff/security gates, then commit/push and require exact-SHA CI.
 
 Current tests:
 
@@ -135,11 +142,17 @@ Current tests:
 - PKG-010 repository artifact / vinext / workerd / strict dry-run — PASS (HTML/RSC/SVG 200, date/assets/bindings preserved, listeners stopped, no upload/input mutation).
 - PKG-010 changed-file formatting/JSON/whitespace/candidate/registry/sensitive/scope and independent reviews — PASS.
 - GitHub Actions `Quality` run `30719418742` — PASS at 2026-08-02T05:35+08:00 (`completed/success`, exact product SHA `448a243`; Node 22 normal install and all quality steps passed).
+- GitHub Actions `Quality` run `30719518356` — PASS (`completed/success`, exact final PKG-010 state SHA `d3866d5`).
+- PKG-011 repository baseline complete audit — EXPECTED NONZERO: 7 package records / 13 advisory sources (6 high, 1 low, zero critical).
+- PKG-011 isolated six-record candidate cold install / `npm ls --all` — PASS (593 packages; no dependency or peer problem).
+- PKG-011 isolated six-record candidate complete audit — EXPECTED NONZERO: 3 package records / 4 sources, all in separately deferred Next/PostCSS/Sharp; zero low/critical and no Babel/brace-expansion/fast-uri/js-yaml record.
+- PKG-011 isolated six-record candidate `npm run check` — PASS at 2026-08-02T05:48+08:00 (lint, strict typecheck, 13 Vitest files / 112 tests, production build).
+- PKG-011 approval-boundary repository `npm run check` — PASS at 2026-08-02T05:51+08:00 with the stable dependency files unchanged (lint, strict typecheck, 13 Vitest files / 112 tests, production build).
 
-Known failures: Production-only npm audit remains nonzero because stable Next `16.2.12` pins affected PostCSS/Sharp ranges. Complete audit retains independent Babel/brace-expansion/fast-uri/js-yaml development-chain records queued for PKG-011. Repository-wide `npm run format:check` has 10 pre-existing differences in untouched files. vinext returns a prompt generic HTTP 500 for an unknown Server Action ID while keeping the server live. Four untracked historical conflict copies remain intentionally untouched.
+Known failures: The unchanged repository's production-only audit remains nonzero because stable Next `16.2.12` pins affected PostCSS/Sharp ranges; its complete audit also retains the four PKG-011 development records until approval and application. Repository-wide `npm run format:check` has 10 pre-existing differences in untouched files. vinext returns a prompt generic HTTP 500 for an unknown Server Action ID while keeping the server live. Four untracked historical conflict copies remain intentionally untouched.
 
-Risk: Low for the completed checkpoint. Product commit, push, remote SHA, and Node 22 exact-SHA CI are verified; residual production and development-toolchain findings remain explicitly separated.
+Risk: Medium and contained. The proposed change is lock-only and isolated tests pass, but it changes dependency resolution and therefore remains unapplied until explicit approval. Current tracked product state is stable and remote-verified.
 
-Next command: Stage and commit only the eight state/status files, push the checkpoint, and require completed CI for its exact SHA.
+Next command: Wait for explicit approval. If approved, run the two targeted official-registry lock-only update commands in `.codex/RESUME.md`, confirm the exact six-record boundary and expected lock hash, then start repository validation.
 
-Resume instructions: Read `.codex/RESUME.md`, verify product commit/run `448a243` / `30719418742`, then determine from Git history whether this final recovery checkpoint still needs commit/push/CI verification. Preserve all four untracked historical copies and the sibling dependency backup.
+Resume instructions: Read `.codex/RESUME.md`, verify current Git/GitHub state, and do not change `package-lock.json` unless explicit approval is present. Preserve all four untracked historical copies and the sibling dependency backup.

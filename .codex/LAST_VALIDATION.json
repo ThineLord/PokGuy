@@ -1,10 +1,10 @@
 {
-  "validated_at": "2026-08-02T05:35:36+08:00",
+  "validated_at": "2026-08-02T05:51:36+08:00",
   "branch": "main",
-  "head": "448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10",
-  "last_stable_commit": "448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10",
-  "worktree": "final-recovery-checkpoint-after-validated-pkg-010-product",
-  "phase": "remote-and-ci-verified-pkg-010-product",
+  "head": "d3866d5e5013dfca1266598b3335b6ae28be1269",
+  "last_stable_commit": "d3866d5e5013dfca1266598b3335b6ae28be1269",
+  "worktree": "pkg-011-approval-boundary-documentation-only",
+  "phase": "isolated-pkg-011-candidate-validated-awaiting-dependency-change-approval",
   "commands": [
     {
       "command": "startup Git/GitHub recovery and gh auth checks",
@@ -155,6 +155,46 @@
       "command": "gh run watch/view 30719418742",
       "exit_code": 0,
       "result": "Quality run completed successfully for exact product SHA 448a2432d3890c7aadd6e9aa9dc46ee4ba34cc10; Node 22 checkout, normal npm ci, npm run check, and every post step passed"
+    },
+    {
+      "command": "startup Git/GitHub recovery and final PKG-010 state-run verification",
+      "exit_code": 0,
+      "result": "Local HEAD and origin/main matched d3866d5e5013dfca1266598b3335b6ae28be1269; exact-SHA Quality run 30719518356 was completed/success; four historical untracked copies remained preserved"
+    },
+    {
+      "command": "official-registry PKG-011 advisory, release, parent-range, and dependency-path review",
+      "exit_code": 0,
+      "result": "Confirmed compatible targets without a manifest change or override: Babel core/generator 7.29.6, brace-expansion 1.1.18 and 5.0.9, fast-uri 3.1.5, and js-yaml 4.3.1"
+    },
+    {
+      "command": "isolated PKG-011 minimum, ordinary-latest, and registry-provenance candidate comparison",
+      "exit_code": 0,
+      "result": "Selected the six-record first-fixed candidate; rejected a 20-record Babel 7.29.7 candidate with no extra audit benefit and a 23-record exploratory candidate containing three npmmirror URL changes"
+    },
+    {
+      "command": "isolated six-record semantic lock and excluded-package verification",
+      "exit_code": 0,
+      "result": "package.json is byte-identical; lock retains 754 records with exactly six changed and zero added/removed; zero mirror URL; Next, PostCSS, Sharp, React, RSC, Vite, vinext, Cloudflare, Miniflare, Wrangler, and workerd records are unchanged; lock SHA-256 is b1ee4dec8caa44b2e8d2bbfac6e5e9c4d27a9cde75aacc56699cfd42eb25856c"
+    },
+    {
+      "command": "isolated cold npm ci --ignore-scripts and npm ls --all",
+      "exit_code": 0,
+      "result": "Installed 593 packages; npm dependency and peer problems are empty"
+    },
+    {
+      "command": "isolated official-registry complete audit after six-record candidate",
+      "exit_code": 1,
+      "result": "Expected residual findings only: Next, PostCSS, and Sharp remain as 3 high package records / 4 advisory sources; Babel, brace-expansion, fast-uri, and js-yaml are absent; low and critical counts are zero"
+    },
+    {
+      "command": "isolated six-record candidate npm run check",
+      "exit_code": 0,
+      "result": "Passed ESLint, strict TypeScript, 13 Vitest files / 112 tests, and the Vite 8.0.16 production build"
+    },
+    {
+      "command": "approval-boundary repository npm run check",
+      "exit_code": 0,
+      "result": "With package.json and package-lock.json still unchanged, passed ESLint, strict TypeScript, 13 Vitest files / 112 tests, and the Vite 8.0.16 production build"
     }
   ],
   "known_failures": [
@@ -166,7 +206,7 @@
     {
       "command": "npm audit --json",
       "exit_code": 1,
-      "result": "7 package-level findings and 13 advisory sources remain in separately scoped development-toolchain and PostCSS/Sharp chains; direct RSC, Vite, and Cloudflare findings are absent; no critical finding"
+      "result": "The unchanged repository retains 7 package-level findings and 13 advisory sources until PKG-011 is approved and applied; the isolated candidate proves the four development records can be removed while leaving only the separately deferred Next/PostCSS/Sharp 3 / 4; no critical finding"
     },
     {
       "command": "npm run format:check",
@@ -187,6 +227,10 @@
     "Wrangler 4.114.0 removed --experimental-autoconfig=false; the tracked documentation now uses the verified no-upload replacement --autoconfig=false.",
     "The original anomalous node_modules tree and all task-owned candidate/evidence directories remain preserved outside Git; none was deleted.",
     "PKG-010 product commit 448a243, push, remote SHA match, and exact-SHA Quality run 30719418742 are verified.",
-    "At creation of this state record, the final recovery-documentation checkpoint still required commit, push, and exact-SHA CI confirmation; resume must inspect Git history rather than assume it remains pending."
+    "At creation of this state record, the final PKG-010 recovery commit d3866d5 and exact-SHA Quality run 30719518356 were verified.",
+    "PKG-011 has no approved repository dependency change yet: package.json and package-lock.json remain at the stable d3866d5 baseline; only recovery/status documentation is modified.",
+    "The accepted isolated candidate changes exactly six lock records and has SHA-256 b1ee4dec8caa44b2e8d2bbfac6e5e9c4d27a9cde75aacc56699cfd42eb25856c; any future reproduction mismatch requires a fresh audit rather than acceptance by similarity.",
+    "Babel 7.29.7, Babel 8, broad npm update, npm audit fix, dependency overrides, and unrelated Next/React/Vite/Cloudflare movement are explicitly rejected for PKG-011.",
+    "At creation of this state record, the PKG-011 approval-boundary documentation checkpoint still required commit, push, and exact-SHA CI confirmation; resume must inspect Git history rather than assume it remains pending."
   ]
 }
