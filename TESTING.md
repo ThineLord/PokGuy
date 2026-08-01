@@ -36,7 +36,9 @@ npx playwright install chromium
 - 小数筹码 all-in 后的浮点余量归零，0 BB 玩家不会重新进入行动队列；
 - AI 人格差异、seed 复现、隐藏牌隔离、已知牌排除和适应上限；
 - LocalStorage v1→v2、损坏 JSON 回退和 adapter round-trip。
+- 损坏训练评价记录过滤，以及旧记录在顺序或数量不明确时不猜测动作关联；
 - 牌背设置的旧数据补全、未知主题回退和 adapter round-trip；
+- 社交预览 origin 覆盖本机、私网 IPv4、IPv6、异常 Host/端口和受信代理协议；
 - 120 组不同 seed 的六人桌连续状态迁移，逐动作验证 52 张牌唯一性、筹码守恒和无死锁；
 - 多人公共牌平局按实际人数分摊 equity，AI 人格在固定观察下保持可观察差异。
 
@@ -45,6 +47,7 @@ npx playwright install chromium
 `tests/e2e/core-flow.spec.ts` 覆盖：
 
 1. 启动游戏、执行带飞行效果的 fold、加速完成旁观牌局并打开历史与复盘；
+   同时验证训练反馈时间线、刷新后的待复查队列和训练统计摘要；
 2. 使用 call 和 raise/bet 尺度控件；
 3. 验证盲注角色、顺时针发牌顺序和所有发牌动画步骤；
 4. 连续完成 6 手并覆盖 fold/call/raise，验证位置轮转、无死锁和弃牌 AI 不亮牌；
@@ -76,6 +79,7 @@ npx playwright install chromium
 - 键盘 Tab：主导航、输入和所有动作按钮有可见 focus；
 - reduced-motion / 动画关闭：发牌动画关闭；
 - 设置、单手牌、历史、复盘、统计空状态；
+- 复盘实验室的全部/待复查筛选、评价时间线、旧记录安全降级与英文文案；
 - 浏览器控制台无产品错误；
 - 刷新后设置和历史仍存在；
 - 非法 raise 显示原因与最近合法值；

@@ -55,6 +55,26 @@ const ENGLISH: Record<string, string> = {
   最近牌局: "Recent hands",
   "完成一手牌后，行动和底池变化会保存在这里。":
     "Actions and pot changes will appear here after you complete a hand.",
+  复盘筛选: "Review filters",
+  全部: "All",
+  待复查: "To review",
+  暂无待复查牌局: "No hands currently need review.",
+  复盘实验室: "REVIEW LAB",
+  训练反馈: "Decision feedback",
+  个决策: "decisions",
+  个待复查: "to review",
+  "这里使用训练级启发式回看你的选择，不代表唯一正确答案或 GTO 结论。":
+    "These training heuristics help you revisit a choice; they are not a unique answer or a GTO verdict.",
+  "本手没有已保存的训练反馈。":
+    "No saved decision feedback is available for this hand.",
+  已记录的训练反馈: "Saved decision feedback",
+  行动前底池: "Pot before action",
+  本次投入: "Committed this action",
+  "该条旧记录缺少完整动作上下文，因此只显示原始评分。":
+    "This older record lacks complete action context, so only its original grade is shown.",
+  有争议: "Needs review",
+  "有争议：建议结合对手范围、位置和当时信息重新检查。":
+    "Needs review: revisit the decision with the opponent range, position, and information available at the time.",
   玩家笔记: "Player notes",
   "记录对手习惯、自己的思路或下次要复查的节点…":
     "Record opponent tendencies, your reasoning, or spots to revisit…",
@@ -63,6 +83,9 @@ const ENGLISH: Record<string, string> = {
   翻牌持续下注: "Flop c-bet",
   到摊牌率: "Went to showdown",
   摊牌胜率: "Won at showdown",
+  已点评决策: "Reviewed decisions",
+  待复查决策: "Decisions to review",
+  待复查手牌: "Hands to review",
   长期统计: "Long-term statistics",
   训练概览: "Training overview",
   少量样本统计不稳定: "Small samples are volatile",

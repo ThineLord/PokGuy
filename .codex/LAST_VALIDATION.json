@@ -1,0 +1,51 @@
+{
+  "validated_at": "2026-08-01T23:46:02+08:00",
+  "branch": "main",
+  "head": "24c075700abc80721e8cc877900ac1d50ad9b10e",
+  "last_stable_commit": "24c075700abc80721e8cc877900ac1d50ad9b10e",
+  "worktree": "dirty",
+  "phase": "final-precommit",
+  "commands": [
+    {
+      "command": "npm run check",
+      "exit_code": 0,
+      "result": "ESLint passed; TypeScript passed; 13 Vitest files and 103 tests passed; production build passed"
+    },
+    {
+      "command": "npm run test:e2e",
+      "exit_code": 0,
+      "result": "12 Chromium tests passed"
+    },
+    {
+      "command": "npm exec vitest run tests/app/review.test.ts tests/app/siteOrigin.test.ts tests/storage/storage.test.ts",
+      "exit_code": 0,
+      "result": "3 test files and 28 targeted tests passed"
+    },
+    {
+      "command": "local metadata HTTP smoke",
+      "exit_code": 0,
+      "result": "localhost, private IPv4, bracketed IPv6, and og.png checks passed; untrusted public Host headers were rejected by the development server"
+    },
+    {
+      "command": "git diff --check",
+      "exit_code": 0,
+      "result": "No whitespace errors in the final tracked diff before state refresh"
+    },
+    {
+      "command": "sensitive-pattern scan",
+      "exit_code": 0,
+      "result": "No common token, private-key, credential, or absolute user-path pattern found in the current tracked tree and diff"
+    }
+  ],
+  "known_failures": [
+    {
+      "command": "npm run format:check",
+      "exit_code": 1,
+      "result": "10 pre-existing formatting differences in untouched files"
+    }
+  ],
+  "notes": [
+    "Rerun final validation if code changes after this record.",
+    "WebKit automation has not been run."
+  ]
+}

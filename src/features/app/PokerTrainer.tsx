@@ -46,6 +46,12 @@ import type {
   TrainingRecord,
 } from "../../storage/types";
 import { LanguageProvider, useI18n } from "./i18n";
+import {
+  handNeedsReview,
+  needsReview,
+  reviewEntriesForHand,
+  summarizeReviews,
+} from "./review";
 
 type View = "table" | "scenario" | "history" | "stats" | "settings";
 const HERO_ID = "hero";
@@ -791,6 +797,122 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
   );
 }
 
+function reviewGradeClass(grade: TrainingRecord["grade"]): string {
+  if (grade === "合理") return "is-sound";
+  if (grade === "高风险" || grade === "尺度异常") return "is-priority";
+  return "needs-review";
+}
+
+function reviewExplanation(
+  grade: TrainingRecord["grade"],
+  t: (key: string) => string,
+): string {
+  if (grade === "尺度异常")
+    return t("尺度异常：该下注显著超过当前底池，通常需要很强的特定理由。");
+  if (grade === "偏紧")
+    return t("偏紧：无需跟注时弃牌通常损失了免费看牌机会。");
+  if (grade === "偏松") return t("偏松：粗略胜率低于当前底池赔率门槛。");
+  if (grade === "高风险") return t("高风险：深街前全押会显著放大方差。");
+  if (grade === "有争议")
+    return t("有争议：建议结合对手范围、位置和当时信息重新检查。");
+  return t("合理：该动作处于可辩护范围；扑克决策通常不存在唯一答案。");
+}
+
+function ReviewPanel({
+  hand,
+  records,
+}: {
+  hand: StoredHand;
+  records: TrainingRecord[];
+}) {
+  const { actionLabel, formatDate, locale, streetLabel, t } = useI18n();
+  const entries = reviewEntriesForHand(hand, records);
+  const reviewCount = entries.filter((entry) =>
+    needsReview(entry.record.grade),
+  ).length;
+  return (
+    <section className="panel review-panel" aria-label={t("训练反馈")}>
+      <div className="panel-heading review-panel-heading">
+        <div>
+          <p className="eyebrow">{t("复盘实验室")}</p>
+          <h2>{t("训练反馈")}</h2>
+        </div>
+        {entries.length > 0 && (
+          <span
+            className={`review-summary ${reviewCount > 0 ? "needs-review" : "is-sound"}`}
+          >
+            {locale === "zh-CN"
+              ? `${entries.length} ${t("个决策")} · ${reviewCount} ${t("个待复查")}`
+              : `${entries.length} ${entries.length === 1 ? "decision" : "decisions"} · ${reviewCount} to review`}
+          </span>
+        )}
+      </div>
+      <p className="review-intro">
+        {t("这里使用训练级启发式回看你的选择，不代表唯一正确答案或 GTO 结论。")}
+      </p>
+      {entries.length === 0 ? (
+        <p className="empty-state">{t("本手没有已保存的训练反馈。")}</p>
+      ) : (
+        <div className="review-timeline">
+          {entries.map(({ action, record }, index) => {
+            const paid = action
+              ? Math.max(0, action.potAfter - action.potBefore)
+              : 0;
+            return (
+              <article
+                className="review-entry"
+                key={`${record.createdAt}-${index}`}
+              >
+                <span className="review-index" aria-hidden="true">
+                  {index + 1}
+                </span>
+                <div className="review-entry-body">
+                  <div className="review-entry-heading">
+                    <div>
+                      <small>
+                        {action
+                          ? `${streetLabel(action.street)} · #${action.sequence}`
+                          : formatDate(record.createdAt)}
+                      </small>
+                      <strong>
+                        {action
+                          ? actionLabel(action.action.type)
+                          : t("已记录的训练反馈")}
+                      </strong>
+                    </div>
+                    <span
+                      className={`review-grade ${reviewGradeClass(record.grade)}`}
+                    >
+                      {t(record.grade)}
+                    </span>
+                  </div>
+                  {action ? (
+                    <div className="review-context">
+                      <span>
+                        {t("行动前底池")} {formatChips(action.potBefore)} BB
+                      </span>
+                      {paid > 0 && (
+                        <span>
+                          {t("本次投入")} {formatChips(paid)} BB
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <small className="review-fallback">
+                      {t("该条旧记录缺少完整动作上下文，因此只显示原始评分。")}
+                    </small>
+                  )}
+                  <p>{record.note || reviewExplanation(record.grade, t)}</p>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function HistoryView({
   data,
   onNote,
@@ -800,45 +922,88 @@ function HistoryView({
 }) {
   const { formatDate, t } = useI18n();
   const [selected, setSelected] = useState(data.recentHands[0]?.id ?? "");
+  const [reviewOnly, setReviewOnly] = useState(false);
+  const visibleHands = reviewOnly
+    ? data.recentHands.filter((candidate) =>
+        handNeedsReview(candidate.id, data.trainingRecords),
+      )
+    : data.recentHands;
   const hand =
-    data.recentHands.find((candidate) => candidate.id === selected) ??
-    data.recentHands[0];
+    visibleHands.find((candidate) => candidate.id === selected) ??
+    visibleHands[0];
   return (
     <div className="content-grid history-grid">
       <section className="panel history-list">
         <div className="panel-heading">
           <div>
             <p className="eyebrow">{t("最近牌局")}</p>
-            <h2>{data.recentHands.length} / 100</h2>
+            <h2>
+              {reviewOnly
+                ? `${visibleHands.length} / ${data.recentHands.length}`
+                : `${data.recentHands.length} / 100`}
+            </h2>
+          </div>
+          <div
+            className="history-filters"
+            role="group"
+            aria-label={t("复盘筛选")}
+          >
+            <button
+              type="button"
+              className={!reviewOnly ? "active" : ""}
+              aria-pressed={!reviewOnly}
+              onClick={() => setReviewOnly(false)}
+            >
+              {t("全部")}
+            </button>
+            <button
+              type="button"
+              className={reviewOnly ? "active" : ""}
+              aria-pressed={reviewOnly}
+              onClick={() => setReviewOnly(true)}
+            >
+              {t("待复查")}
+            </button>
           </div>
         </div>
         {data.recentHands.length === 0 ? (
           <p className="empty-state">
             {t("完成一手牌后，行动和底池变化会保存在这里。")}
           </p>
+        ) : visibleHands.length === 0 ? (
+          <p className="empty-state">{t("暂无待复查牌局。")}</p>
         ) : (
-          data.recentHands.map((item) => (
-            <button
-              className={
-                item.id === hand?.id ? "history-item selected" : "history-item"
-              }
-              key={item.id}
-              onClick={() => setSelected(item.id)}
-            >
-              <span>{formatDate(item.completedAt)}</span>
-              <strong
-                className={item.heroProfitBb >= 0 ? "positive" : "negative"}
+          visibleHands.map((item) => {
+            const flagged = handNeedsReview(item.id, data.trainingRecords);
+            return (
+              <button
+                className={
+                  item.id === hand?.id
+                    ? "history-item selected"
+                    : "history-item"
+                }
+                key={item.id}
+                onClick={() => setSelected(item.id)}
               >
-                {item.heroProfitBb >= 0 ? "+" : ""}
-                {formatChips(item.heroProfitBb)} BB
-              </strong>
-            </button>
-          ))
+                <span className="history-item-copy">
+                  <span>{formatDate(item.completedAt)}</span>
+                  {flagged && <em>{t("待复查")}</em>}
+                </span>
+                <strong
+                  className={item.heroProfitBb >= 0 ? "positive" : "negative"}
+                >
+                  {item.heroProfitBb >= 0 ? "+" : ""}
+                  {formatChips(item.heroProfitBb)} BB
+                </strong>
+              </button>
+            );
+          })
         )}
       </section>
       {hand && (
         <div>
           <ReplayPanel hand={hand} />
+          <ReviewPanel hand={hand} records={data.trainingRecords} />
           <label className="note-field">
             {t("玩家笔记")}
             <textarea
@@ -856,6 +1021,7 @@ function HistoryView({
 function StatsView({ data }: { data: PersistedData }) {
   const { t } = useI18n();
   const stats = data.stats;
+  const reviews = summarizeReviews(data.recentHands, data.trainingRecords);
   const rate = (value: number, total: number) =>
     total ? `${((value / total) * 100).toFixed(1)}%` : "—";
   const items = [
@@ -874,6 +1040,9 @@ function StatsView({ data }: { data: PersistedData }) {
     [t("翻牌持续下注"), rate(stats.cbets, stats.cbetOpportunities)],
     [t("到摊牌率"), rate(stats.showdowns, stats.hands)],
     [t("摊牌胜率"), rate(stats.showdownWins, stats.showdowns)],
+    [t("已点评决策"), reviews.reviewedDecisions],
+    [t("待复查决策"), reviews.needsReviewDecisions],
+    [t("待复查手牌"), reviews.needsReviewHands],
   ];
   return (
     <div className="stack">

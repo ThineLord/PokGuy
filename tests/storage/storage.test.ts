@@ -36,6 +36,29 @@ describe("versioned LocalStorage", () => {
     expect(migrated.settings.deckTheme).toBe("river-current");
   });
 
+  it("drops malformed training records without discarding valid feedback", () => {
+    const validRecord = {
+      handId: "hand-1",
+      createdAt: "2026-08-01T12:00:00.000Z",
+      grade: "偏紧",
+      note: "Recheck the free option",
+    };
+    const migrated = migrateData({
+      version: 2,
+      trainingRecords: [
+        null,
+        {},
+        { ...validRecord, handId: "" },
+        { ...validRecord, createdAt: "not-a-date" },
+        { ...validRecord, grade: "unknown" },
+        { ...validRecord, note: 7 },
+        validRecord,
+      ],
+    });
+
+    expect(migrated.trainingRecords).toEqual([validRecord]);
+  });
+
   it("round-trips data through a storage adapter", () => {
     const values = new Map<string, string>();
     const storage = {

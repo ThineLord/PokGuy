@@ -7,6 +7,7 @@ import type {
   DeckTheme,
   PersistedData,
   StoredHand,
+  TrainingRecord,
 } from "./types";
 
 export const STORAGE_KEY = "riverlab-poker-v2";
@@ -61,6 +62,29 @@ function validDeckTheme(value: unknown): DeckTheme {
     : DEFAULT_SETTINGS.deckTheme;
 }
 
+const TRAINING_GRADES = new Set<TrainingRecord["grade"]>([
+  "合理",
+  "有争议",
+  "偏松",
+  "偏紧",
+  "尺度异常",
+  "高风险",
+]);
+
+function isTrainingRecord(value: unknown): value is TrainingRecord {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Partial<TrainingRecord>;
+  return (
+    typeof record.handId === "string" &&
+    record.handId.trim().length > 0 &&
+    typeof record.createdAt === "string" &&
+    Number.isFinite(Date.parse(record.createdAt)) &&
+    typeof record.grade === "string" &&
+    TRAINING_GRADES.has(record.grade as TrainingRecord["grade"]) &&
+    (record.note === undefined || typeof record.note === "string")
+  );
+}
+
 export function defaultData(): PersistedData {
   return {
     version: 2,
@@ -107,7 +131,7 @@ export function migrateData(raw: unknown): PersistedData {
       ? candidate.recentHands.slice(0, 100)
       : [],
     trainingRecords: Array.isArray(candidate.trainingRecords)
-      ? candidate.trainingRecords
+      ? candidate.trainingRecords.filter(isTrainingRecord).slice(0, 500)
       : [],
     playerNotes:
       candidate.playerNotes && typeof candidate.playerNotes === "object"

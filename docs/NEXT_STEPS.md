@@ -2,7 +2,7 @@
 
 ## 下一项具体任务
 
-当前单手结束、正式分池和现金桌延续修复没有未完成的必需任务。下一项建议仍是补充 Playwright WebKit 自动化矩阵。若要继续“全面对标锦标赛”，必须作为独立模式实现 tournament state machine：盲注级别、ante、淘汰与座位关闭、多桌平衡/破桌、hand-for-hand、重入规则、暂停和名次，而不能把现金桌的手动重新买入复用为锦标赛流程。
+Phase 8.0 已把现有训练评价接入历史回放、待复查队列和统计摘要，且没有更改 LocalStorage v2。下一项质量门禁仍是补充 Playwright WebKit 自动化矩阵，特别覆盖新增复盘界面。通过该门禁后，下一项产品任务是 Review Lab v1.1：为新记录增加行动时不可变快照，并支持从待复查节点重新练习。快照需要独立设计 v3 迁移，必须明确标注均匀未知范围估算，不能包装为 GTO 或 EV loss。
 
 ## 相关文件
 
@@ -11,6 +11,9 @@
 - `tests/e2e/responsive.spec.ts`
 - `app/globals.css`
 - `src/features/app/PokerTrainer.tsx`
+- `src/features/app/review.ts`
+- `src/storage/types.ts`
+- `src/storage/storage.ts`
 - `TESTING.md`
 - `app/layout.tsx`
 - `public/`
@@ -26,7 +29,9 @@
 - 正式摊牌比较区在 Safari/WebKit 中始终可见，主池/边池与退回筹码标签正确
 - 弃牌动画结束后牌局继续推进，用户弃牌后的 AI 旁观流程不会长时间停滞
 - PWA 缓存不缓存或同步用户牌局到外部服务
-- 现有 80 项单元测试和 11 项 Chromium E2E 继续通过
+- 复盘实验室在 WebKit 下可筛选、滚动和刷新，评价与动作不会错配
+- 现有 103 项单元测试和 12 项 Chromium E2E 继续通过
+- v1.1 若启动，旧 v2 数据迁移不丢失；快照不包含行动时未知的对手底牌
 - 锦标赛模式（若启动）必须与现金桌状态隔离，并覆盖最后一名持有全部流通筹码时才结束赛事
 
 ## 推荐执行命令

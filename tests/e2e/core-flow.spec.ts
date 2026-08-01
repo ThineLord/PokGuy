@@ -89,8 +89,70 @@ test("start a hand, fold, open history and replay", async ({ page }) => {
   await expect(page.getByText("筹码已经到账")).toBeVisible();
   await page.getByRole("button", { name: "历史与复盘" }).click();
   await expect(page.getByText("逐街复盘")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "训练反馈" })).toBeVisible();
+  await expect(page.locator(".review-entry")).toHaveCount(1);
+  await expect(page.getByText(/1 个决策 · 0 个待复查/)).toBeVisible();
   await page.getByRole("button", { name: "下一步" }).click();
   await expect(page.getByText(/底池/).first()).toBeVisible();
+});
+
+test("create a real review item and keep Review Lab mobile-safe", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "单手牌" }).click();
+  await page.getByLabel("起始街").selectOption("river");
+  await page.getByLabel("位置").selectOption("SB");
+  await page.getByRole("button", { name: "开始此训练" }).click();
+
+  const fold = page.getByRole("button", { name: "弃牌" });
+  const check = page.getByRole("button", { name: "过牌" });
+  await expect(check).toBeEnabled();
+  await expect(fold).toBeEnabled();
+  await fold.click();
+  await expect(page.getByText("本手正式结束")).toBeVisible({
+    timeout: 20_000,
+  });
+  await page.getByRole("button", { name: "历史与复盘" }).click();
+  await expect(
+    page.locator(".review-grade", { hasText: "偏紧" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "待复查", exact: true }).click();
+  await expect(page.locator(".history-item")).toHaveCount(1);
+
+  await page.reload();
+  await page.getByRole("button", { name: "历史与复盘" }).click();
+  await expect(
+    page.locator(".review-grade", { hasText: "偏紧" }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "待复查", exact: true }).click();
+  await expect(page.locator(".history-item")).toHaveCount(1);
+  await page.getByRole("button", { name: "统计", exact: true }).click();
+  await expect(
+    page.locator(".stat-card", { hasText: "已点评决策" }).locator("strong"),
+  ).toHaveText("1");
+  await expect(
+    page.locator(".stat-card", { hasText: "待复查决策" }).locator("strong"),
+  ).toHaveText("1");
+
+  await page.getByRole("button", { name: "历史与复盘" }).click();
+  for (const viewport of [
+    { width: 393, height: 852 },
+    { width: 320, height: 780 },
+  ]) {
+    await page.setViewportSize(viewport);
+    await expect(page.getByRole("heading", { name: "训练反馈" })).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
+    const filterHeights = await page
+      .locator(".history-filters button")
+      .evaluateAll((buttons) =>
+        buttons.map((button) => button.getBoundingClientRect().height),
+      );
+    expect(filterHeights.every((height) => height >= 44)).toBe(true);
+  }
 });
 
 test("use call and raise controls", async ({ page }) => {
