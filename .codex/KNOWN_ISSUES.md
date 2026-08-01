@@ -42,7 +42,7 @@
 
 ## Production dependency advisories
 
-- Status: Reduced by PKG-007 locally; exact-SHA CI pending. Residual PostCSS/Sharp findings are deferred with mitigation.
+- Status: Reduced by PKG-007 commit `2c2782d`; exact-SHA CI run `30713299084` passed. Residual PostCSS/Sharp findings are deferred with mitigation.
 - Priority: P1 residual upstream dependency risk
 - Impact: Updating Next removes all nine Next-specific advisory records. Stable Next `16.2.12` still installs PostCSS `8.4.31` and Sharp `0.34.5`, leaving three PostCSS and one Sharp advisory record; npm's parent propagation therefore still reports three high package-level nodes. PokGuy does not build user-supplied CSS or use `next/image`, reducing current reachability without eliminating the vulnerable packages.
 - Next step: Monitor stable Next for its merged PostCSS/Sharp compatibility work and update when a stable release declares PostCSS `>=8.5.18` and Sharp `>=0.35.0`. Do not force overrides or adopt preview/canary builds.

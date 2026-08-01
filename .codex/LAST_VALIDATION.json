@@ -1,10 +1,10 @@
 {
-  "validated_at": "2026-08-02T02:44:06+08:00",
+  "validated_at": "2026-08-02T02:48:11+08:00",
   "branch": "main",
-  "head": "eb637a5f332ffa1681945d448853e87d52cdba38",
-  "last_stable_commit": "eb637a5f332ffa1681945d448853e87d52cdba38",
-  "worktree": "validated-pkg-007-candidate-awaiting-commit-and-remote-ci",
-  "phase": "local-validation-pkg-007",
+  "head": "2c2782d5223b5f63448c442adaed97360cbbd46c",
+  "last_stable_commit": "2c2782d5223b5f63448c442adaed97360cbbd46c",
+  "worktree": "recovery-state-checkpoint-after-remote-and-ci-verified-pkg-007",
+  "phase": "remote-and-ci-verified-pkg-007",
   "commands": [
     {
       "command": "startup Git/GitHub recovery and gh auth checks",
@@ -65,6 +65,16 @@
       "command": "final changed-file Prettier, git diff --check, lock-boundary/JSON, sensitive/private-path, listener, status, and complete diff review",
       "exit_code": 0,
       "result": "All checks passed for the 11 scoped PKG-007 files: 724 lock entries are retained, only root plus 12 Next-owned entries changed, and no added/removed dependency, mirror URL, secret-like assignment, private path, or smoke listener remains"
+    },
+    {
+      "command": "scoped GitHub-specific HTTPS proxy push and remote SHA verification",
+      "exit_code": 0,
+      "result": "Fast-forwarded origin/main from eb637a5 to 2c2782d without changing global Git configuration; local, tracking, and GitHub SHAs matched"
+    },
+    {
+      "command": "gh run watch/view 30713299084",
+      "exit_code": 0,
+      "result": "Quality run completed successfully for exact head SHA 2c2782d5223b5f63448c442adaed97360cbbd46c; checkout, Node 22 setup, npm ci, npm run check, and post steps all succeeded"
     }
   ],
   "known_failures": [
@@ -89,6 +99,7 @@
     "No npm audit fix, preview/canary package, dependency override, or unrelated toolchain update was used.",
     "A completed subagent's temporary candidate path was already absent when independently inspected; the main task recreated the candidate and reproduced the reported package and lock hashes before repository application.",
     "Three untracked conflict-style historical copies appeared after final staging. Their older contents were compared with the current files; they are excluded from the staged set and preserved pending explicit deletion approval.",
-    "Commit, push, and completed exact-SHA GitHub Actions verification remain."
+    "PKG-007 product commit, push, remote SHA match, and completed exact-SHA GitHub Actions verification all passed.",
+    "At creation of this state record, the recovery-documentation checkpoint still required commit, push, and final CI confirmation; resume must verify current Git history and the exact state-only SHA rather than assume it remains pending."
   ]
 }

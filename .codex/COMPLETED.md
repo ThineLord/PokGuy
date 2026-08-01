@@ -55,3 +55,13 @@ Append stable maintenance checkpoints here after their commit and remote status 
 - Commit: `cb19453` (`security: normalize npm lockfile provenance`).
 - Push: Verified by matching local HEAD, `origin/main`, and GitHub at `cb19453986661ec52529587c2fc79a34eafed25a`.
 - CI: GitHub Actions run `30710451561` completed successfully for the exact commit SHA; Node 22 clean install and every quality-gate step passed.
+
+## 2026-08-02 — Supported Next.js security patch
+
+- Updated `next` and `eslint-config-next` together from `16.2.6` to stable `16.2.12` without changing React, Vite, vinext, Wrangler, Cloudflare, product logic, persistence, or deployment configuration.
+- Retained all 724 lock entries; only the root plus 12 Next-owned entries changed, with zero added or removed dependency.
+- Reduced distinct production advisory records from 13 to 4 and removed all nine Next-specific records. Three PostCSS and one Sharp record remain explicitly deferred because stable Next has not incorporated the required compatibility upgrades.
+- Passed isolated and repository cold-cache installs, `npm run check` with 112 tests/build, 13 Chromium tests, 7 WebKit tests, production HTTP/title smoke, formatting, structural, sensitive-data, and complete diff checks.
+- Commit: `2c2782d` (`security: patch Next.js advisories`).
+- Push: Verified by matching local HEAD, `origin/main`, and GitHub at `2c2782d5223b5f63448c442adaed97360cbbd46c`.
+- CI: GitHub Actions run `30713299084` completed successfully for the exact commit SHA; Node 22 clean install and every quality-gate step passed.

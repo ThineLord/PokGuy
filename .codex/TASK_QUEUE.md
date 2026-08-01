@@ -59,7 +59,7 @@
 - Test method: Before/after structural lockfile comparison, isolated `npm ci`, `npm run check`, Chromium/WebKit regressions, diff/security review, and completed GitHub Actions conclusion.
 - Completion: Commit `cb19453`; 98 mirror records matched npmjs metadata and were changed by exact hostname substitution only. Structural comparison, isolated cold-cache `npm ci`, repository checks, 13 Chromium tests, 7 WebKit tests, final diff/security checks, push verification, and exact-SHA GitHub Actions run `30710451561` all passed.
 
-## PKG-007 — IN_PROGRESS
+## PKG-007 — DONE
 
 - Description: Remediate production-path npm advisories in a minimal dependency checkpoint, starting with the direct Next.js update and explicitly evaluating residual PostCSS/Sharp findings.
 - Priority: P1
@@ -67,7 +67,7 @@
 - Risk: Medium because framework and transitive dependency updates can affect build, runtime routing, image handling, and deployment compatibility.
 - Acceptance criteria: Upgrade Next.js to a verified patched release without API or UX regression; rerun production-only audit; document and safely resolve or explicitly defer residual PostCSS/Sharp findings; do not use an unreviewed `npm audit fix` or broad toolchain upgrade.
 - Test method: Before/after dependency and audit comparison, isolated clean `npm ci`, `npm run check`, Chromium/WebKit regressions, production build/smoke test, diff/security review, and completed exact-SHA GitHub Actions conclusion.
-- Progress: Next and `eslint-config-next` are updated to `16.2.12`; isolated/repository clean install, 112 tests/build, 13 Chromium, 7 WebKit, production smoke, advisory-level reduction from 13 to 4, and final diff/security checks pass. PostCSS/Sharp overrides are explicitly deferred; commit, push, and exact-SHA CI remain.
+- Completion: Commit `2c2782d` updates Next and `eslint-config-next` to `16.2.12`. Isolated/repository clean install, 112 tests/build, 13 Chromium, 7 WebKit, production smoke, advisory-level reduction from 13 to 4, final diff/security checks, push verification, and exact-SHA GitHub Actions run `30713299084` all passed. PostCSS/Sharp overrides are explicitly deferred with reachability mitigation and stable-upstream resume conditions.
 
 ## PKG-008 — TODO
 
