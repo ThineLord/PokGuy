@@ -2,7 +2,7 @@
 
 Current branch: `main`
 
-Current HEAD: validated product commit `4aec6ee0e5ce89ea25a409402676556ff41412df` plus the recovery-state checkpoint containing this file; resolve the checkpoint SHA with `git rev-parse HEAD`.
+Current HEAD: validated product commit `4aec6ee0e5ce89ea25a409402676556ff41412df` plus the recovery-state checkpoints containing this file; resolve the exact checkpoint SHA with `git rev-parse HEAD`.
 
 Last stable commit: `4aec6ee0e5ce89ea25a409402676556ff41412df` (`origin/main`, fast-forward push verified)
 
@@ -25,7 +25,7 @@ Completed steps:
 
 Remaining steps:
 
-- Commit and push the recovery-state checkpoint containing this file.
+- PKG-002 has no remaining implementation, validation, commit, or push work.
 - Before PKG-003, explain the WebKit browser installation and Playwright configuration impact under the repository safety protocol.
 - Do not begin the v3 review-snapshot migration without a separate design decision.
 
@@ -37,7 +37,7 @@ Current tests:
 - Playwright CLI recovery smoke — PASS; notice and usable table were visible, with 0 browser console errors and 0 warnings.
 - Toolchain warnings only: Node `module.register()` deprecation, jsdom LocalStorage experimental warning, proxy detection, and Playwright color-variable warning.
 
-Known failures: The repository-wide `npm run format:check` reports 10 pre-existing formatting differences in untouched files. WebKit automation is not yet installed or configured. A post-push GitHub API SHA probe hit a TLS handshake timeout; the actual fast-forward push and matching `origin/main` SHA succeeded.
+Known failures: The repository-wide `npm run format:check` reports 10 pre-existing formatting differences in untouched files. WebKit automation is not yet installed or configured. Git HTTPS required the existing explicit proxy after initial connection timeouts; the final checkpoint push and `ls-remote` SHA verification succeeded.
 
 Risk: Low for completed PKG-002. PKG-003 is medium risk because browser runtime availability and WebKit timing/layout behavior can differ.
 
