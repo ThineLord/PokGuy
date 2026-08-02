@@ -124,3 +124,12 @@ Append stable maintenance checkpoints here after their commit and remote status 
 - Commit: `0cb96bc` (`build: enforce formatting in quality check`).
 - Push: Verified by matching local HEAD, `origin/main`, remote, and GitHub at `0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385`.
 - CI: GitHub Actions run `30742915491` completed successfully for the exact product SHA; Node 22 clean install, formatter-first `npm run check`, and every job/post step passed.
+
+## 2026-08-02 — Chromium GitHub Actions gate
+
+- Added a separate Ubuntu 24.04 / Node 22 Chromium E2E job after the unchanged core quality job using `needs: check`, clean `npm ci`, and a Chromium-only Playwright install.
+- Preserved workflow events, read-only permissions, concurrency, immutable action pins, dependency/package files, product/runtime, Playwright configuration/tests, WebKit, artifacts, secrets, hosting, and deployment boundaries.
+- Passed local formatter-first `npm run check` with 13 Vitest files / 112 tests and production build, 13 Chromium tests, 7 WebKit tests, YAML/action-pin/protected-hash/whitespace/sensitive/scope checks, and independent product/security reviews.
+- Commit: `58280a9` (`ci: add Chromium end-to-end gate`).
+- Push: Verified by matching local HEAD, `origin/main`, remote, and GitHub at `58280a98c05ba46d5eee229a437b9d37ad504b1e`.
+- CI: GitHub Actions run `30743841409` completed successfully for the exact product SHA; core quality finished in 54s, then the dependent Chromium job finished in 1m29s with 13/13 tests (`42.7s` test step).

@@ -1,10 +1,10 @@
 {
-  "validated_at": "2026-08-02T18:03:11+08:00",
+  "validated_at": "2026-08-02T18:40:06+08:00",
   "branch": "main",
-  "head": "0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385",
-  "last_stable_commit": "0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385",
-  "worktree": "pkg-013-product-remote-verified-state-checkpoint-pending",
-  "phase": "remote-and-ci-verified-pkg-013-product",
+  "head": "58280a98c05ba46d5eee229a437b9d37ad504b1e",
+  "last_stable_commit": "58280a98c05ba46d5eee229a437b9d37ad504b1e",
+  "worktree": "pkg-014-product-remote-verified-state-checkpoint-pending",
+  "phase": "remote-and-ci-verified-pkg-014-product",
   "commands": [
     {
       "command": "startup Git/GitHub recovery and gh auth checks",
@@ -365,6 +365,36 @@
       "command": "local/tracking/ls-remote/GitHub SHA and gh run 30742915491 verification",
       "exit_code": 0,
       "result": "All four SHAs matched 0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385; Quality run completed successfully for that exact SHA with Node 22, clean npm ci, formatter-first npm run check, and every job/post step passing"
+    },
+    {
+      "command": "PKG-014 baseline and candidate npm run check plus local Chromium/WebKit gates",
+      "exit_code": 0,
+      "result": "Formatter-first canonical checks passed with lint, strict TypeScript, 13 Vitest files / 112 tests, and production build; 13 Chromium and 7 selected WebKit tests passed"
+    },
+    {
+      "command": "PKG-014 YAML, original-core, action-pin, workflow-trust, protected-hash, scope, whitespace, sensitive, untracked, listener, and independent reviews",
+      "exit_code": 0,
+      "result": "Candidate was exactly workflow, README, and TESTING; original core/events/permissions/concurrency remained byte-identical; package/lock, product, tests, Playwright config, storage, Vite, hosting, deployment, WebKit, secrets, and artifacts were unchanged; product and security reviewers found no blocker"
+    },
+    {
+      "command": "git commit ci: add Chromium end-to-end gate and scoped main push",
+      "exit_code": 0,
+      "result": "Created product commit 58280a98c05ba46d5eee229a437b9d37ad504b1e from exactly three files and pushed main without force; recovery documents and four user-owned untracked copies remained excluded"
+    },
+    {
+      "command": "local/tracking/ls-remote/GitHub SHA and gh run 30743841409 two-job verification",
+      "exit_code": 0,
+      "result": "All four SHAs matched 58280a98c05ba46d5eee229a437b9d37ad504b1e; run completed/success for the exact SHA; core quality finished in 54s, then dependent Chromium E2E finished in 1m29s with 13/13 tests and a 42.7s test step"
+    },
+    {
+      "command": "npm run check (PKG-014 final recovery-state candidate)",
+      "exit_code": 0,
+      "result": "Passed repository-wide Prettier, ESLint, strict TypeScript, 13 Vitest files / 112 tests, and production build"
+    },
+    {
+      "command": "independent PKG-014 final recovery-state review and corrected re-review",
+      "exit_code": 0,
+      "result": "Initial review identified pre-commit-only recovery wording and one stale browser-local sentence; both were corrected. Final re-review found no blocker and confirmed the durable pre/post state, exact eight-file allowlist, product SHA/run evidence, PKG-014 DONE, PKG-015 unapproved boundary, formatting, JSON, workflow hash, sensitive-data scan, and four excluded untracked files"
     }
   ],
   "known_failures": [
@@ -408,6 +438,10 @@
     "Final PKG-012 state commit e471837, remote SHA match, and exact-SHA Quality run 30741624567 are verified.",
     "PKG-013 changes exactly package.json, README.md, and TESTING.md; only scripts.check changed in package semantics, while package-lock, dependencies, workflow, runtime, storage, Vite, hosting, and deployment state remained unchanged.",
     "PKG-013 product commit 0cb96bc, push, local/tracking/remote/GitHub SHA match, and exact-SHA Quality run 30742915491 are verified.",
-    "At creation of this state record, only the documentation-only PKG-013 completion checkpoint still required commit, push, and exact-SHA CI confirmation; do not create a follow-up commit solely to record that checkpoint's own run."
+    "Final PKG-013 state commit 246d7e1, remote SHA match, and exact-SHA Quality run 30743120836 are verified.",
+    "PKG-014 is explicitly approved to add one dependent Chromium-only job; workflow trust, package/lock, product, tests, Playwright config, WebKit, artifact, hosting, deployment, and branch-protection boundaries remain excluded.",
+    "PKG-014 product commit 58280a9, push, local/tracking/remote/GitHub SHA match, and exact-SHA two-job run 30743841409 are verified.",
+    "PKG-014 changes only the approved workflow, README, and TESTING product files; package/lock, product/runtime, tests, Playwright config, storage, Vite, hosting, deployment, workflow trust, WebKit, secrets, and artifacts remain unchanged.",
+    "The final eight-file PKG-014 recovery checkpoint passed local and independent validation and still requires commit, push, and both exact-SHA GitHub jobs. PKG-015 artifact retention remains unapproved."
   ]
 }

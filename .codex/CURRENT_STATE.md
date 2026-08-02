@@ -2,15 +2,15 @@
 
 Current branch: `main`
 
-Current HEAD: Before the documentation-only completion commit, `0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385`. After that commit, obtain its exact immediate-descendant SHA with `git rev-parse HEAD`, then verify tracking, remote, GitHub, and exact-SHA CI before selecting new work.
+Current HEAD: Before the documentation-only completion commit, `58280a98c05ba46d5eee229a437b9d37ad504b1e` (`ci: add Chromium end-to-end gate`). After that commit, obtain its exact immediate-descendant SHA with `git rev-parse HEAD`, then verify tracking, remote, GitHub, and both exact-SHA jobs before selecting new work.
 
-Last stable commit: `0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385` (`build: enforce formatting in quality check`; exact-SHA GitHub Actions run `30742915491` succeeded)
+Last stable commit: Before final state verification, `58280a98c05ba46d5eee229a437b9d37ad504b1e` (`ci: add Chromium end-to-end gate`; exact-SHA run `30743841409` succeeded for both jobs). After both jobs succeed for its documentation-only immediate descendant, that descendant is the last stable commit.
 
-Current objective: Close the remote-verified PKG-013 maintenance checkpoint and select the next separately approved bounded task.
+Current objective: Close the remote-verified PKG-014 maintenance checkpoint and preserve PKG-015 as a separately approval-gated recommendation.
 
-Active task: Conditional recovery state. PKG-013 product work is complete and remote-verified. If HEAD is `0cb96bc`, create the state-only immediate descendant; if that descendant is not remote/CI verified, finish verification; once verified, no task is active.
+Active task: Conditional recovery state. PKG-014 product work is `DONE`. If HEAD is `58280a9`, create the state-only immediate descendant; if that descendant is not remote/two-job verified, finish verification; once verified, no task is active. PKG-015 remains unapproved.
 
-Modified files: Before the state-only commit, exactly eight recovery/status documents; after it, no tracked modification is expected. `package-lock.json`, dependencies, product/runtime code, storage, `vite.config.ts`, hosting, workflow, and deployment configuration are unchanged. Four historical conflict-style copies remain untracked, preserved, and excluded.
+Modified files: Before the state-only commit, exactly eight recovery/status documents: `.codex/COMPLETED.md`, `.codex/CURRENT_STATE.md`, `.codex/DECISIONS.md`, `.codex/LAST_VALIDATION.json`, `.codex/RESUME.md`, `.codex/TASK_QUEUE.md`, `docs/IMPLEMENTATION_STATUS.md`, and `docs/NEXT_STEPS.md`. After it, no tracked modification is expected. Package/lock, workflow, product/runtime, tests, Playwright config, storage, Vite, hosting, deployment, and four historical untracked copies remain protected.
 
 Completed steps:
 
@@ -114,12 +114,23 @@ Completed steps:
 - Passed the updated `npm run check`, confirming format first followed by lint, strict typecheck, 112 tests, and build; passed 13 Chromium and 7 WebKit tests.
 - Created and pushed product commit `0cb96bc`; local HEAD, `origin/main`, remote, and GitHub all matched exact SHA `0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385`.
 - Waited for GitHub Actions run `30742915491`; Node 22 clean install, the new formatter-first `npm run check`, and every job/post step completed successfully for the exact product SHA.
+- Verified final PKG-013 state commit `246d7e1`; local, tracking, remote, and GitHub all matched exact SHA `246d7e1ee5880a7076edda3f37d751f94a6e7382`, and Quality run `30743120836` completed successfully.
+- Received explicit PKG-014 approval through the user's `next` response after the workflow, runner-time, Chromium-download, and exclusion boundaries were presented.
+- Confirmed official Playwright CI guidance supports clean `npm ci`, browser/system dependency installation, and Playwright test execution; GitHub job dependencies use `needs` so Chromium runs only after core quality succeeds.
+- Passed the unmodified PKG-014 baseline `npm run check` at 2026-08-02T18:19+08:00; local/tracking/remote/GitHub SHAs matched `246d7e1`, and exact-SHA run `30743120836` remained successful.
+- Appended one `needs: check` Chromium-only job using the existing Ubuntu 24.04, Node `22.x`, pinned checkout/setup actions, clean `npm ci`, locally locked Playwright CLI, and 15-minute timeout. The existing workflow prefix remains byte-identical.
+- Updated README/TESTING to distinguish the new clean-runner Chromium gate from the seven local WebKit regressions.
+- Passed candidate `npm run check` with formatter first, lint, strict typecheck, 13 Vitest files / 112 tests, and build; passed 13 Chromium and 7 WebKit tests.
+- Passed YAML syntax, byte-identical core job/events/permissions/concurrency, exact full-SHA action pins, Chromium-only command, protected hashes/files, product/recovery scope, whitespace, sensitive-data, untracked-file, and listener checks.
+- Created and pushed product commit `58280a98c05ba46d5eee229a437b9d37ad504b1e` from exactly `.github/workflows/ci.yml`, `README.md`, and `TESTING.md`; local, tracking, remote, and GitHub SHAs matched.
+- GitHub Actions run `30743841409` completed successfully for the exact product SHA: the unchanged Node 22 quality job finished in 54 seconds, then the dependent Chromium E2E job finished in 1 minute 29 seconds with 13/13 tests (`42.7s` test step).
+- Confirmed the product checkpoint changed no dependency, product/runtime, test, Playwright configuration, storage, hosting/deployment, workflow event/permission/concurrency, secret, WebKit, or artifact boundary.
 
 Remaining steps:
 
-- If HEAD is `0cb96bc`, stage only the intended eight recovery/status files, create the final PKG-013 state checkpoint, and push `main` without force.
-- If the immediate descendant is not yet remote/CI verified, require completed GitHub Actions success for that exact state-only SHA; do not create another commit solely to record its own run.
-- Once verified, PKG-013 has no remaining step. Select the next bounded task from the queue and respect its approval boundary.
+- If HEAD is `58280a9`, stage only the validated eight recovery/status files, create the final PKG-014 state checkpoint, and push `main` without force.
+- If the documentation-only immediate descendant exists but is not yet remote/two-job verified, require both jobs to complete successfully for that exact SHA. Do not create another commit solely to record that final run.
+- Once verified, PKG-014 has no remaining step. Leave PKG-015 unapproved until its configuration/privacy/storage boundary receives separate approval.
 
 Current tests:
 
@@ -198,11 +209,19 @@ Current tests:
 - PKG-013 updated canonical `npm run check` — PASS at 2026-08-02T17:58+08:00; formatter ran first, then lint, strict typecheck, 13 Vitest files / 112 tests, and build.
 - PKG-013 Chromium / WebKit — PASS at 2026-08-02T17:59+08:00 (13 / 7 tests).
 - GitHub Actions `Quality` run `30742915491` — PASS (`completed/success`, exact product SHA `0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385`; Node 22 clean install, formatter-first canonical check, and all post steps passed).
+- GitHub Actions `Quality` run `30743120836` — PASS (`completed/success`, exact final PKG-013 state SHA `246d7e1ee5880a7076edda3f37d751f94a6e7382`).
+- PKG-014 baseline `npm run check` — PASS at 2026-08-02T18:19+08:00.
+- PKG-014 candidate `npm run check` — PASS at 2026-08-02T18:23+08:00 (formatter, lint, strict typecheck, 13 Vitest files / 112 tests, production build).
+- PKG-014 Chromium / WebKit — PASS at 2026-08-02T18:24+08:00 (13 / 7 tests).
+- PKG-014 workflow YAML/core/pins/commands/protected hashes/scope/whitespace/sensitive/untracked/listener checks — PASS.
+- GitHub Actions run `30743841409` — PASS (`completed/success`, exact product SHA `58280a98c05ba46d5eee229a437b9d37ad504b1e`; core quality 54s, dependent Chromium job 1m29s, 13 tests passed in 42.7s).
+- Final recovery-state `npm run check` — PASS at 2026-08-02T18:37+08:00 (repository formatting, lint, strict typecheck, 13 Vitest files / 112 tests, production build).
+- Independent final recovery-state review — PASS after correcting pre/post durability wording and one stale local-browser sentence; exact eight-file scope, evidence, JSON/formatting, workflow hash, sensitive-data boundary, and four excluded untracked files have no blocker.
 
 Known failures: Production and complete audits remain nonzero because stable Next `16.2.12` pins affected PostCSS/Sharp ranges. vinext returns a prompt generic HTTP 500 for an unknown Server Action ID while keeping the server live. One local production-start attempt exited before requests with vinext's transient `undefined` socket-backstop error; an immediate clean retry on the same Node `26.4.0` completed every smoke request and listener cleanup. Four untracked historical conflict copies remain intentionally untouched.
 
-Risk: Low. The product checkpoint is pushed and exact-SHA Node 22 CI-verified. Remaining work is documentation-only publication; the separate Next/PostCSS/Sharp upstream risk remains unchanged.
+Risk: Low for the remaining documentation-only checkpoint. The recurring CI job has a measured first-run cost and may still encounter future network/browser flake; failed traces currently remain on the ephemeral runner because artifact upload is outside PKG-014.
 
-Next command: Run `git rev-parse HEAD` and `git status --short --branch`. At `0cb96bc`, publish the state-only checkpoint; at its unverified immediate descendant, verify remote and exact-SHA CI; after verified success, select the next approved task.
+Next command: Run `git rev-parse HEAD` and `git status --short --branch`. At `58280a9`, stage the validated eight files and create the state-only checkpoint; at its unverified immediate descendant, verify remote state and both exact-SHA jobs; after verified success, stop with no active task.
 
-Resume instructions: Read `.codex/RESUME.md`, verify product commit `0cb96bc` and run `30742915491`, then inspect whether the final state-only checkpoint is uncommitted, pushed, or awaiting CI. Preserve all four untracked historical copies and the sibling dependency backup.
+Resume instructions: Read `.codex/RESUME.md`, verify product SHA `58280a98c05ba46d5eee229a437b9d37ad504b1e` and run `30743841409`, then inspect whether the final state-only checkpoint is uncommitted, pushed, or awaiting both jobs. Preserve all four untracked historical copies and the sibling dependency backup.

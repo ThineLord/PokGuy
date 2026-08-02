@@ -130,12 +130,22 @@
 - Test method: Script/diff boundary review, package/lock hashes, `npm run format:check`, updated `npm run check`, Chromium/WebKit only if runtime inputs move, sensitive-data review, push verification, and exact-SHA GitHub Actions conclusion.
 - Completion: Commit `0cb96bc` prepends the existing read-only `format:check` to canonical `npm run check` and updates README/TESTING. The lockfile, dependencies, workflow, product/runtime, storage, hosting, and deployment state remained unchanged. Formatter-first check, 112 tests/build, 13 Chromium, 7 WebKit, exact scope/security reviews, push verification, and exact-SHA Quality run `30742915491` all passed.
 
-## PKG-014 — TODO
+## PKG-014 — DONE
 
 - Description: Add the existing complete 13-test Chromium E2E suite as a separate read-only GitHub Actions job after the core quality job, so browser orchestration regressions are caught on clean pushes and pull requests.
 - Priority: P2
 - File scope: `.github/workflows/ci.yml`, README/TESTING, and `.codex/` recovery state only. `package.json`, lockfile, product code, Playwright configuration/tests, WebKit, dependencies, artifact uploads, secrets, deployment, workflow permissions/events, and branch protection are excluded.
 - Risk: Medium because every push/PR would download Chromium and Linux browser dependencies, increasing CI time and exposing browser/network flake; there is no product-data compatibility change.
-- Approval: Required separately before changing the workflow because this adds recurring runner work and browser-download cost.
+- Approval: Explicitly approved by the user's `next` response on 2026-08-02 after the workflow, recurring runner work, browser-download cost, and excluded scopes were presented.
 - Acceptance criteria: Preserve the existing Node 22 core job unchanged; add a dependent Ubuntu 24.04 / Node 22 job using the existing pinned checkout/setup actions, clean `npm ci`, Chromium-only Playwright install, and `npm run test:e2e`; keep `contents: read`, workflow events, concurrency, and 15-minute timeout boundaries; require 13/13 tests and exact-SHA success for both jobs.
 - Test method: Workflow/diff boundary review, local formatter-first `npm run check`, local Chromium/WebKit regressions, YAML/action-pin/permission checks, push verification, and completed exact-SHA conclusions for both GitHub jobs. Do not weaken tests, add caching/artifact uploads, or widen to WebKit if the first clean run fails.
+- Completion: Commit `58280a9` adds one dependent Chromium-only job while preserving the existing core job and all excluded boundaries. Local formatter-first check, 112 tests/build, 13 Chromium, 7 WebKit, YAML/action-pin/security/scope reviews, four-way SHA match, and exact-SHA run `30743841409` all passed; the core job completed in 54s and the Chromium job in 1m29s with 13/13 tests.
+
+## PKG-015 — TODO
+
+- Description: Preserve Playwright's existing failure traces from the ephemeral Chromium CI runner by uploading only failed-run test results with a short retention window.
+- Priority: P2
+- File scope: `.github/workflows/ci.yml`, README/TESTING if the operator contract changes, and `.codex/` recovery state only. Playwright configuration/tests, dependencies, product/runtime, WebKit, workflow events/permissions, deployment, and success-run artifacts are excluded.
+- Risk: Medium because it adds a pinned third-party workflow action plus GitHub artifact storage and may retain browser traces containing rendered local game state; it requires a separate configuration/privacy/cost approval boundary.
+- Acceptance criteria: Keep both existing jobs byte-stable except for a failure-only upload step in the Chromium job; pin the official upload action to a full commit SHA; upload only `test-results/` after a non-cancelled failure; use a short explicit retention period; expose no secrets or successful-run artifact; preserve all workflow trust and product boundaries.
+- Test method: Official action/provenance review, YAML and condition/path assertions, controlled failing-run validation where safely reproducible, formatter-first `npm run check`, local Chromium/WebKit regressions if needed, scope/privacy review, push verification, and exact-SHA conclusions for both GitHub jobs.

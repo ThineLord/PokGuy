@@ -91,3 +91,10 @@ Architecture and poker-rule decisions remain authoritative in `ARCHITECTURE.md` 
 - Require exactly six changed lock records, zero additions/removals, zero mirror URL, unchanged excluded package records, and lock SHA-256 `b1ee4dec8caa44b2e8d2bbfac6e5e9c4d27a9cde75aacc56699cfd42eb25856c` before repository testing.
 - Keep Next/PostCSS/Sharp, React, Vite, vinext, Cloudflare, ESLint major, Webpack, product logic, persistence, and deployment configuration outside PKG-011. Do not use broad `npm update`, `npm audit fix`, force, or preview releases.
 - Because the accepted candidate changes dependency configuration, record the validated boundary first and wait for explicit approval before applying it to the repository.
+
+## 2026-08-02 — Run Chromium E2E after the core CI gate
+
+- Supersede only the browser-local portion of the earlier minimal-CI decision after separately evaluating and approving its cost: keep the existing core quality job unchanged and run the complete 13-test Chromium suite only after it succeeds.
+- Use Ubuntu 24.04 and Node `22.x`, clean `npm ci`, and the Playwright-recommended Chromium-only browser/system-dependency install. Retain pinned checkout/setup actions, `contents: read`, ordinary push/pull-request events, concurrency, and 15-minute job timeouts.
+- Keep WebKit local and do not add artifact upload, browser caching, secrets, write permissions, deployment, `pull_request_target`, `continue-on-error`, or branch-protection changes in PKG-014.
+- Accept the measured first clean run: core quality 54 seconds, dependent Chromium job 1 minute 29 seconds, and 13/13 tests in 42.7 seconds. Revisit only if repeated runs establish unacceptable flake or cost.
