@@ -2,15 +2,15 @@
 
 Current branch: `main`
 
-Current HEAD: Before the documentation-only completion commit, `8fafbe9e97323ac595e3404eca93077144262d03`. After that commit, obtain the exact immediate-descendant SHA with `git rev-parse HEAD`, then verify tracking, remote, GitHub, and exact-SHA CI before selecting new work.
+Current HEAD: Before the documentation-only completion commit, `50af4271c9a024fe6ff6533c339d335e47637ac5`. After that commit, obtain its exact immediate-descendant SHA with `git rev-parse HEAD`, then verify tracking, remote, GitHub, and exact-SHA CI before selecting new work.
 
-Last stable commit: `8fafbe9e97323ac595e3404eca93077144262d03` (`security: patch development toolchain advisories`; exact-SHA GitHub Actions run `30723138038` succeeded)
+Last stable commit: `50af4271c9a024fe6ff6533c339d335e47637ac5` (`chore: normalize formatting baseline`; exact-SHA GitHub Actions run `30741440606` succeeded)
 
-Current objective: If the PKG-011 documentation-only checkpoint is not yet remote/CI verified, finish that exact boundary; otherwise select the next approved bounded task.
+Current objective: Close the remote-verified PKG-012 maintenance checkpoint and select the next approved bounded task.
 
-Active task: Conditional recovery state. PKG-011 product work is complete and remote-verified. If HEAD is `8fafbe9`, create the state-only immediate descendant; if that descendant is not remote/CI verified, finish verification; once verified, no task is active and PKG-012 remains TODO pending separate approval.
+Active task: Conditional recovery state. PKG-012 product work is complete and remote-verified. If HEAD is `50af427`, create the state-only immediate descendant; if that descendant is not remote/CI verified, finish verification; once verified, no task is active and PKG-013 remains TODO pending separate configuration approval.
 
-Modified files: Before the state-only commit, the eight recovery/status documents listed by `git diff --name-only`; after it, no tracked modification is expected. Four historical conflict-style copies remain untracked, preserved, and excluded.
+Modified files: Before the state-only commit, scoped recovery/status documentation only; after it, no tracked modification is expected. Dependencies, storage, `vite.config.ts`, hosting, and deployment configuration are unchanged, and no generated output enters the tracked diff. Four historical conflict-style copies remain untracked, preserved, and excluded.
 
 Completed steps:
 
@@ -96,12 +96,23 @@ Completed steps:
 - Passed changed-lock formatting, whitespace, exact candidate/hash, sensitive/private-path, registry, scope, stopped-listener, and independent read-only lock review. Repository-wide format check retains exactly 10 pre-existing untouched differences.
 - Created and pushed product commit `8fafbe9`; local HEAD, `origin/main`, remote, and GitHub all matched exact SHA `8fafbe9e97323ac595e3404eca93077144262d03`.
 - Waited for GitHub Actions run `30723138038`; Node 22 clean install, `npm run check`, and every job/post step completed successfully for the exact product SHA.
+- Verified final PKG-011 state commit `1e29b8e`; local, tracking, remote, and GitHub SHAs match, and exact-SHA Quality run `30723436548` completed successfully.
+- Received explicit PKG-012 approval and reproduced `npm run format:check` with exactly the documented 10 failing files on Prettier `3.9.5`; no additional file was reported.
+- Captured protected-file SHA-256 baselines for `package.json`, `package-lock.json`, `vite.config.ts`, `src/storage/storage.ts`, and `.openai/hosting.json` before formatting.
+- Applied Prettier `3.9.5` only to the approved 10-file allowlist; full-repository `npm run format:check` now passes.
+- Proved normalized TypeScript AST and type-erased JavaScript AST equivalence for all 10 files while ignoring only redundant parenthesis nodes introduced by line wrapping. Protected hashes remain byte-identical.
+- Passed `npm run check` with lint, strict typecheck, 13 Vitest files / 112 tests, and production build; passed 13 Chromium and 7 WebKit tests.
+- Passed build artifact invariants, vinext production, and real-workerd HTML/RSC/SVG/liveness smokes. The correct RSC path is `/.rsc`; an exploratory `/?_rsc=` request returned ordinary HTML and was not counted as RSC evidence.
+- Confirmed exact product/recovery scope, repository formatting, whitespace, sensitive/private-path scan, protected hashes, and stopped listeners. No upload or deploy command was run.
+- Confirmed each product file is byte-identical to deterministic Prettier `3.9.5` output from its HEAD source; independent product and scope/security reviews found no blocker.
+- Created and pushed product commit `50af427`; local HEAD, `origin/main`, remote, and GitHub all matched exact SHA `50af4271c9a024fe6ff6533c339d335e47637ac5`.
+- Waited for GitHub Actions run `30741440606`; Node 22 clean install, `npm run check`, and every job/post step completed successfully for the exact product SHA.
 
 Remaining steps:
 
-- If HEAD is `8fafbe9`, stage only the intended recovery/status files, commit the final PKG-011 state checkpoint, and push `main` without force.
+- If HEAD is `50af427`, stage only the intended recovery/status files, create the final PKG-012 state checkpoint, and push `main` without force.
 - If the immediate descendant is not yet remote/CI verified, require completed GitHub Actions success for that exact state-only SHA; do not create another commit solely to record its own run.
-- Once that descendant is verified, PKG-011 has no remaining step. Select the next approved bounded task; production PostCSS/Sharp remains an upstream-release waiting item, and the 10-file formatting baseline requires a separate approval boundary.
+- Once verified, PKG-012 has no remaining step. PKG-013 requires separate approval before changing the canonical quality command.
 
 Current tests:
 
@@ -165,11 +176,21 @@ Current tests:
 - PKG-011 artifact / vinext production / real-workerd — PASS (date/flags/main/assets/bindings/redirect invariant; HTML/RSC/SVG/liveness 200; listeners stopped).
 - PKG-011 formatting/hash/lock/registry/sensitive/scope/independent review — PASS; repository-wide formatter remains the known 10-file untouched baseline.
 - GitHub Actions `Quality` run `30723138038` — PASS (`completed/success`, exact product SHA `8fafbe9e97323ac595e3404eca93077144262d03`; Node 22 clean install and all quality steps passed).
+- GitHub Actions `Quality` run `30723436548` — PASS (`completed/success`, exact final PKG-011 state SHA `1e29b8e8386b036c99a760afc673923397634a73`).
+- PKG-012 baseline `npm run format:check` — EXPECTED NONZERO with exactly the approved 10 files; Prettier `3.9.5`.
+- PKG-012 post-write `npm run format:check` — PASS for the complete repository.
+- PKG-012 normalized TypeScript / emitted JavaScript AST comparison — PASS for all 10 files; initial raw comparison correctly rejected redundant parenthesis nodes as a method artifact and was replaced rather than reported as success.
+- PKG-012 `npm run check` — PASS at 2026-08-02T17:08+08:00 (lint, strict typecheck, 13 Vitest files / 112 tests, production build).
+- PKG-012 Chromium / WebKit — PASS (13 / 7 tests).
+- PKG-012 artifact / vinext production / real-workerd — PASS (date/flags/main/assets/bindings invariant; HTML/RSC/SVG/liveness 200; listeners stopped).
+- PKG-012 protected hash / exact scope / whitespace / sensitive scan — PASS; package, lock, storage, Vite, hosting, dependency, and generated-output boundaries remain unchanged.
+- PKG-012 deterministic Prettier / independent product / scope-security reviews — PASS; no blocker.
+- GitHub Actions `Quality` run `30741440606` — PASS (`completed/success`, exact product SHA `50af4271c9a024fe6ff6533c339d335e47637ac5`; Node 22 clean install and all quality steps passed).
 
-Known failures: Production and complete audits remain nonzero because stable Next `16.2.12` pins affected PostCSS/Sharp ranges; PKG-011 removed all four development-toolchain records. Repository-wide `npm run format:check` has exactly 10 pre-existing differences in untouched files. vinext returns a prompt generic HTTP 500 for an unknown Server Action ID while keeping the server live. Four untracked historical conflict copies remain intentionally untouched.
+Known failures: Production and complete audits remain nonzero because stable Next `16.2.12` pins affected PostCSS/Sharp ranges. vinext returns a prompt generic HTTP 500 for an unknown Server Action ID while keeping the server live. One local production-start attempt exited before requests with vinext's transient `undefined` socket-backstop error; an immediate clean retry on the same Node `26.4.0` completed every smoke request and listener cleanup. Four untracked historical conflict copies remain intentionally untouched.
 
-Risk: Low. The product commit is pushed and exact-SHA CI-verified. Remaining work is documentation-only checkpoint publication; residual production advisories remain separately documented and are not safe to override.
+Risk: Low. The product checkpoint is pushed and exact-SHA Node 22 CI-verified. Remaining work is documentation-only publication; the separate Next/PostCSS/Sharp upstream risk remains unchanged.
 
-Next command: Run `git rev-parse HEAD` and `git status --short --branch`. At `8fafbe9`, publish the state-only checkpoint; at its unverified immediate descendant, verify remote and exact-SHA CI; after verified success, select the next approved task.
+Next command: Run `git rev-parse HEAD` and `git status --short --branch`. At `50af427`, publish the state-only checkpoint; at its unverified immediate descendant, verify remote and exact-SHA CI; after verified success, select the next approved task.
 
-Resume instructions: Read `.codex/RESUME.md`, verify product commit `8fafbe9` and run `30723138038`, then inspect whether the final state-only checkpoint is uncommitted, pushed, or awaiting CI. Preserve all four untracked historical copies and the sibling dependency backup.
+Resume instructions: Read `.codex/RESUME.md`, verify product commit `50af427` and run `30741440606`, then inspect whether the final state-only checkpoint is uncommitted, pushed, or awaiting CI. Preserve all four untracked historical copies and the sibling dependency backup.

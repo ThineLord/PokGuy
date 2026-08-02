@@ -109,7 +109,7 @@
 - Test method: Official advisory comparison, cold `npm ci`, clean peer graph, `npm run check`, Chromium/WebKit, production/workerd smoke where build graph changes, diff/security review, and exact-SHA CI.
 - Completion: Commit `8fafbe9` applies the exact six-record lock-only candidate while leaving `package.json` byte-identical. Cold install, clean dependency graph, 754→754 exact lock boundary, complete-audit reduction from 7 records / 13 sources to the separately deferred Next/PostCSS/Sharp 3 / 4, 112 tests/build, 13 Chromium, 7 WebKit, production/workerd/artifact, changed-file formatting/security/scope reviews, push verification, and exact-SHA CI run `30723138038` all passed.
 
-## PKG-012 — TODO
+## PKG-012 — DONE
 
 - Description: Normalize the 10 known repository-wide Prettier differences as one isolated formatting-only checkpoint so the existing `format:check` command becomes a reliable green gate.
 - Priority: P3
@@ -117,3 +117,13 @@
 - Risk: Low to medium because a mechanical formatter would rewrite 10 code/config files; the exact diff requires an approval boundary before application.
 - Acceptance criteria: Prettier-only changes with no semantic, import, API, generated-artifact, or dependency delta; repository-wide `npm run format:check` becomes green.
 - Test method: Before/after AST- and diff-scope review where practical, `npm run format:check`, `npm run check`, Chromium/WebKit regressions if product bundles change, production/workerd smoke where configuration output changes, sensitive-data review, and exact-SHA CI.
+- Completion: Commit `50af427` applies deterministic Prettier `3.9.5` output to exactly the approved 10 files. Full-repository format check, normalized TS/emitted-JS AST equivalence, protected hashes, 112 tests/build, 13 Chromium, 7 WebKit, artifact, production/workerd, scope/security, two independent reviews, push verification, and exact-SHA CI run `30741440606` all passed. Package/lock, storage, Vite, hosting, dependencies, and deployment state remained unchanged; no generated artifact entered the commit.
+
+## PKG-013 — TODO
+
+- Description: Add the now-clean repository-wide `format:check` to the canonical `npm run check` sequence so local and GitHub quality gates prevent formatting regressions.
+- Priority: P2
+- File scope: `package.json`, quality/testing documentation, and `.codex/` recovery state only. `package-lock.json`, dependencies, product code, storage, hosting, deployment configuration, and workflow permissions are excluded.
+- Risk: Low to medium because this changes the canonical project/CI command contract; it requires a separate configuration approval boundary.
+- Acceptance criteria: Preserve the existing lint, strict typecheck, Vitest, and production-build stages while adding fail-fast repository formatting; keep package-lock byte-identical; document the command order without broad CI or dependency changes.
+- Test method: Script/diff boundary review, package/lock hashes, `npm run format:check`, updated `npm run check`, Chromium/WebKit only if runtime inputs move, sensitive-data review, push verification, and exact-SHA GitHub Actions conclusion.

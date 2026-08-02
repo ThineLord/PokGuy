@@ -1,10 +1,10 @@
 {
-  "validated_at": "2026-08-02T07:29:13+08:00",
+  "validated_at": "2026-08-02T17:21:30+08:00",
   "branch": "main",
-  "head": "8fafbe9e97323ac595e3404eca93077144262d03",
-  "last_stable_commit": "8fafbe9e97323ac595e3404eca93077144262d03",
-  "worktree": "pkg-011-product-remote-verified-state-checkpoint-pending",
-  "phase": "remote-and-ci-verified-pkg-011-product",
+  "head": "50af4271c9a024fe6ff6533c339d335e47637ac5",
+  "last_stable_commit": "50af4271c9a024fe6ff6533c339d335e47637ac5",
+  "worktree": "pkg-012-product-remote-verified-state-checkpoint-pending",
+  "phase": "remote-and-ci-verified-pkg-012-product",
   "commands": [
     {
       "command": "startup Git/GitHub recovery and gh auth checks",
@@ -265,6 +265,81 @@
       "command": "independent read-only final recovery-state review",
       "exit_code": 0,
       "result": "No blocker remained after making Current State conditional across pre-commit, remote-verification, and completed-CI phases; exact eight-file staged allowlist and four excluded untracked copies were confirmed"
+    },
+    {
+      "command": "PKG-012 startup Git/GitHub recovery, tool prerequisite, and exact-SHA baseline verification",
+      "exit_code": 0,
+      "result": "Tracked-clean main baseline; local, tracking, remote, and GitHub matched 1e29b8e8386b036c99a760afc673923397634a73; Quality run 30723436548 was completed/success; npx 11.17.0, Prettier 3.9.5, and authenticated gh were available; four untracked copies remained preserved"
+    },
+    {
+      "command": "baseline npm run format:check",
+      "exit_code": 1,
+      "result": "Expected exact baseline: only the 10 approved PKG-012 files failed formatting; no additional file was reported"
+    },
+    {
+      "command": "exact 10-file npx prettier --write and repository npm run format:check",
+      "exit_code": 0,
+      "result": "Prettier 3.9.5 changed only the approved allowlist and the complete repository formatting check passed"
+    },
+    {
+      "command": "normalized TypeScript AST and emitted JavaScript AST comparison",
+      "exit_code": 0,
+      "result": "All 10 files matched before/after when ignoring only redundant ParenthesizedExpression nodes; initial raw AST and exact emit comparisons were rejected as method artifacts rather than reported as passes"
+    },
+    {
+      "command": "npm run check",
+      "exit_code": 0,
+      "result": "Passed ESLint, strict TypeScript, 13 Vitest files / 112 tests, and the Vite 8.0.16 production build"
+    },
+    {
+      "command": "npm run test:e2e and npm run test:e2e:webkit",
+      "exit_code": 0,
+      "result": "Passed 13 Chromium and 7 selected WebKit tests; Playwright servers stopped"
+    },
+    {
+      "command": "artifact assertions, vinext production smoke, and real-workerd preview smoke",
+      "exit_code": 0,
+      "result": "Preserved compatibility date, flags, main, no_bundle, assets, empty D1/R2, hosting copy, and required files; production and workerd HTML, /.rsc, SVG, and liveness probes passed; all listeners stopped; no upload or deploy command ran"
+    },
+    {
+      "command": "protected hashes, exact scope, whitespace, sensitive/private-path, and listener checks",
+      "exit_code": 0,
+      "result": "Package, lock, Vite, storage, and hosting hashes remained exact; product diff was the 10 approved files, recovery diff was scoped, and no sensitive/private path or listener remained"
+    },
+    {
+      "command": "deterministic Prettier output comparison and Prettier debug checks",
+      "exit_code": 0,
+      "result": "Every product file was byte-identical to Prettier 3.9.5 applied to its HEAD source; independent debug-check coverage found no syntax or ASI instability"
+    },
+    {
+      "command": "independent PKG-012 product and scope/security reviews",
+      "exit_code": 0,
+      "result": "Both reviews found no blocker: exact 10-file mechanical product scope, stable import/property/argument/comment order, unchanged protected hashes, no sensitive data, and four excluded user-owned untracked copies"
+    },
+    {
+      "command": "git commit chore: normalize formatting baseline and scoped main push",
+      "exit_code": 0,
+      "result": "Created product commit 50af4271c9a024fe6ff6533c339d335e47637ac5 from exactly the 10 approved formatter targets and pushed main without force; recovery documents and four user-owned untracked copies remained excluded"
+    },
+    {
+      "command": "initial product full-SHA literal assertion",
+      "exit_code": 1,
+      "result": "The command guessed an incorrect expansion of short SHA 50af427 and exited even though local, tracking, remote, and GitHub all printed the same actual SHA; verification was rerun using git rev-parse output"
+    },
+    {
+      "command": "local/tracking/ls-remote/GitHub SHA verification",
+      "exit_code": 0,
+      "result": "Local HEAD, origin/main, remote refs/heads/main, and GitHub all matched 50af4271c9a024fe6ff6533c339d335e47637ac5"
+    },
+    {
+      "command": "gh run view 30741440606 exact-SHA Quality verification",
+      "exit_code": 0,
+      "result": "Run 30741440606 was completed/success for exact head SHA 50af4271c9a024fe6ff6533c339d335e47637ac5; Node 22 clean install, npm run check, and every job/post step passed"
+    },
+    {
+      "command": "independent PKG-012 final recovery-state review",
+      "exit_code": 0,
+      "result": "No blocker: exact eight-document state scope, durable pre/post-commit recovery instructions, truthful product CI wording, PKG-012 DONE, PKG-013 approval boundary, and four excluded user-owned untracked copies were confirmed"
     }
   ],
   "known_failures": [
@@ -277,11 +352,6 @@
       "command": "npm audit --json",
       "exit_code": 1,
       "result": "After the approved PKG-011 lock refresh, only the separately deferred Next/PostCSS/Sharp 3 high package records / 4 independent advisory sources remain; no low or critical finding"
-    },
-    {
-      "command": "npm run format:check",
-      "exit_code": 1,
-      "result": "10 pre-existing formatting differences in untouched files; changed-file formatting is checked separately"
     }
   ],
   "notes": [
@@ -305,6 +375,11 @@
     "PKG-011 did not change Wrangler, workerd, Vite, Worker or hosting configuration; artifact and real-workerd gates passed, so repeating deploy dry-run would add unrelated surface and was intentionally omitted.",
     "The original dependency backup, task-owned external candidates/evidence, and four historical untracked copies remain preserved; none was deleted or staged.",
     "PKG-011 product commit 8fafbe9, push, local/tracking/remote/GitHub SHA match, and exact-SHA Quality run 30723138038 are verified.",
+    "Final PKG-011 recovery commit 1e29b8e, remote SHA match, and exact-SHA Quality run 30723436548 are verified.",
+    "PKG-012 changes exactly the 10 approved formatter targets; dependencies, package/lock, storage, Vite, hosting, generated output, and deployment resources are unchanged.",
+    "A first local vinext production-start attempt exited before serving requests with a transient undefined socket-backstop error on Node 26.4.0; a clean retry on the same runtime passed HTML, /.rsc, SVG, liveness, and listener cleanup. Exact-SHA Node 22 CI remains required.",
+    "An exploratory /?_rsc=pkg012 request returned ordinary HTML and was not accepted as RSC evidence; the verified production and workerd RSC route is /.rsc with text/x-component.",
+    "PKG-012 product commit 50af427, push, local/tracking/remote/GitHub SHA match, and exact-SHA Quality run 30741440606 are verified.",
     "At creation of this state record, only the documentation-only completion checkpoint still required commit, push, and exact-SHA CI confirmation; do not create a follow-up commit solely to record that checkpoint's own run."
   ]
 }

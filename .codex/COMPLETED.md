@@ -105,3 +105,13 @@ Append stable maintenance checkpoints here after their commit and remote status 
 - Commit: `8fafbe9` (`security: patch development toolchain advisories`).
 - Push: Verified by matching local HEAD, `origin/main`, remote, and GitHub at `8fafbe9e97323ac595e3404eca93077144262d03`.
 - CI: GitHub Actions run `30723138038` completed successfully for the exact product SHA; Node 22 clean install, `npm run check`, and every job/post step passed.
+
+## 2026-08-02 — Repository formatting baseline normalization
+
+- Applied deterministic Prettier `3.9.5` output to exactly 10 approved TypeScript/config/test files; no import, property, argument, comment, or data order changed.
+- Proved normalized TypeScript and emitted-JavaScript AST equivalence, deterministic formatter output, and byte-identical package, lock, Vite, storage, and hosting boundaries.
+- Made full-repository `npm run format:check` pass without changing dependencies, product behavior, LocalStorage, hosting, deployment configuration, or GitHub workflow permissions; no generated artifact entered the commit.
+- Passed lint, strict typecheck, 13 Vitest files / 112 tests, production build, 13 Chromium, 7 WebKit, artifact invariants, vinext production and real-workerd HTML/RSC/SVG/liveness, sensitive/scope checks, and two independent reviews.
+- Commit: `50af427` (`chore: normalize formatting baseline`).
+- Push: Verified by matching local HEAD, `origin/main`, remote, and GitHub at `50af4271c9a024fe6ff6533c339d335e47637ac5`.
+- CI: GitHub Actions run `30741440606` completed successfully for the exact product SHA; Node 22 clean install, `npm run check`, and every job/post step passed.
