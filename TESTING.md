@@ -3,13 +3,14 @@
 ## 命令
 
 ```bash
+npm run format:check  # Prettier 全仓格式检查
 npm run lint          # ESLint
 npm run typecheck     # TypeScript strict check
 npm run test          # Vitest 单元与组件测试
 npm run test:watch    # Vitest 监听模式
 npm run test:coverage # V8 覆盖率
 npm run build         # production build
-npm run check         # lint → typecheck → test → build
+npm run check         # format:check → lint → typecheck → test → build
 npm run test:e2e      # 13 项 Playwright Chromium 回归
 npm run test:e2e:webkit # 7 项精选 Playwright WebKit 回归
 ```

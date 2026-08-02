@@ -55,6 +55,7 @@ LocalStorage 按浏览器和设备分别保存，因此 Mac、iPhone 与 iPad �
 ## 测试与质量检查
 
 ```bash
+npm run format:check
 npm run lint
 npm run typecheck
 npm run test
@@ -70,7 +71,7 @@ npm run test:e2e
 npm run test:e2e:webkit
 ```
 
-`npm run check` 依次执行 ESLint、TypeScript、Vitest 和 production build。E2E 独立执行，以便没有浏览器运行时的环境仍能完成核心检查。
+`npm run check` 依次执行全仓 Prettier 格式检查、ESLint、TypeScript、Vitest 和 production build。E2E 独立执行，以便没有浏览器运行时的环境仍能完成核心检查。
 
 GitHub Actions 会在 `main` push 和面向 `main` 的 pull request 上使用最新 Node.js 22 LTS 补丁版本（`22.x`）执行干净的 `npm ci` 与 `npm run check`。浏览器 E2E 仍作为独立本地门禁，避免首个 CI 工作流隐式下载浏览器或显著增加运行时间。
 
