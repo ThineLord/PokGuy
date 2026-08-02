@@ -71,7 +71,7 @@ npx playwright install chromium webkit
 
 ## GitHub Actions
 
-`.github/workflows/ci.yml` 在 `main` push 和面向 `main` 的 pull request 上运行。它使用最新 Node.js 22 LTS 补丁版本（`22.x`）、`npm ci` 和 `npm run check`，token 权限仅为读取仓库内容；不读取 secrets、不部署，也不运行需要浏览器下载的 E2E。Chromium 与 WebKit E2E 继续作为提交前的独立本地验证。
+`.github/workflows/ci.yml` 在 `main` push 和面向 `main` 的 pull request 上运行。核心 job 使用最新 Node.js 22 LTS 补丁版本（`22.x`）、`npm ci` 和 `npm run check`；成功后，独立 Chromium job 会再次执行干净的 `npm ci`，仅安装 Chromium 及其 Linux 系统依赖，并运行完整 13 项 `npm run test:e2e`。Token 权限仍仅为读取仓库内容，不读取 secrets、不部署；7 项精选 WebKit 回归继续作为提交前的独立本地验证。
 
 ## 手动检查清单
 

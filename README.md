@@ -73,7 +73,7 @@ npm run test:e2e:webkit
 
 `npm run check` 依次执行全仓 Prettier 格式检查、ESLint、TypeScript、Vitest 和 production build。E2E 独立执行，以便没有浏览器运行时的环境仍能完成核心检查。
 
-GitHub Actions 会在 `main` push 和面向 `main` 的 pull request 上使用最新 Node.js 22 LTS 补丁版本（`22.x`）执行干净的 `npm ci` 与 `npm run check`。浏览器 E2E 仍作为独立本地门禁，避免首个 CI 工作流隐式下载浏览器或显著增加运行时间。
+GitHub Actions 会在 `main` push 和面向 `main` 的 pull request 上先使用最新 Node.js 22 LTS 补丁版本（`22.x`）执行干净的 `npm ci` 与 `npm run check`。核心门禁成功后，独立 job 会再次干净安装依赖，仅安装 Chromium 及其 Linux 系统依赖，并运行完整 13 项 `npm run test:e2e`；精选 WebKit 回归仍作为独立本地门禁。
 
 ## 项目结构
 
