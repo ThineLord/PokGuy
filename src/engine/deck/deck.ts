@@ -17,7 +17,10 @@ export function shuffleDeck(
   return shuffled;
 }
 
-export function drawCards(deck: readonly Card[], count: number): [Card[], Card[]] {
+export function drawCards(
+  deck: readonly Card[],
+  count: number,
+): [Card[], Card[]] {
   if (!Number.isInteger(count) || count < 0 || count > deck.length) {
     throw new Error("Cannot draw the requested number of cards");
   }

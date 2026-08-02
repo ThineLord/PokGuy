@@ -24,16 +24,28 @@ export function preflopStrength([a, b]: [Card, Card]): number {
 
 function texture(cards: Card[]): { draw: number; danger: number; nut: number } {
   const suits = new Map<string, number>();
-  cards.forEach((card) => suits.set(card.suit, (suits.get(card.suit) ?? 0) + 1));
+  cards.forEach((card) =>
+    suits.set(card.suit, (suits.get(card.suit) ?? 0) + 1),
+  );
   const maxSuit = Math.max(0, ...suits.values());
-  const ranks = [...new Set(cards.map((card) => card.rank))].sort((a, b) => a - b);
+  const ranks = [...new Set(cards.map((card) => card.rank))].sort(
+    (a, b) => a - b,
+  );
   let connected = 0;
-  for (let index = 1; index < ranks.length; index += 1) if (ranks[index] - ranks[index - 1] <= 2) connected += 1;
+  for (let index = 1; index < ranks.length; index += 1)
+    if (ranks[index] - ranks[index - 1] <= 2) connected += 1;
   const paired = ranks.length < cards.length;
   return {
-    draw: clamp((maxSuit >= 4 ? 0.55 : maxSuit === 3 ? 0.26 : 0) + connected * 0.08),
-    danger: clamp((maxSuit >= 3 ? 0.28 : 0.08) + connected * 0.1 + (paired ? 0.16 : 0)),
-    nut: clamp((cards.some((card) => card.rank === 14) ? 0.28 : 0.1) + (maxSuit >= 4 ? 0.35 : 0.1)),
+    draw: clamp(
+      (maxSuit >= 4 ? 0.55 : maxSuit === 3 ? 0.26 : 0) + connected * 0.08,
+    ),
+    danger: clamp(
+      (maxSuit >= 3 ? 0.28 : 0.08) + connected * 0.1 + (paired ? 0.16 : 0),
+    ),
+    nut: clamp(
+      (cards.some((card) => card.rank === 14) ? 0.28 : 0.1) +
+        (maxSuit >= 4 ? 0.35 : 0.1),
+    ),
   };
 }
 
@@ -45,10 +57,23 @@ export function assessHand(
   iterations = 100,
 ): HandAssessment {
   const boardTexture = texture([...holeCards, ...board]);
-  const equityEstimate = estimateEquity({ holeCards, board, opponents, seed, iterations }).equity;
+  const equityEstimate = estimateEquity({
+    holeCards,
+    board,
+    opponents,
+    seed,
+    iterations,
+  }).equity;
   if (board.length < 3) {
     const strength = preflopStrength(holeCards);
-    return { madeHandStrength: strength, drawStrength: boardTexture.draw, equityEstimate, nutPotential: boardTexture.nut, boardDanger: 0.12, showdownValue: strength };
+    return {
+      madeHandStrength: strength,
+      drawStrength: boardTexture.draw,
+      equityEstimate,
+      nutPotential: boardTexture.nut,
+      boardDanger: 0.12,
+      showdownValue: strength,
+    };
   }
   const evaluation = evaluateBestHand([...holeCards, ...board]);
   const madeHandStrength = clamp((evaluation.categoryRank + 0.6) / 8.6);

@@ -1,6 +1,9 @@
-export type Street = "preflop" | "flop" | "turn" | "river" | "showdown" | "complete";
-export type PlayerStatus = "active" | "folded" | "all-in" | "sitting-out" | "busted";
-export type PokerActionType = "fold" | "check" | "call" | "bet" | "raise" | "all-in";
+export type Street =
+  "preflop" | "flop" | "turn" | "river" | "showdown" | "complete";
+export type PlayerStatus =
+  "active" | "folded" | "all-in" | "sitting-out" | "busted";
+export type PokerActionType =
+  "fold" | "check" | "call" | "bet" | "raise" | "all-in";
 
 export interface BettingPlayer {
   id: string;

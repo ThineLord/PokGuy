@@ -5,7 +5,10 @@ import {
   rotateButton,
 } from "@/src/engine/state/positions";
 
-const sixSeats = Array.from({ length: 6 }, (_, seat) => ({ id: String(seat), seat }));
+const sixSeats = Array.from({ length: 6 }, (_, seat) => ({
+  id: String(seat),
+  seat,
+}));
 
 describe("positions and action order", () => {
   it("assigns blinds and UTG preflop at a six-max table", () => {
@@ -17,7 +20,10 @@ describe("positions and action order", () => {
   });
 
   it("uses button as small blind and first preflop in heads-up", () => {
-    const headsUp = [{ id: "hero", seat: 0 }, { id: "villain", seat: 4 }];
+    const headsUp = [
+      { id: "hero", seat: 0 },
+      { id: "villain", seat: 4 },
+    ];
     const positions = assignForcedPositions(headsUp, 0);
     expect(positions.smallBlind.id).toBe("hero");
     expect(positions.bigBlind.id).toBe("villain");
@@ -26,6 +32,15 @@ describe("positions and action order", () => {
   });
 
   it("rotates the button clockwise while skipping inactive seats", () => {
-    expect(rotateButton([{ id: "a", seat: 0 }, { id: "b", seat: 2, active: false }, { id: "c", seat: 4 }], 0)).toBe(4);
+    expect(
+      rotateButton(
+        [
+          { id: "a", seat: 0 },
+          { id: "b", seat: 2, active: false },
+          { id: "c", seat: 4 },
+        ],
+        0,
+      ),
+    ).toBe(4);
   });
 });
