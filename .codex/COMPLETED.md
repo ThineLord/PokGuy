@@ -115,3 +115,12 @@ Append stable maintenance checkpoints here after their commit and remote status 
 - Commit: `50af427` (`chore: normalize formatting baseline`).
 - Push: Verified by matching local HEAD, `origin/main`, remote, and GitHub at `50af4271c9a024fe6ff6533c339d335e47637ac5`.
 - CI: GitHub Actions run `30741440606` completed successfully for the exact product SHA; Node 22 clean install, `npm run check`, and every job/post step passed.
+
+## 2026-08-02 — Canonical formatting quality gate
+
+- Prepended the existing read-only `format:check` to canonical `npm run check`; the original lint, strict typecheck, Vitest, and production-build stages retain their order.
+- Updated README and TESTING to match the executable contract. `package-lock.json`, dependencies, workflow, product/runtime code, LocalStorage, Vite, hosting, and deployment state remained unchanged.
+- Passed full-repository formatting, formatter-first canonical check with 13 Vitest files / 112 tests and build, 13 Chromium, 7 WebKit, exact scope/hash/whitespace/sensitive checks, and three independent reviews.
+- Commit: `0cb96bc` (`build: enforce formatting in quality check`).
+- Push: Verified by matching local HEAD, `origin/main`, remote, and GitHub at `0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385`.
+- CI: GitHub Actions run `30742915491` completed successfully for the exact product SHA; Node 22 clean install, formatter-first `npm run check`, and every job/post step passed.

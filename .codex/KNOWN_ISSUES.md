@@ -27,12 +27,12 @@
 - Impact: A legacy/imported grade can only be paired with an action when record count and chronological order make the mapping unambiguous; otherwise Review Lab intentionally shows the grade without action context.
 - Next step: Keep the safe fallback in Phase 8.0; design a versioned migration separately for PKG-005.
 
-## Repository-wide formatting baseline — resolved
+## Repository-wide formatting baseline and quality gate — resolved
 
-- Status: Resolved by PKG-012 product commit `50af427`; exact-SHA Quality run `30741440606` passed.
+- Status: Baseline resolved by PKG-012 commit `50af427`; canonical enforcement added by PKG-013 commit `0cb96bc`. Exact-SHA Quality runs `30741440606` and `30742915491` passed.
 - Priority: Closed P3
-- Resolution: Deterministic Prettier `3.9.5` output changed only the approved 10 files, structure/runtime gates passed, and `npm run format:check` is now green for the full repository.
-- Next step: PKG-013 may add the clean formatter gate to the canonical `npm run check` sequence after separate configuration approval.
+- Resolution: Deterministic Prettier `3.9.5` output normalized the approved baseline, and canonical `npm run check` now runs the read-only full-repository formatter gate first while preserving lint, typecheck, test, and build.
+- Next step: Keep the formatter first and read-only; do not duplicate it in the workflow or widen `.prettierignore` for transient local files without a separate reason.
 
 ## Lockfile uses mixed npm registries — resolved
 

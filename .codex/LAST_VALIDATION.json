@@ -1,10 +1,10 @@
 {
-  "validated_at": "2026-08-02T17:21:30+08:00",
+  "validated_at": "2026-08-02T18:03:11+08:00",
   "branch": "main",
-  "head": "50af4271c9a024fe6ff6533c339d335e47637ac5",
-  "last_stable_commit": "50af4271c9a024fe6ff6533c339d335e47637ac5",
-  "worktree": "pkg-012-product-remote-verified-state-checkpoint-pending",
-  "phase": "remote-and-ci-verified-pkg-012-product",
+  "head": "0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385",
+  "last_stable_commit": "0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385",
+  "worktree": "pkg-013-product-remote-verified-state-checkpoint-pending",
+  "phase": "remote-and-ci-verified-pkg-013-product",
   "commands": [
     {
       "command": "startup Git/GitHub recovery and gh auth checks",
@@ -340,6 +340,31 @@
       "command": "independent PKG-012 final recovery-state review",
       "exit_code": 0,
       "result": "No blocker: exact eight-document state scope, durable pre/post-commit recovery instructions, truthful product CI wording, PKG-012 DONE, PKG-013 approval boundary, and four excluded user-owned untracked copies were confirmed"
+    },
+    {
+      "command": "startup recovery, prerequisites, exact remote SHA, and PKG-013 baseline checks",
+      "exit_code": 0,
+      "result": "Started from e47183739bb479760d94f089c780e717956fcf76 with local/tracking/remote/GitHub match and exact-SHA run 30741624567 success; no stash or interrupted Git operation; full-repository format and legacy canonical check passed"
+    },
+    {
+      "command": "updated npm run check, npm run test:e2e, and npm run test:e2e:webkit",
+      "exit_code": 0,
+      "result": "Canonical check ran format first, then lint, strict TypeScript, 13 Vitest files / 112 tests, and production build; 13 Chromium and 7 selected WebKit tests passed"
+    },
+    {
+      "command": "PKG-013 script, package/lock/workflow/runtime, whitespace, sensitive, untracked, and independent scope reviews",
+      "exit_code": 0,
+      "result": "Only scripts.check changed in package semantics; product diff was exactly package.json, README.md, and TESTING.md; lock, workflow, dependencies, runtime, storage, Vite, hosting, and deployment boundaries were unchanged; no sensitive addition; three independent reviews found no blocker"
+    },
+    {
+      "command": "git commit build: enforce formatting in quality check and scoped main push",
+      "exit_code": 0,
+      "result": "Created product commit 0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385 from exactly three files and pushed main without force; recovery documents and four user-owned untracked copies remained excluded"
+    },
+    {
+      "command": "local/tracking/ls-remote/GitHub SHA and gh run 30742915491 verification",
+      "exit_code": 0,
+      "result": "All four SHAs matched 0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385; Quality run completed successfully for that exact SHA with Node 22, clean npm ci, formatter-first npm run check, and every job/post step passing"
     }
   ],
   "known_failures": [
@@ -380,6 +405,9 @@
     "A first local vinext production-start attempt exited before serving requests with a transient undefined socket-backstop error on Node 26.4.0; a clean retry on the same runtime passed HTML, /.rsc, SVG, liveness, and listener cleanup. Exact-SHA Node 22 CI remains required.",
     "An exploratory /?_rsc=pkg012 request returned ordinary HTML and was not accepted as RSC evidence; the verified production and workerd RSC route is /.rsc with text/x-component.",
     "PKG-012 product commit 50af427, push, local/tracking/remote/GitHub SHA match, and exact-SHA Quality run 30741440606 are verified.",
-    "At creation of this state record, only the documentation-only completion checkpoint still required commit, push, and exact-SHA CI confirmation; do not create a follow-up commit solely to record that checkpoint's own run."
+    "Final PKG-012 state commit e471837, remote SHA match, and exact-SHA Quality run 30741624567 are verified.",
+    "PKG-013 changes exactly package.json, README.md, and TESTING.md; only scripts.check changed in package semantics, while package-lock, dependencies, workflow, runtime, storage, Vite, hosting, and deployment state remained unchanged.",
+    "PKG-013 product commit 0cb96bc, push, local/tracking/remote/GitHub SHA match, and exact-SHA Quality run 30742915491 are verified.",
+    "At creation of this state record, only the documentation-only PKG-013 completion checkpoint still required commit, push, and exact-SHA CI confirmation; do not create a follow-up commit solely to record that checkpoint's own run."
   ]
 }

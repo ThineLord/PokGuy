@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-- 当前阶段：Phase 8.9 全仓格式基线规范化远端精确 SHA CI 验证完成
+- 当前阶段：Phase 8.10 全仓格式门禁接入 canonical quality check 并完成远端精确 SHA CI 验证
 - 可运行状态：可安装、启动、连续游戏、训练、复盘、统计、导出和可信局域网访问
 - 当前分支：`main`
 - 当前稳定维护提交、远端同步与精确 SHA CI 状态见 `.codex/CURRENT_STATE.md`
@@ -38,6 +38,7 @@
 - Cloudflare Vite plugin `1.47.0`、Wrangler `4.114.0` 与 Workers types `5.20260722.1` 已同步；显式 `2026-05-15` compatibility date 保持既有 Worker 语义，Cloudflare/Miniflare/workerd/esbuild/ws/undici 公告链已从完整审计消失
 - Babel core/generator `7.29.6`、brace-expansion `1.1.18` / `5.0.9`、fast-uri `3.1.5` 与 js-yaml `4.3.1` 已通过六记录 lock-only 刷新；开发工具链公告已从完整审计消失且 `package.json` 保持字节不变
 - 10 个既有 Prettier 差异已通过确定性纯格式化 checkpoint 规范化；`npm run format:check` 全仓通过，产品、依赖、存储与部署语义保持不变
+- canonical `npm run check` 现在首先运行只读全仓 `format:check`，随后保持 lint、strict typecheck、Vitest 与 production build 的既有顺序；GitHub Quality 自动继承该门禁且 workflow 权限不变
 - Mac 自适应视口牌桌与 `F/K/C/R/A` 键盘操作
 - iPad 横/竖屏零覆盖布局与 iPhone 自动行动区定位
 - iOS 安全区、动态视口、44px+ 触控目标与输入防缩放
@@ -85,6 +86,7 @@
 - PKG-010 隔离候选与仓库冷缓存 `npm ci`、clean peer graph、完整审计、112 项测试/build、13 项 Chromium、7 项 WebKit、production/workerd HTML/RSC/SVG、产物约束、无上传 strict deploy dry-run 与精确 SHA GitHub Actions run `30719418742` 均通过
 - PKG-011 六记录 lock-only 候选与仓库冷缓存 `npm ci`、clean peer graph、完整/生产审计、112 项测试/build、13 项 Chromium、7 项 WebKit、production/workerd HTML/RSC/SVG、产物约束、范围/安全复核与精确 SHA GitHub Actions run `30723138038` 均通过
 - PKG-012 确定性 Prettier、规范化 TS/JS AST、受保护哈希、全仓格式、112 项测试/build、13 项 Chromium、7 项 WebKit、production/workerd、范围/安全复核与精确 SHA GitHub Actions run `30741440606` 均通过
+- PKG-013 formatter-first canonical check、package/lock/workflow/runtime 边界、112 项测试/build、13 项 Chromium、7 项 WebKit、范围/安全复核与精确 SHA GitHub Actions run `30742915491` 均通过
 - 120 手种子化六人桌规则压力测试通过
 - 弃牌动画与确定性河牌摊牌关键流程连续重复 5 轮，共 10 项回归通过
 - iPhone 393×852 正式摊牌比较区无横向溢出

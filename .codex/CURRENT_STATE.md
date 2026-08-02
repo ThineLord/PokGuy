@@ -2,15 +2,15 @@
 
 Current branch: `main`
 
-Current HEAD: Before the documentation-only completion commit, `50af4271c9a024fe6ff6533c339d335e47637ac5`. After that commit, obtain its exact immediate-descendant SHA with `git rev-parse HEAD`, then verify tracking, remote, GitHub, and exact-SHA CI before selecting new work.
+Current HEAD: Before the documentation-only completion commit, `0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385`. After that commit, obtain its exact immediate-descendant SHA with `git rev-parse HEAD`, then verify tracking, remote, GitHub, and exact-SHA CI before selecting new work.
 
-Last stable commit: `50af4271c9a024fe6ff6533c339d335e47637ac5` (`chore: normalize formatting baseline`; exact-SHA GitHub Actions run `30741440606` succeeded)
+Last stable commit: `0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385` (`build: enforce formatting in quality check`; exact-SHA GitHub Actions run `30742915491` succeeded)
 
-Current objective: Close the remote-verified PKG-012 maintenance checkpoint and select the next approved bounded task.
+Current objective: Close the remote-verified PKG-013 maintenance checkpoint and select the next separately approved bounded task.
 
-Active task: Conditional recovery state. PKG-012 product work is complete and remote-verified. If HEAD is `50af427`, create the state-only immediate descendant; if that descendant is not remote/CI verified, finish verification; once verified, no task is active and PKG-013 remains TODO pending separate configuration approval.
+Active task: Conditional recovery state. PKG-013 product work is complete and remote-verified. If HEAD is `0cb96bc`, create the state-only immediate descendant; if that descendant is not remote/CI verified, finish verification; once verified, no task is active.
 
-Modified files: Before the state-only commit, scoped recovery/status documentation only; after it, no tracked modification is expected. Dependencies, storage, `vite.config.ts`, hosting, and deployment configuration are unchanged, and no generated output enters the tracked diff. Four historical conflict-style copies remain untracked, preserved, and excluded.
+Modified files: Before the state-only commit, exactly eight recovery/status documents; after it, no tracked modification is expected. `package-lock.json`, dependencies, product/runtime code, storage, `vite.config.ts`, hosting, workflow, and deployment configuration are unchanged. Four historical conflict-style copies remain untracked, preserved, and excluded.
 
 Completed steps:
 
@@ -107,12 +107,19 @@ Completed steps:
 - Confirmed each product file is byte-identical to deterministic Prettier `3.9.5` output from its HEAD source; independent product and scope/security reviews found no blocker.
 - Created and pushed product commit `50af427`; local HEAD, `origin/main`, remote, and GitHub all matched exact SHA `50af4271c9a024fe6ff6533c339d335e47637ac5`.
 - Waited for GitHub Actions run `30741440606`; Node 22 clean install, `npm run check`, and every job/post step completed successfully for the exact product SHA.
+- Verified final PKG-012 state commit `e471837`; local, tracking, remote, and GitHub all matched exact SHA `e47183739bb479760d94f089c780e717956fcf76`, and Quality run `30741624567` completed successfully.
+- Received explicit PKG-013 approval through the user's `next` response after the exact package-script configuration boundary was presented.
+- Passed the unmodified PKG-013 baseline `npm run format:check` and `npm run check`; baseline canonical check retained lint, strict typecheck, 13 Vitest files / 112 tests, and production build.
+- Changed only canonical `scripts.check` to prepend `npm run format:check`; README and TESTING now document the same fail-fast order. The lockfile and workflow remain byte-identical.
+- Passed the updated `npm run check`, confirming format first followed by lint, strict typecheck, 112 tests, and build; passed 13 Chromium and 7 WebKit tests.
+- Created and pushed product commit `0cb96bc`; local HEAD, `origin/main`, remote, and GitHub all matched exact SHA `0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385`.
+- Waited for GitHub Actions run `30742915491`; Node 22 clean install, the new formatter-first `npm run check`, and every job/post step completed successfully for the exact product SHA.
 
 Remaining steps:
 
-- If HEAD is `50af427`, stage only the intended recovery/status files, create the final PKG-012 state checkpoint, and push `main` without force.
+- If HEAD is `0cb96bc`, stage only the intended eight recovery/status files, create the final PKG-013 state checkpoint, and push `main` without force.
 - If the immediate descendant is not yet remote/CI verified, require completed GitHub Actions success for that exact state-only SHA; do not create another commit solely to record its own run.
-- Once verified, PKG-012 has no remaining step. PKG-013 requires separate approval before changing the canonical quality command.
+- Once verified, PKG-013 has no remaining step. Select the next bounded task from the queue and respect its approval boundary.
 
 Current tests:
 
@@ -186,11 +193,16 @@ Current tests:
 - PKG-012 protected hash / exact scope / whitespace / sensitive scan — PASS; package, lock, storage, Vite, hosting, dependency, and generated-output boundaries remain unchanged.
 - PKG-012 deterministic Prettier / independent product / scope-security reviews — PASS; no blocker.
 - GitHub Actions `Quality` run `30741440606` — PASS (`completed/success`, exact product SHA `50af4271c9a024fe6ff6533c339d335e47637ac5`; Node 22 clean install and all quality steps passed).
+- GitHub Actions `Quality` run `30741624567` — PASS (`completed/success`, exact final PKG-012 state SHA `e47183739bb479760d94f089c780e717956fcf76`).
+- PKG-013 baseline `npm run format:check` / legacy canonical `npm run check` — PASS at 2026-08-02T17:57+08:00.
+- PKG-013 updated canonical `npm run check` — PASS at 2026-08-02T17:58+08:00; formatter ran first, then lint, strict typecheck, 13 Vitest files / 112 tests, and build.
+- PKG-013 Chromium / WebKit — PASS at 2026-08-02T17:59+08:00 (13 / 7 tests).
+- GitHub Actions `Quality` run `30742915491` — PASS (`completed/success`, exact product SHA `0cb96bc06ee3a0fd3efd35e7ac7b0b3300895385`; Node 22 clean install, formatter-first canonical check, and all post steps passed).
 
 Known failures: Production and complete audits remain nonzero because stable Next `16.2.12` pins affected PostCSS/Sharp ranges. vinext returns a prompt generic HTTP 500 for an unknown Server Action ID while keeping the server live. One local production-start attempt exited before requests with vinext's transient `undefined` socket-backstop error; an immediate clean retry on the same Node `26.4.0` completed every smoke request and listener cleanup. Four untracked historical conflict copies remain intentionally untouched.
 
 Risk: Low. The product checkpoint is pushed and exact-SHA Node 22 CI-verified. Remaining work is documentation-only publication; the separate Next/PostCSS/Sharp upstream risk remains unchanged.
 
-Next command: Run `git rev-parse HEAD` and `git status --short --branch`. At `50af427`, publish the state-only checkpoint; at its unverified immediate descendant, verify remote and exact-SHA CI; after verified success, select the next approved task.
+Next command: Run `git rev-parse HEAD` and `git status --short --branch`. At `0cb96bc`, publish the state-only checkpoint; at its unverified immediate descendant, verify remote and exact-SHA CI; after verified success, select the next approved task.
 
-Resume instructions: Read `.codex/RESUME.md`, verify product commit `50af427` and run `30741440606`, then inspect whether the final state-only checkpoint is uncommitted, pushed, or awaiting CI. Preserve all four untracked historical copies and the sibling dependency backup.
+Resume instructions: Read `.codex/RESUME.md`, verify product commit `0cb96bc` and run `30742915491`, then inspect whether the final state-only checkpoint is uncommitted, pushed, or awaiting CI. Preserve all four untracked historical copies and the sibling dependency backup.

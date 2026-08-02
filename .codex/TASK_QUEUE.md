@@ -119,11 +119,23 @@
 - Test method: Before/after AST- and diff-scope review where practical, `npm run format:check`, `npm run check`, Chromium/WebKit regressions if product bundles change, production/workerd smoke where configuration output changes, sensitive-data review, and exact-SHA CI.
 - Completion: Commit `50af427` applies deterministic Prettier `3.9.5` output to exactly the approved 10 files. Full-repository format check, normalized TS/emitted-JS AST equivalence, protected hashes, 112 tests/build, 13 Chromium, 7 WebKit, artifact, production/workerd, scope/security, two independent reviews, push verification, and exact-SHA CI run `30741440606` all passed. Package/lock, storage, Vite, hosting, dependencies, and deployment state remained unchanged; no generated artifact entered the commit.
 
-## PKG-013 — TODO
+## PKG-013 — DONE
 
 - Description: Add the now-clean repository-wide `format:check` to the canonical `npm run check` sequence so local and GitHub quality gates prevent formatting regressions.
 - Priority: P2
 - File scope: `package.json`, quality/testing documentation, and `.codex/` recovery state only. `package-lock.json`, dependencies, product code, storage, hosting, deployment configuration, and workflow permissions are excluded.
 - Risk: Low to medium because this changes the canonical project/CI command contract; it requires a separate configuration approval boundary.
+- Approval: Explicitly approved by the user's `next` response after the exact configuration boundary was presented on 2026-08-02.
 - Acceptance criteria: Preserve the existing lint, strict typecheck, Vitest, and production-build stages while adding fail-fast repository formatting; keep package-lock byte-identical; document the command order without broad CI or dependency changes.
 - Test method: Script/diff boundary review, package/lock hashes, `npm run format:check`, updated `npm run check`, Chromium/WebKit only if runtime inputs move, sensitive-data review, push verification, and exact-SHA GitHub Actions conclusion.
+- Completion: Commit `0cb96bc` prepends the existing read-only `format:check` to canonical `npm run check` and updates README/TESTING. The lockfile, dependencies, workflow, product/runtime, storage, hosting, and deployment state remained unchanged. Formatter-first check, 112 tests/build, 13 Chromium, 7 WebKit, exact scope/security reviews, push verification, and exact-SHA Quality run `30742915491` all passed.
+
+## PKG-014 — TODO
+
+- Description: Add the existing complete 13-test Chromium E2E suite as a separate read-only GitHub Actions job after the core quality job, so browser orchestration regressions are caught on clean pushes and pull requests.
+- Priority: P2
+- File scope: `.github/workflows/ci.yml`, README/TESTING, and `.codex/` recovery state only. `package.json`, lockfile, product code, Playwright configuration/tests, WebKit, dependencies, artifact uploads, secrets, deployment, workflow permissions/events, and branch protection are excluded.
+- Risk: Medium because every push/PR would download Chromium and Linux browser dependencies, increasing CI time and exposing browser/network flake; there is no product-data compatibility change.
+- Approval: Required separately before changing the workflow because this adds recurring runner work and browser-download cost.
+- Acceptance criteria: Preserve the existing Node 22 core job unchanged; add a dependent Ubuntu 24.04 / Node 22 job using the existing pinned checkout/setup actions, clean `npm ci`, Chromium-only Playwright install, and `npm run test:e2e`; keep `contents: read`, workflow events, concurrency, and 15-minute timeout boundaries; require 13/13 tests and exact-SHA success for both jobs.
+- Test method: Workflow/diff boundary review, local formatter-first `npm run check`, local Chromium/WebKit regressions, YAML/action-pin/permission checks, push verification, and completed exact-SHA conclusions for both GitHub jobs. Do not weaken tests, add caching/artifact uploads, or widen to WebKit if the first clean run fails.
