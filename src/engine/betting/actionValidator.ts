@@ -4,7 +4,7 @@ import type {
   BettingRoundState,
   PokerAction,
 } from "./types";
-import { CHIP_EPSILON, normalizeChips } from "../chips/chips";
+import { CHIP_EPSILON, isChipAmount, normalizeChips } from "../chips/chips";
 
 export function amountToCall(
   state: BettingRoundState,
@@ -83,6 +83,12 @@ export function validateAction(
   if (player.status !== "active" || player.stack <= 0) {
     return { ...base, legal: false, reason: "Player cannot act" };
   }
+  const canContestRaise = state.players.some(
+    (opponent) =>
+      opponent.id !== playerId &&
+      opponent.status === "active" &&
+      opponent.stack > CHIP_EPSILON,
+  );
 
   switch (action.type) {
     case "fold":
@@ -97,6 +103,12 @@ export function validateAction(
         : { ...base, legal: false, reason: "Nothing to call" };
     case "bet":
     case "raise": {
+      if (!canContestRaise)
+        return {
+          ...base,
+          legal: false,
+          reason: "No opponent can contest a raise",
+        };
       const expectedType = state.currentBet === 0 ? "bet" : "raise";
       if (action.type !== expectedType) {
         return {
@@ -117,6 +129,14 @@ export function validateAction(
           ...base,
           legal: false,
           reason: "A target total is required",
+          nearestLegalAmount: Math.min(minRaiseTo, maximum),
+        };
+      }
+      if (!isChipAmount(action.amount)) {
+        return {
+          ...base,
+          legal: false,
+          reason: "Amount must use 0.01 chip units",
           nearestLegalAmount: Math.min(minRaiseTo, maximum),
         };
       }
@@ -160,6 +180,12 @@ export function validateAction(
         return { ...base, legal: false, reason: "No chips available" };
       }
       const raises = maximum > state.currentBet + CHIP_EPSILON;
+      if (raises && !canContestRaise)
+        return {
+          ...base,
+          legal: false,
+          reason: "No opponent can contest a raise",
+        };
       if (raises && !isBettingReopened(state, player)) {
         return {
           ...base,

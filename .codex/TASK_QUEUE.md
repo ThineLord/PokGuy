@@ -1,5 +1,7 @@
 # Task Queue
 
+> 2026-09-28：当前工作是 [release closure](CURRENT_STATE.md#release-closure-snapshot--2026-09-28)。以下 PKG 条目保留历史维护记录；PKG-015 是可选 CI trace 提案，不是当前发布阻塞项。不要把旧 112 测试、Next 16.2.12 或旧审计数作为当前状态。
+
 ## PKG-001 — DONE
 
 - Description: Complete the existing Phase 8.0 Review Lab and social-preview checkpoint safely.

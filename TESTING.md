@@ -11,8 +11,8 @@ npm run test:watch    # Vitest 监听模式
 npm run test:coverage # V8 覆盖率
 npm run build         # production build
 npm run check         # format:check → lint → typecheck → test → build
-npm run test:e2e      # 13 项 Playwright Chromium 回归
-npm run test:e2e:webkit # 7 项精选 Playwright WebKit 回归
+npm run test:e2e      # 14 项 Playwright Chromium 回归
+npm run test:e2e:webkit # 8 项精选 Playwright WebKit 回归
 ```
 
 Playwright 首次运行前：
@@ -24,9 +24,11 @@ npx playwright install chromium webkit
 ## 单元测试重点
 
 - 52 张牌唯一性、Fisher-Yates 和相同 seed；
+- 普通牌局与场景使用 Web Crypto，显式 seed 保留可复现性；非法卡牌、重复玩家 ID、非 0.01BB 筹码输入在引擎边界拒绝；
 - 九类牌型、kicker、A2345、最佳五张和公共牌成牌；
 - 双三条葫芦、三组对子、公共牌 kicker、六高顺子对 wheel、同花五张逐级比较；
 - 两/三人平分、奇数筹码、弃牌资格、单/多边池；
+- 三个边池、主池奇数筹码平局而边池独赢、重复投入者拒绝；
 - 无人跟注的超额投入单独退回且不构成单人边池，退回筹码不计为摊牌获胜；
 - 小数投入不会产生 `0 BB` 虚假边池、获奖或退回，奇数筹码明确按 `0.01BB` 单位分配；
 - 非法 check/call、最小加注、短码 all-in 和累计重新开放；
@@ -38,6 +40,7 @@ npx playwright install chromium webkit
 - 小数筹码 all-in 后的浮点余量归零，0 BB 玩家不会重新进入行动队列；
 - AI 人格差异、seed 复现、隐藏牌隔离、已知牌排除和适应上限；
 - LocalStorage v1→v2、损坏 JSON 回退、非法数字设置/profile/AI 习惯记录恢复、合法纯自定义对手池保留和 adapter round-trip；
+- 非法统计与历史记录恢复，合法完整牌局保留，旧牌局缺少 AI 标签时安全补全；
 - 损坏训练评价记录过滤，以及旧记录在顺序或数量不明确时不猜测动作关联；
 - 牌背设置的旧数据补全、未知主题回退和 adapter round-trip；
 - 社交预览 origin 覆盖本机、私网 IPv4、IPv6、异常 Host/端口和受信代理协议；
@@ -67,11 +70,11 @@ npx playwright install chromium webkit
 
 引擎单元测试负责穷举式规则边界；E2E 关注浏览器编排，不重复构造所有规则组合。
 
-默认 `npm run test:e2e` 仍只运行完整的 13 项 Chromium 套件。`npm run test:e2e:webkit` 通过测试标题中的 `@webkit` 标签选取 7 个高价值流程：Review Lab 与刷新、设置持久化与导出、非法盲注恢复、iPhone/iPad 响应式布局、摊牌区域和键盘/输入隔离。这样可以持续覆盖 WebKit 差异，而不会把默认本地门禁翻倍。
+默认 `npm run test:e2e` 仍只运行完整的 14 项 Chromium 套件。`npm run test:e2e:webkit` 通过测试标题中的 `@webkit` 标签选取 8 个高价值流程：Review Lab 与刷新、设置持久化与导出、非法盲注恢复、iPhone/iPad 响应式布局、摊牌区域和键盘/输入隔离。这样可以持续覆盖 WebKit 差异，而不会把默认本地门禁翻倍。
 
 ## GitHub Actions
 
-`.github/workflows/ci.yml` 在 `main` push 和面向 `main` 的 pull request 上运行。核心 job 使用最新 Node.js 22 LTS 补丁版本（`22.x`）、`npm ci` 和 `npm run check`；成功后，独立 Chromium job 会再次执行干净的 `npm ci`，仅安装 Chromium 及其 Linux 系统依赖，并运行完整 13 项 `npm run test:e2e`。Token 权限仍仅为读取仓库内容，不读取 secrets、不部署；7 项精选 WebKit 回归继续作为提交前的独立本地验证。
+`.github/workflows/ci.yml` 在 `main` push 和面向 `main` 的 pull request 上运行。核心 job 使用最新 Node.js 22 LTS 补丁版本（`22.x`）、`npm ci` 和 `npm run check`；成功后，独立 Chromium job 会再次执行干净的 `npm ci`，仅安装 Chromium 及其 Linux 系统依赖，并运行完整 14 项 `npm run test:e2e`。Token 权限仍仅为读取仓库内容，不读取 secrets、不部署；8 项精选 WebKit 回归继续作为提交前的独立本地验证。
 
 ## 手动检查清单
 
@@ -99,3 +102,16 @@ npx playwright install chromium webkit
 vinext/Node 可能打印 `module.register()` deprecation、代理环境和 jsdom LocalStorage experimental warning。这些是当前工具链提示，不代表测试失败。验收以命令退出码和断言结果为准。
 
 当前自动化包含完整 Chromium 回归和精选 WebKit 回归。Playwright 的 Desktop Safari 引擎配合显式视口可以验证 WebKit 布局与交互，但不等同于物理 iPhone/iPad 上的 Safari，也不能替代真实设备安全区、触控和地址栏行为检查。macOS Safari 直接实玩与真实设备尺寸检查仍保留在手动清单中。
+
+## 独立候选审计新增覆盖（2026-09-24）
+
+- 短大盲只剩一人可行动时的实际跟注金额、无对手可跟注时禁止加注、淘汰后进入 heads-up 的盲注轮转；
+- 归零玩家不再参与摊牌、胜率人数或训练场景发牌；
+- 300 组额外 2–6 人、不同短筹码与归零座位的不变量测试；
+- 全部 2,598,960 个五张牌组合的牌型频数验证；
+- 完整历史语义校验、重复 ID、错误盈亏和不可能的统计比例；
+- all-in 跟注不计为加注，已弃牌玩家不获得虚假的 3-bet 机会；
+- 非牌桌页面快捷键隔离、重复按键忽略、双击只结算一次、浏览器存储被禁用时仍可启动；
+- Web Crypto 拒绝采样边界与熵源失败时不降级。
+
+完整复核记录见 `docs/engineering_audit.md` 的独立审计章节。

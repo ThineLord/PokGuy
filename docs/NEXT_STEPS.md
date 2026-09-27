@@ -1,6 +1,12 @@
 # Next Steps
 
-## 下一项具体任务
+> 2026-09-28 发布收尾：当前候选已通过本地质量、浏览器、production 与 workerd 门禁；release recommendation 为 **RELEASE WITH DOCUMENTED LIMITATIONS**。当前精确候选的 Node 22 Quality 与依赖 Chromium CI job 需在提交推送后验证；托管部署和实体 iPhone/iPad 未验证。见 [CURRENT_STATE.md](../.codex/CURRENT_STATE.md) 与 [独立审计](engineering_audit.md#independent-release-candidate-review--2026-09-24)。下方 PKG-014/PKG-015、13/7 浏览器数及 Next 16.2.12 均为历史维护提案/检查点，不是当前发布门禁或依赖状态。
+
+## 当前下一步
+
+提交并推送仅包含独立审计修复与发布收尾文档的候选，核对远端精确 SHA，等待既有 Node 22 Quality 及其依赖 Chromium job 全部成功。之后若要宣称实体移动设备支持，单独验证 iPhone/iPad。其余已记录限制不阻止浏览器本地训练器发布。
+
+## 历史 PKG-015 提案（非当前发布任务）
 
 PKG-014 已完成。产品提交 `58280a9` 已推送，GitHub Actions run `30743841409` 对精确 SHA 的核心质量与依赖 Chromium E2E 两个 job 均为 `completed/success`；13/13 浏览器测试通过。
 

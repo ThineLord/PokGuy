@@ -4,6 +4,7 @@
 
 - 规则正确性优先于视觉效果；
 - 规则引擎使用纯函数和可注入随机源；
+- 普通洗牌从 Web Crypto 获取随机数；只有显式 seed 的测试/复现场景使用可复现伪随机源；
 - React 不自行修改筹码、行动顺序或底池；
 - `PokerGameState` 是每手牌唯一权威状态；
 - 人类与 AI 动作经过同一个 `validateAction` 和 `act` 路径；
@@ -36,6 +37,7 @@ betting engine → game state transition → street / runout / showdown
 - `pots`：按投入上限分层，保留弃牌筹码但排除其获奖资格；
 - `showdown`：逐池确定赢家、平分和按钮左侧开始的奇数筹码；
 - `state`：发牌、盲注、行动顺序、烧牌、街道推进、自动 runout、结束原因和一次性结算；
+- `actionHistory`：从投入增量还原实际 bet/raise 与 all-in call，供统计和 AI aggressor 观察共用；
 - `cashTable`：在完整结算后判断下一手能否发出、Hero 是否需要手动重新买入，以及哪些归零座位不再参与按钮轮转。
 
 `PokerGameState` 扩展下注轮状态，玩家数组只存在一份。下注引擎返回的基础玩家字段会合并回同一 `HandPlayer`，React 不保留第二套筹码或投入状态。
@@ -90,7 +92,7 @@ LocalStorage key 为 `riverlab-poker-v2`。数据包括：
 - 最多 500 条用户训练决策；
 - 玩家笔记。
 
-读取时捕获 JSON、Storage 和 schema 异常；不识别的版本回退到默认数据。v1 数据会合并到 v2 默认字段。
+读取时捕获 JSON、Storage 和 schema 异常；不识别的版本回退到默认数据。v1 数据会合并到 v2 默认字段。统计和笔记逐字段恢复，结构损坏的历史牌局会被过滤；原始记录在加载时不会被立即覆盖。
 
 ## 可扩展点
 
@@ -99,3 +101,5 @@ LocalStorage key 为 `riverlab-poker-v2`。数据包括：
 - `estimateEquityAsync` 可迁移到 Worker；
 - `StoredHand` 可增加标准手牌文本导入/导出；
 - 统计聚合器可从当前累计字段扩展为事件流派生。
+
+完成牌局导入由 `storage/validateStoredGame.ts` 校验牌张唯一性、行动记录、筹码守恒和摊牌分配；不合法的单条历史被过滤，其他合法数据保留。`browserStorage` 将 LocalStorage 属性访问也纳入错误恢复，浏览器禁用存储时可继续在内存中使用。

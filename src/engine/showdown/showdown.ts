@@ -83,9 +83,13 @@ export function awardUncontestedPot(
   winnerId: string,
   contributions: PotContribution[],
 ): Record<string, number> {
-  return {
-    [winnerId]: normalizeChips(
-      contributions.reduce((sum, entry) => sum + entry.amount, 0),
-    ),
-  };
+  const total = normalizeChips(
+    contributions.reduce((sum, entry) => sum + entry.amount, 0),
+  );
+  return Object.fromEntries(
+    contributions.map((entry) => [
+      entry.playerId,
+      entry.playerId === winnerId ? total : 0,
+    ]),
+  );
 }

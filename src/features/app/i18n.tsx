@@ -10,6 +10,11 @@ import {
   type ReactNode,
 } from "react";
 
+import {
+  readBrowserValue,
+  writeBrowserValue,
+} from "../../storage/browserStorage";
+
 export type AppLocale = "zh-CN" | "en";
 
 const LOCALE_STORAGE_KEY = "riverlab-locale";
@@ -515,7 +520,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<AppLocale>("zh-CN");
 
   useEffect(() => {
-    const saved = window.localStorage?.getItem(LOCALE_STORAGE_KEY);
+    const saved = readBrowserValue(LOCALE_STORAGE_KEY);
     if (saved !== "zh-CN" && saved !== "en") return;
     const timer = window.setTimeout(() => setLocaleState(saved), 0);
     return () => window.clearTimeout(timer);
@@ -523,7 +528,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const setLocale = useCallback((next: AppLocale) => {
     setLocaleState(next);
-    window.localStorage?.setItem(LOCALE_STORAGE_KEY, next);
+    writeBrowserValue(LOCALE_STORAGE_KEY, next);
   }, []);
 
   const toggleLocale = useCallback(() => {

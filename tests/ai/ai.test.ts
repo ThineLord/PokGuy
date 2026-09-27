@@ -122,6 +122,27 @@ describe("Monte Carlo equity", () => {
     expect(result.ties).toBe(20);
     expect(result.equity).toBeCloseTo(0.25, 8);
   });
+
+  it("rejects invalid simulation counts instead of returning NaN equity", () => {
+    const base = {
+      holeCards: parseCards("AS AH") as [
+        ReturnType<typeof parseCards>[number],
+        ReturnType<typeof parseCards>[number],
+      ],
+      board: parseCards("2C 7D 9S"),
+      opponents: 1,
+      seed: 3,
+    };
+    expect(() => estimateEquity({ ...base, opponents: Number.NaN })).toThrow(
+      "Opponent count",
+    );
+    expect(() => estimateEquity({ ...base, iterations: Number.NaN })).toThrow(
+      "Iterations",
+    );
+    expect(() => estimateEquity({ ...base, iterations: 100_001 })).toThrow(
+      "Iterations",
+    );
+  });
 });
 
 describe("bounded adaptation", () => {

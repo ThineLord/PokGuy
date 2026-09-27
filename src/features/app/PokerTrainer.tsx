@@ -22,14 +22,18 @@ import type { PokerAction, PokerActionType } from "../../engine/betting/types";
 import { parseCards, rankLabel, type Card } from "../../engine/cards/cards";
 import type { HandEvaluation } from "../../engine/evaluator/evaluator";
 import { CHIP_EPSILON } from "../../engine/chips/chips";
+import { randomUint32 } from "../../engine/deck/random";
 import { cashTableContinuation } from "../../engine/state/cashTable";
 import {
   act,
+  isContender,
   startHand,
   startTrainingScenario,
   type PokerGameState,
   type TablePlayerInput,
 } from "../../engine/state/gameState";
+import { actionFacts } from "../../engine/state/actionHistory";
+import { browserStorage } from "../../storage/browserStorage";
 import { rotateButton } from "../../engine/state/positions";
 import {
   appendCompletedHand,
@@ -120,12 +124,17 @@ function roundChips(value: number) {
   return Number(value.toFixed(2));
 }
 
+function newHandId(prefix: "hand" | "scenario"): string {
+  const unique = `${randomUint32().toString(16).padStart(8, "0")}${randomUint32().toString(16).padStart(8, "0")}`;
+  return `${prefix}-${unique}-${Date.now()}`;
+}
+
 function buildPlayers(
   data: PersistedData,
   stacks?: Record<string, number>,
 ): TablePlayerInput[] {
   const settings = data.settings;
-  const starting = settings.startingStackBb * settings.bigBlind;
+  const starting = roundChips(settings.startingStackBb * settings.bigBlind);
   const aiIds = settings.selectedAiIds.length
     ? settings.selectedAiIds
     : data.aiProfiles.map((profile) => profile.id);
@@ -1548,12 +1557,11 @@ function ScenarioView({
         dealerSeat,
         smallBlind: settings.smallBlind,
         bigBlind: settings.bigBlind,
-        seed: Date.now(),
         heroId: HERO_ID,
         heroHoleCards: heroCards as [Card, Card] | undefined,
         board: boardCards,
         startStreet: street,
-        handId: `scenario-${Date.now()}`,
+        handId: newHandId("scenario"),
       });
       onStart(game);
     } catch (reason) {
@@ -1679,7 +1687,7 @@ function PokerTrainerApp() {
 
   const persist = useCallback((next: PersistedData) => {
     setData(next);
-    if (typeof window !== "undefined") saveData(next, window.localStorage);
+    if (typeof window !== "undefined") saveData(next, browserStorage);
   }, []);
   const startCashHand = useCallback(
     (
@@ -1693,8 +1701,7 @@ function PokerTrainerApp() {
         dealerSeat: button,
         smallBlind: source.settings.smallBlind,
         bigBlind: source.settings.bigBlind,
-        seed: Date.now(),
-        handId: `hand-${Date.now()}`,
+        handId: newHandId("hand"),
       });
       setGame(next);
       setBetAmount(source.settings.bigBlind * 2.5);
@@ -1707,9 +1714,7 @@ function PokerTrainerApp() {
   );
 
   useEffect(() => {
-    const loaded = loadDataWithRecovery(
-      typeof window !== "undefined" ? window.localStorage : undefined,
-    );
+    const loaded = loadDataWithRecovery(browserStorage);
     setData(loaded.data);
     startCashHand(loaded.data, undefined, 0);
     if (loaded.recovered) setRecoveryNotice(true);
@@ -1737,7 +1742,7 @@ function PokerTrainerApp() {
     ? Math.max(
         1,
         game.players.filter(
-          (player) => player.id !== HERO_ID && player.status !== "folded",
+          (player) => player.id !== HERO_ID && isContender(player),
         ).length,
       )
     : 1;
@@ -1792,17 +1797,11 @@ function PokerTrainerApp() {
           .filter(([, result]) => result.legal)
           .map(([action]) => action as PokerActionType);
         const opponentStacks = game.players
-          .filter(
-            (player) => player.id !== actor.id && player.status !== "folded",
-          )
+          .filter((player) => player.id !== actor.id && isContender(player))
           .map((player) => player.stack);
-        const preflopAggressorId = [...game.actions]
-          .reverse()
-          .find(
-            (record) =>
-              record.street === "preflop" &&
-              ["bet", "raise", "all-in"].includes(record.action.type),
-          )?.playerId;
+        const preflopAggressorId = actionFacts(game).findLast(
+          ({ record, aggressive }) => record.street === "preflop" && aggressive,
+        )?.record.playerId;
         const userHands = data.stats.hands;
         const decision = decideAIAction(
           {
@@ -1827,8 +1826,7 @@ function PokerTrainerApp() {
             opponents: Math.max(
               1,
               game.players.filter(
-                (player) =>
-                  player.id !== actor.id && player.status !== "folded",
+                (player) => player.id !== actor.id && isContender(player),
               ).length,
             ),
             allInOpponents: game.players.filter(
@@ -2060,14 +2058,21 @@ function PokerTrainerApp() {
   }, [data.settings.animations, game]);
 
   useEffect(() => {
-    if (!game || game.settled || game.actingPlayerId !== HERO_ID) return;
+    if (
+      view !== "table" ||
+      !game ||
+      game.settled ||
+      game.actingPlayerId !== HERO_ID
+    )
+      return;
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (
         target?.matches("input, select, textarea, [contenteditable='true']") ||
         event.metaKey ||
         event.ctrlKey ||
-        event.altKey
+        event.altKey ||
+        event.repeat
       )
         return;
       const actionByKey: Record<string, PokerAction> = {
@@ -2087,14 +2092,18 @@ function PokerTrainerApp() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [betAmount, game]);
+  }, [betAmount, game, view]);
   const startNextCashHand = (stacks: Record<string, number>) => {
     if (!game) return;
     const seats = game.players
       .filter((player) => (stacks[player.id] ?? 0) > CHIP_EPSILON)
       .map((player) => ({ id: player.id, seat: player.seat }));
     if (seats.length < 2) return;
-    const button = rotateButton(seats, game.dealerSeat);
+    const button = rotateButton(
+      seats,
+      game.dealerSeat,
+      game.players.find((player) => player.positionLabel === "BB")?.seat,
+    );
     setDealerSeat(button);
     startCashHand(data, stacks, button);
   };

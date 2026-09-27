@@ -76,3 +76,36 @@ describe("hand evaluator", () => {
     expect(compareEvaluations(aceQueen, aceJack)).toBe(1);
   });
 });
+
+it("matches the combinatorial category counts across all 2,598,960 five-card hands", async () => {
+  const { createDeck } = await import("@/src/engine/deck/deck");
+  const deck = createDeck();
+  const counts = Array<number>(9).fill(0);
+  for (let a = 0; a < 48; a++)
+    for (let b = a + 1; b < 49; b++)
+      for (let c = b + 1; c < 50; c++)
+        for (let d = c + 1; d < 51; d++)
+          for (let e = d + 1; e < 52; e++)
+            counts[
+              evaluateFive([deck[a], deck[b], deck[c], deck[d], deck[e]])
+                .categoryRank
+            ]++;
+  expect(counts).toEqual([
+    1302540, 1098240, 123552, 54912, 10200, 5108, 3744, 624, 40,
+  ]);
+}, 60000);
+
+it("compares quads kickers and full-house trips before pair ranks", () => {
+  expect(
+    compareEvaluations(
+      evaluateBestHand(parseCards("AS AD AC AH KD 2C 3D")),
+      evaluateBestHand(parseCards("AS AD AC AH QD 2C 3D")),
+    ),
+  ).toBe(1);
+  expect(
+    compareEvaluations(
+      evaluateBestHand(parseCards("KS KD KC 2H 2D 3C 4D")),
+      evaluateBestHand(parseCards("QS QD QC AH AD 3C 4D")),
+    ),
+  ).toBe(1);
+});

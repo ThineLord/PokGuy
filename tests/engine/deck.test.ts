@@ -33,3 +33,35 @@ describe("deck", () => {
     ).toEqual(["2", "9", "10", "J", "Q", "K", "A"]);
   });
 });
+
+describe("secure shuffle sampling", () => {
+  it("rejects the incomplete uint32 bucket instead of biasing three-way sampling", () => {
+    const samples = [0xffffffff, 0, 0];
+    const spy = vi
+      .spyOn(globalThis.crypto, "getRandomValues")
+      .mockImplementation((array) => {
+        (array as Uint32Array)[0] = samples.shift()!;
+        return array;
+      });
+    try {
+      const cards = createDeck().slice(0, 3);
+      expect(shuffleDeck(cards)).toEqual([cards[1], cards[2], cards[0]]);
+      expect(spy).toHaveBeenCalledTimes(3);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("never falls back to Math.random when secure entropy is unavailable", () => {
+    const spy = vi
+      .spyOn(globalThis.crypto, "getRandomValues")
+      .mockImplementation(() => {
+        throw new Error("No entropy");
+      });
+    try {
+      expect(() => shuffleDeck(createDeck())).toThrow("No entropy");
+    } finally {
+      spy.mockRestore();
+    }
+  });
+});

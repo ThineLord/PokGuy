@@ -1,4 +1,4 @@
-import { CHIP_EPSILON, normalizeChips } from "../chips/chips";
+import { CHIP_EPSILON, isChipAmount, normalizeChips } from "../chips/chips";
 
 export interface PotContribution {
   playerId: string;
@@ -23,13 +23,14 @@ export interface PotStructure {
 export function calculatePotStructure(
   contributions: PotContribution[],
 ): PotStructure {
-  if (
-    contributions.some(
-      (entry) => entry.amount < 0 || !Number.isFinite(entry.amount),
-    )
-  ) {
-    throw new Error("Contributions must be finite non-negative numbers");
+  if (contributions.some((entry) => !isChipAmount(entry.amount))) {
+    throw new Error("Contributions must use finite non-negative chip units");
   }
+  if (
+    new Set(contributions.map((entry) => entry.playerId)).size !==
+    contributions.length
+  )
+    throw new Error("Contributors must have unique player IDs");
   const normalizedContributions = contributions.map((entry) => ({
     ...entry,
     amount: normalizeChips(entry.amount),
@@ -42,7 +43,7 @@ export function calculatePotStructure(
     ),
   ].sort((a, b) => a - b);
   const pots: SidePot[] = [];
-  const uncalledReturns: Record<string, number> = {};
+  const uncalledReturns: Record<string, number> = Object.create(null);
   let previous = 0;
 
   levels.forEach((cap) => {
@@ -92,9 +93,9 @@ export function oddChipOrder(
   dealerSeat: number,
 ): string[] {
   return [...playerIds].sort((a, b) => {
-    const distanceA = (seatsByPlayer[a] - dealerSeat + 1000) % 1000 || 1000;
-    const distanceB = (seatsByPlayer[b] - dealerSeat + 1000) % 1000 || 1000;
-    return distanceA - distanceB;
+    const afterA = seatsByPlayer[a] > dealerSeat ? 0 : 1;
+    const afterB = seatsByPlayer[b] > dealerSeat ? 0 : 1;
+    return afterA - afterB || seatsByPlayer[a] - seatsByPlayer[b];
   });
 }
 
@@ -107,7 +108,8 @@ export function splitPot(
 ): Record<string, number> {
   if (winnerIds.length === 0)
     throw new Error("A pot must have at least one winner");
-  if (chipUnit <= 0) throw new Error("Chip unit must be positive");
+  if (!Number.isFinite(chipUnit) || chipUnit <= 0)
+    throw new Error("Chip unit must be positive and finite");
   const units = Math.round(amount / chipUnit);
   const baseUnits = Math.floor(units / winnerIds.length);
   let remainder = units - baseUnits * winnerIds.length;

@@ -1,6 +1,8 @@
 # Implementation Status
 
-## 当前状态
+> 2026-09-28 发布收尾：基于 2026-09-24 [独立候选审计](engineering_audit.md#independent-release-candidate-review--2026-09-24) 的未提交修复，在隔离干净安装中重新通过 154 项 Vitest、production build、Chromium 14/14、WebKit 8/8、production 与本地 workerd HTTP smoke、无上传 Wrangler dry-run；production audit 0，完整审计 7 个 high 的开发/预览工具链 package findings。Node 22 精确候选 CI 待提交推送后验证；未执行托管部署或实体 iPhone/iPad 测试。权威当前状态见 [CURRENT_STATE.md](../.codex/CURRENT_STATE.md)。下文的 112/123 测试、Next 16.2.12、Phase 8.11 和 PKG-014 数字均为历史检查点。
+
+## 历史 Phase 8.11 状态（2026-08-02；已被上方发布收尾状态取代）
 
 - 当前阶段：Phase 8.11 Chromium E2E 接入依赖核心质量门禁的只读 GitHub Actions job，并完成远端精确 SHA 双 job 验证
 - 可运行状态：可安装、启动、连续游戏、训练、复盘、统计、导出和可信局域网访问

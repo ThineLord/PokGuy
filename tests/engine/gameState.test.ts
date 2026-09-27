@@ -12,6 +12,49 @@ const headsUpPlayers = [
 ];
 
 describe("game state machine", () => {
+  it("rejects duplicate identities and non-chip stacks before dealing", () => {
+    const options = {
+      players: headsUpPlayers,
+      dealerSeat: 0,
+      smallBlind: 0.5,
+      bigBlind: 1,
+      deck: createDeck(),
+    };
+    expect(() =>
+      startHand({
+        ...options,
+        players: [headsUpPlayers[0], { ...headsUpPlayers[1], id: "hero" }],
+      }),
+    ).toThrow("Invalid player identity");
+    expect(() =>
+      startHand({
+        ...options,
+        players: [headsUpPlayers[0], { ...headsUpPlayers[1], stack: 1.005 }],
+      }),
+    ).toThrow("Invalid player identity");
+    expect(() => startHand({ ...options, smallBlind: 0.505 })).toThrow(
+      "Invalid blind structure",
+    );
+    const invalidDeck = createDeck();
+    invalidDeck[0] = { ...invalidDeck[0], rank: 15 as never };
+    expect(() => startHand({ ...options, deck: invalidDeck })).toThrow(
+      "Invalid card",
+    );
+  });
+
+  it("does not return a settled hand disguised as a training scenario", () => {
+    expect(() =>
+      startTrainingScenario({
+        players: headsUpPlayers.map((player) => ({ ...player, stack: 0.25 })),
+        dealerSeat: 0,
+        smallBlind: 0.5,
+        bigBlind: 1,
+        heroId: "hero",
+        startStreet: "flop",
+        seed: 42,
+      }),
+    ).toThrow("Scenario cannot start after forced all-ins");
+  });
   it("gives the big blind an option after the button calls heads-up", () => {
     let game = startHand({
       players: headsUpPlayers,
@@ -28,6 +71,24 @@ describe("game state machine", () => {
     expect(game.street).toBe("flop");
     expect(game.board).toHaveLength(3);
     expect(game.actingPlayerId).toBe("villain");
+  });
+
+  it("rejects unknown and out-of-turn actions without changing the hand", () => {
+    const game = startHand({
+      players: headsUpPlayers,
+      dealerSeat: 0,
+      smallBlind: 0.5,
+      bigBlind: 1,
+      seed: 5,
+    });
+    expect(() => act(game, "stranger", { type: "fold" })).toThrow(
+      "Unknown player",
+    );
+    expect(() => act(game, "villain", { type: "check" })).toThrow(
+      "Not this player's turn",
+    );
+    expect(game.actions).toEqual([]);
+    expect(game.actingPlayerId).toBe("hero");
   });
 
   it("awards the pot once when everybody else folds", () => {

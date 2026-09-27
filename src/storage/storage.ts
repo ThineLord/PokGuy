@@ -1,6 +1,9 @@
 import { PERSONALITIES } from "../ai/personalities/presets";
 import type { OpponentHabitStats, PokerPersonality } from "../ai/types";
 import type { PokerGameState } from "../engine/state/gameState";
+import { chipAmountsEqual, isChipAmount } from "../engine/chips/chips";
+import { actionFacts } from "../engine/state/actionHistory";
+import { isCompletedGame } from "./validateStoredGame";
 import type {
   AggregateStats,
   AppSettings,
@@ -321,7 +324,10 @@ export function normalizeSettings(
   );
   const fallbackBlindsAreSafe =
     fallbackBigBlind > fallbackSmallBlind &&
-    Number.isFinite(startingStackBb * fallbackBigBlind * seatCount);
+    isChipAmount(fallbackSmallBlind) &&
+    isChipAmount(fallbackBigBlind) &&
+    startingStackBb * fallbackBigBlind * seatCount <=
+      Number.MAX_SAFE_INTEGER / 100;
   const safeFallbackSmallBlind = fallbackBlindsAreSafe
     ? fallbackSmallBlind
     : DEFAULT_SETTINGS.smallBlind;
@@ -342,7 +348,9 @@ export function normalizeSettings(
   );
   if (
     bigBlind <= smallBlind ||
-    !Number.isFinite(startingStackBb * bigBlind * seatCount)
+    !isChipAmount(smallBlind) ||
+    !isChipAmount(bigBlind) ||
+    startingStackBb * bigBlind * seatCount > Number.MAX_SAFE_INTEGER / 100
   ) {
     smallBlind = safeFallbackSmallBlind;
     bigBlind = safeFallbackBigBlind;
@@ -438,6 +446,125 @@ function isTrainingRecord(value: unknown): value is TrainingRecord {
   );
 }
 
+const STAT_COUNTERS = [
+  "hands",
+  "vpipOpportunities",
+  "vpipHands",
+  "pfrOpportunities",
+  "pfrHands",
+  "threeBetOpportunities",
+  "threeBets",
+  "cbetOpportunities",
+  "cbets",
+  "showdowns",
+  "showdownWins",
+] as const;
+
+function nonNegativeCount(value: unknown): number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0
+    ? value
+    : 0;
+}
+
+function finiteNumber(value: unknown): number {
+  return typeof value === "number" &&
+    Number.isFinite(value) &&
+    Math.abs(value) <= Number.MAX_SAFE_INTEGER
+    ? value
+    : 0;
+}
+
+function normalizeStats(value: unknown): AggregateStats {
+  const candidate = recordValue(value);
+  const stats: AggregateStats = {
+    ...EMPTY_STATS,
+    byPosition: Object.create(null),
+  };
+  for (const key of STAT_COUNTERS)
+    stats[key] = nonNegativeCount(candidate[key]);
+  stats.profitBb = finiteNumber(candidate.profitBb);
+  for (const key of [
+    "vpipOpportunities",
+    "pfrOpportunities",
+    "threeBetOpportunities",
+    "cbetOpportunities",
+    "showdowns",
+  ] as const)
+    stats[key] = Math.min(stats[key], stats.hands);
+  stats.vpipHands = Math.min(stats.vpipHands, stats.vpipOpportunities);
+  stats.pfrHands = Math.min(
+    stats.pfrHands,
+    stats.pfrOpportunities,
+    stats.vpipHands,
+  );
+  stats.threeBets = Math.min(
+    stats.threeBets,
+    stats.threeBetOpportunities,
+    stats.pfrHands,
+  );
+  stats.cbets = Math.min(stats.cbets, stats.cbetOpportunities);
+  stats.showdownWins = Math.min(stats.showdownWins, stats.showdowns);
+  for (const [position, raw] of Object.entries(
+    recordValue(candidate.byPosition),
+  )) {
+    const item = recordValue(raw);
+    if (!position || !raw || typeof raw !== "object" || Array.isArray(raw))
+      continue;
+    stats.byPosition[position] = {
+      hands: nonNegativeCount(item.hands),
+      profitBb: finiteNumber(item.profitBb),
+      vpip: Math.min(nonNegativeCount(item.vpip), nonNegativeCount(item.hands)),
+      pfr: Math.min(
+        nonNegativeCount(item.pfr),
+        nonNegativeCount(item.vpip),
+        nonNegativeCount(item.hands),
+      ),
+    };
+  }
+  return stats;
+}
+
+function isStoredHand(value: unknown): value is StoredHand {
+  if (!value || typeof value !== "object") return false;
+  const hand = value as Partial<StoredHand>;
+  return (
+    typeof hand.id === "string" &&
+    !!hand.id &&
+    typeof hand.startedAt === "string" &&
+    Number.isFinite(Date.parse(hand.startedAt)) &&
+    typeof hand.completedAt === "string" &&
+    Number.isFinite(Date.parse(hand.completedAt)) &&
+    typeof hand.heroProfitBb === "number" &&
+    Number.isFinite(hand.heroProfitBb) &&
+    Math.abs(hand.heroProfitBb) <= Number.MAX_SAFE_INTEGER &&
+    isCompletedGame(hand.game) &&
+    hand.id === hand.game.handId &&
+    hand.game.players
+      .filter((player) => player.kind === "human")
+      .every((player) =>
+        chipAmountsEqual(
+          hand.heroProfitBb!,
+          (player.stack - player.startingStack) / hand.game!.bigBlind,
+        ),
+      ) &&
+    !!hand.aiDecisionTags &&
+    typeof hand.aiDecisionTags === "object" &&
+    !Array.isArray(hand.aiDecisionTags) &&
+    Object.values(hand.aiDecisionTags).every(
+      (tags) =>
+        Array.isArray(tags) && tags.every((tag) => typeof tag === "string"),
+    )
+  );
+}
+
+function normalizePlayerNotes(value: unknown): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(recordValue(value)).filter(
+      ([, note]) => typeof note === "string",
+    ),
+  ) as Record<string, string>;
+}
+
 export function defaultData(): PersistedData {
   return {
     version: 2,
@@ -470,21 +597,28 @@ export function migrateData(raw: unknown): PersistedData {
     ),
     aiProfiles,
     aiHabits: normalizeAiHabits(candidate.aiHabits),
-    stats: {
-      ...defaults.stats,
-      ...(candidate.stats ?? {}),
-      byPosition: candidate.stats?.byPosition ?? {},
-    },
+    stats: normalizeStats(candidate.stats),
     recentHands: Array.isArray(candidate.recentHands)
-      ? candidate.recentHands.slice(0, 100)
+      ? candidate.recentHands
+          .map((hand) => {
+            if (!hand || typeof hand !== "object") return hand;
+            const record = hand as Partial<StoredHand>;
+            return record.aiDecisionTags === undefined
+              ? { ...record, aiDecisionTags: {} }
+              : hand;
+          })
+          .filter(isStoredHand)
+          .filter(
+            (hand, index, hands) =>
+              hands.findIndex((candidate) => candidate.id === hand.id) ===
+              index,
+          )
+          .slice(0, 100)
       : [],
     trainingRecords: Array.isArray(candidate.trainingRecords)
       ? candidate.trainingRecords.filter(isTrainingRecord).slice(0, 500)
       : [],
-    playerNotes:
-      candidate.playerNotes && typeof candidate.playerNotes === "object"
-        ? candidate.playerNotes
-        : {},
+    playerNotes: normalizePlayerNotes(candidate.playerNotes),
   };
 }
 
@@ -538,8 +672,9 @@ function heroStatsFor(game: PokerGameState, heroId: string) {
     vpip: preflop.some((action) =>
       ["call", "bet", "raise", "all-in"].includes(action.action.type),
     ),
-    pfr: preflop.some((action) =>
-      ["bet", "raise", "all-in"].includes(action.action.type),
+    pfr: actionFacts(game).some(
+      ({ record, aggressive }) =>
+        record.playerId === heroId && record.street === "preflop" && aggressive,
     ),
   };
 }
@@ -559,12 +694,21 @@ function updateAiHabits(
   game: PokerGameState,
   tags: Record<string, string[]>,
 ): Record<string, OpponentHabitStats> {
-  const updated = { ...data.aiHabits };
+  const updated: Record<string, OpponentHabitStats> = Object.assign(
+    Object.create(null),
+    data.aiHabits,
+  );
+  const facts = actionFacts(game);
+  const aggressiveRecords = new Set(
+    facts.filter((fact) => fact.aggressive).map((fact) => fact.record),
+  );
   game.players
-    .filter((player) => player.kind === "ai")
+    .filter((player) => player.kind === "ai" && player.startingStack > 0)
     .forEach((player) => {
       const habitId = player.personalityId ?? player.id;
-      const previous = updated[habitId] ?? {
+      const previous = (Object.hasOwn(updated, habitId)
+        ? updated[habitId]
+        : undefined) ?? {
         hands: 0,
         vpip:
           data.aiProfiles.find((profile) => profile.id === player.personalityId)
@@ -586,21 +730,24 @@ function updateAiHabits(
       );
       const preflop = actions.filter((action) => action.street === "preflop");
       const aggressive = actions.filter((action) =>
-        ["bet", "raise", "all-in"].includes(action.action.type),
+        aggressiveRecords.has(action),
       ).length;
       const calls = actions.filter(
-        (action) => action.action.type === "call",
+        (action) =>
+          action.action.type === "call" ||
+          (action.action.type === "all-in" && !aggressiveRecords.has(action)),
       ).length;
       const preflopRaises = game.actions.filter(
         (action) =>
-          action.street === "preflop" &&
-          ["raise", "all-in"].includes(action.action.type),
+          action.street === "preflop" && aggressiveRecords.has(action),
       );
       const playerRaiseIndex = preflopRaises.findIndex(
         (action) => action.playerId === player.id,
       );
-      const atShowdown =
-        game.outcome?.showdown?.evaluations[player.id] !== undefined;
+      const atShowdown = Object.hasOwn(
+        game.outcome?.showdown?.evaluations ?? {},
+        player.id,
+      );
       const bluffed = Object.entries(tags).some(
         ([key, values]) =>
           key.includes(player.id) && values.includes("high-fold-equity"),
@@ -621,11 +768,9 @@ function updateAiHabits(
         pfr: runningRate(
           previous.pfr,
           hands,
-          preflop.some((action) =>
-            ["raise", "all-in"].includes(action.action.type),
-          ),
+          preflop.some((action) => aggressiveRecords.has(action)),
         ),
-        threeBet: runningRate(previous.threeBet, hands, playerRaiseIndex >= 1),
+        threeBet: runningRate(previous.threeBet, hands, playerRaiseIndex === 1),
         foldToThreeBet: previous.foldToThreeBet,
         continuationBet: runningRate(
           previous.continuationBet,
@@ -673,26 +818,30 @@ export function appendCompletedHand(
   if (!hero) return data;
   const profitBb = (hero.stack - hero.startingStack) / game.bigBlind;
   const preflop = heroStatsFor(game, heroId);
+  const facts = actionFacts(game);
+  const aggressiveRecords = new Set(
+    facts.filter((fact) => fact.aggressive).map((fact) => fact.record),
+  );
   const heroPreflopRaises = game.actions.filter(
-    (action) =>
-      action.street === "preflop" &&
-      ["raise", "all-in"].includes(action.action.type),
+    (action) => action.street === "preflop" && aggressiveRecords.has(action),
   );
   const heroRaiseIndex = heroPreflopRaises.findIndex(
     (action) => action.playerId === heroId,
   );
-  const threeBetOpportunity = heroPreflopRaises.some(
-    (action) => action.playerId !== heroId,
+  const threeBetOpportunity = facts.some(
+    ({ record, raisesBefore, stackBefore, toCall }) =>
+      record.playerId === heroId &&
+      record.street === "preflop" &&
+      raisesBefore === 1 &&
+      stackBefore > toCall,
   );
   const wasPreflopAggressor =
     [...heroPreflopRaises].at(-1)?.playerId === heroId;
-  const reachedFlop = game.actions.some((action) => action.street === "flop");
-  const cbet = game.actions.some(
-    (action) =>
-      action.playerId === heroId &&
-      action.street === "flop" &&
-      ["bet", "raise"].includes(action.action.type),
+  const firstHeroFlop = facts.find(
+    ({ record }) => record.playerId === heroId && record.street === "flop",
   );
+  const reachedFlop = !!firstHeroFlop && firstHeroFlop.raisesBefore === 0;
+  const cbet = firstHeroFlop?.aggressive ?? false;
   const position = hero.positionLabel || "Unknown";
   const previousPosition = data.stats.byPosition[position] ?? {
     hands: 0,
@@ -702,7 +851,7 @@ export function appendCompletedHand(
   };
   const reachedShowdown =
     game.outcome.reason === "showdown" &&
-    game.outcome.showdown?.evaluations[heroId] !== undefined;
+    Object.hasOwn(game.outcome.showdown?.evaluations ?? {}, heroId);
   const wonShowdown =
     reachedShowdown &&
     (game.outcome.showdown?.awards.some((award) =>
@@ -719,7 +868,7 @@ export function appendCompletedHand(
     pfrHands: data.stats.pfrHands + Number(preflop.pfr),
     threeBetOpportunities:
       data.stats.threeBetOpportunities + Number(threeBetOpportunity),
-    threeBets: data.stats.threeBets + Number(heroRaiseIndex >= 1),
+    threeBets: data.stats.threeBets + Number(heroRaiseIndex === 1),
     cbetOpportunities:
       data.stats.cbetOpportunities + Number(wasPreflopAggressor && reachedFlop),
     cbets:

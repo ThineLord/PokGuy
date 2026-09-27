@@ -54,6 +54,18 @@ export function firstToActPostflop(
   return nextSeat(seats, dealerSeat);
 }
 
-export function rotateButton(seats: SeatRef[], dealerSeat: number): number {
+export function rotateButton(
+  seats: SeatRef[],
+  dealerSeat: number,
+  previousBigBlindSeat?: number,
+): number {
+  const active = orderedActive(seats);
+  // On the transition to heads-up, the surviving previous BB becomes BTN/SB.
+  // Simply skipping a busted button could charge that player the BB twice.
+  if (
+    active.length === 2 &&
+    active.some((seat) => seat.seat === previousBigBlindSeat)
+  )
+    return previousBigBlindSeat!;
   return nextSeat(seats, dealerSeat).seat;
 }

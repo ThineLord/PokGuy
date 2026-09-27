@@ -5,6 +5,7 @@ RiverLab 是一个完全在浏览器本地运行的单机德州扑克训练应�
 ## 功能
 
 - 2–6 人无上限德州扑克现金桌，默认 6-max、100BB、0.5/1BB；
+- 普通牌局使用 Web Crypto 洗牌；测试与可复现场景可显式传入 seed；
 - 完整 fold、check、call、bet、raise、all-in 与合法尺度验证；
 - heads-up 特殊顺序、大盲 option、完整/不足完整加注、多人 all-in、主池、多个边池和无人跟注筹码退回；
 - 参照 TDA/WSOP 的单手结束边界，明确区分弃牌获胜、河牌摊牌与 all-in runout，并在筹码完全支付后才允许下一手；
@@ -52,6 +53,10 @@ npm run dev:lan
 
 LocalStorage 按浏览器和设备分别保存，因此 Mac、iPhone 与 iPad 的统计不会自动同步；需要转移数据时请使用设置页的导出功能。
 
+### 环境变量
+
+本地运行不需要环境变量。只有在可信反向代理之后部署时，才设置 `VINEXT_TRUST_PROXY=1` 或配置 `VINEXT_TRUSTED_HOSTS`，让社交预览元数据采用代理传来的协议。开发和构建脚本会自动把 Wrangler 日志写入项目内的 `.wrangler/`；该目录不进入版本控制。
+
 ## 测试与质量检查
 
 ```bash
@@ -73,7 +78,7 @@ npm run test:e2e:webkit
 
 `npm run check` 依次执行全仓 Prettier 格式检查、ESLint、TypeScript、Vitest 和 production build。E2E 独立执行，以便没有浏览器运行时的环境仍能完成核心检查。
 
-GitHub Actions 会在 `main` push 和面向 `main` 的 pull request 上先使用最新 Node.js 22 LTS 补丁版本（`22.x`）执行干净的 `npm ci` 与 `npm run check`。核心门禁成功后，独立 job 会再次干净安装依赖，仅安装 Chromium 及其 Linux 系统依赖，并运行完整 13 项 `npm run test:e2e`；精选 WebKit 回归仍作为独立本地门禁。
+GitHub Actions 会在 `main` push 和面向 `main` 的 pull request 上先使用最新 Node.js 22 LTS 补丁版本（`22.x`）执行干净的 `npm ci` 与 `npm run check`。核心门禁成功后，独立 job 会再次干净安装依赖，仅安装 Chromium 及其 Linux 系统依赖，并运行完整 14 项 `npm run test:e2e`；精选 WebKit 回归仍作为独立本地门禁。
 
 ## 项目结构
 
@@ -97,7 +102,7 @@ docs/                        实施状态与安全恢复入口
 
 ## 数据与隐私
 
-应用不需要账号或后端。设置、AI 配置、统计、牌局、训练记录和笔记只写入当前浏览器的 LocalStorage。清除浏览器站点数据会移除这些记录；建议定期使用设置页导出 JSON。
+应用不需要账号或后端。设置、AI 配置、统计、牌局、训练记录和笔记只写入当前浏览器的 LocalStorage。读取时会过滤结构损坏的历史牌局并修复非法统计字段；原始浏览器记录不会在加载时立即覆盖。清除浏览器站点数据会移除这些记录；建议定期使用设置页导出 JSON。
 
 AI 决策接口只接收自己的底牌和公开信息。牌局结束前，其他玩家底牌不会传入 AI 观察对象。
 

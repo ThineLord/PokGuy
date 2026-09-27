@@ -11,7 +11,11 @@ import {
 } from "@/src/storage/storage";
 import { PERSONALITIES } from "@/src/ai/personalities/presets";
 import { parseCards } from "@/src/engine/cards/cards";
-import { startHand, type PokerGameState } from "@/src/engine/state/gameState";
+import {
+  act,
+  startHand,
+  type PokerGameState,
+} from "@/src/engine/state/gameState";
 import { resolveShowdown } from "@/src/engine/showdown/showdown";
 
 describe("versioned LocalStorage", () => {
@@ -49,6 +53,55 @@ describe("versioned LocalStorage", () => {
       settings: { deckTheme: "broken-theme" },
     });
     expect(migrated.settings.deckTheme).toBe("river-current");
+  });
+
+  it("recovers blinds that cannot be represented in chip units", () => {
+    const migrated = migrateData({
+      version: 2,
+      settings: { ...DEFAULT_SETTINGS, smallBlind: 0.505 },
+    });
+    expect(migrated.settings.smallBlind).toBe(DEFAULT_SETTINGS.smallBlind);
+    expect(migrated.settings.bigBlind).toBe(DEFAULT_SETTINGS.bigBlind);
+  });
+
+  it("repairs malformed statistics and history without dropping valid hands", () => {
+    const initial = startHand({
+      players: [
+        { id: "hero", name: "Hero", seat: 0, stack: 100, kind: "human" },
+        { id: "villain", name: "Villain", seat: 1, stack: 100, kind: "ai" },
+      ],
+      dealerSeat: 0,
+      smallBlind: 0.5,
+      bigBlind: 1,
+      seed: 9,
+    });
+    const complete = act(initial, "hero", { type: "fold" });
+    const valid = appendCompletedHand(defaultData(), complete, "hero");
+    expect(migrateDataWithRecovery(valid).recovered).toBe(false);
+    const recovered = migrateData({
+      ...valid,
+      stats: {
+        ...valid.stats,
+        hands: "many",
+        profitBb: "broken",
+        byPosition: { BTN: null, BB: { hands: 2, profitBb: "bad" } },
+      },
+      recentHands: [null, { id: "broken" }, ...valid.recentHands],
+      playerNotes: { good: "Keep this", bad: 7 },
+    });
+    expect(recovered.stats.hands).toBe(0);
+    expect(recovered.stats.profitBb).toBe(0);
+    expect(recovered.stats.byPosition).toEqual({
+      BB: { hands: 2, profitBb: 0, vpip: 0, pfr: 0 },
+    });
+    expect(recovered.recentHands).toEqual(valid.recentHands);
+    expect(recovered.playerNotes).toEqual({ good: "Keep this" });
+
+    const legacy = migrateData({
+      ...valid,
+      recentHands: [{ ...valid.recentHands[0], aiDecisionTags: undefined }],
+    });
+    expect(legacy.recentHands[0].aiDecisionTags).toEqual({});
   });
 
   it("drops malformed training records without discarding valid feedback", () => {

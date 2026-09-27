@@ -24,6 +24,8 @@ export interface EquityResult {
 }
 
 export function simulationDeck(request: EquityRequest): Card[] {
+  if (request.holeCards.length !== 2)
+    throw new Error("Exactly two hole cards are required");
   const known = [
     ...request.holeCards,
     ...request.board,
@@ -35,11 +37,21 @@ export function simulationDeck(request: EquityRequest): Card[] {
 }
 
 export function estimateEquity(request: EquityRequest): EquityResult {
-  if (request.opponents < 1 || request.opponents > 5)
+  if (
+    !Number.isInteger(request.opponents) ||
+    request.opponents < 1 ||
+    request.opponents > 5
+  )
     throw new Error("Opponent count must be 1 to 5");
   if (request.board.length > 5)
     throw new Error("Board cannot exceed five cards");
-  const iterations = Math.max(1, Math.floor(request.iterations ?? 160));
+  const iterations = request.iterations ?? 160;
+  if (
+    !Number.isSafeInteger(iterations) ||
+    iterations < 1 ||
+    iterations > 10_000
+  )
+    throw new Error("Iterations must be an integer from 1 to 10000");
   const random: RandomSource = new SeededRandom(request.seed ?? 17_071);
   const baseDeck = simulationDeck(request);
   const cardsNeeded = request.opponents * 2 + (5 - request.board.length);

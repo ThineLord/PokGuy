@@ -11,7 +11,9 @@ export function shuffleDeck(
 ): Card[] {
   const shuffled = cards.map((card) => ({ ...card }));
   for (let index = shuffled.length - 1; index > 0; index -= 1) {
-    const target = Math.floor(random.next() * (index + 1));
+    const target = random.integerBelow
+      ? random.integerBelow(index + 1)
+      : Math.floor(random.next() * (index + 1));
     [shuffled[index], shuffled[target]] = [shuffled[target], shuffled[index]];
   }
   return shuffled;

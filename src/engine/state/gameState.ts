@@ -1,5 +1,10 @@
 import { assertUniqueCards, type Card } from "../cards/cards";
-import { CHIP_EPSILON, chipAmountsEqual, normalizeChips } from "../chips/chips";
+import {
+  CHIP_EPSILON,
+  chipAmountsEqual,
+  isChipAmount,
+  normalizeChips,
+} from "../chips/chips";
 import { amountToCall } from "../betting/actionValidator";
 import {
   applyBettingAction,
@@ -13,7 +18,12 @@ import type {
   Street,
 } from "../betting/types";
 import { createDeck, shuffleDeck } from "../deck/deck";
-import { SeededRandom, systemRandom, type RandomSource } from "../deck/random";
+import {
+  randomUint32,
+  SeededRandom,
+  systemRandom,
+  type RandomSource,
+} from "../deck/random";
 import { calculatePotStructure, type SidePot } from "../pots/sidePots";
 import {
   awardUncontestedPot,
@@ -115,9 +125,8 @@ function labelPositions(
     seats,
     dealerSeat,
   );
-  const labels: Record<string, string> = {
-    [button.id]: seats.length === 2 ? "BTN / SB" : "BTN",
-  };
+  const labels: Record<string, string> = Object.create(null);
+  labels[button.id] = seats.length === 2 ? "BTN / SB" : "BTN";
   labels[smallBlind.id] = smallBlind.id === button.id ? "BTN / SB" : "SB";
   labels[bigBlind.id] = "BB";
   if (seats.length > 3) {
@@ -160,7 +169,9 @@ function dealHoleCards(
   return {
     players: players.map((player) => ({
       ...player,
-      holeCards: cardsByPlayer[player.id] ?? [],
+      holeCards: Object.hasOwn(cardsByPlayer, player.id)
+        ? cardsByPlayer[player.id]
+        : [],
     })),
     deck: deck.slice(deckIndex),
   };
@@ -180,8 +191,30 @@ function postBlind(player: HandPlayer, amount: number): HandPlayer {
 export function startHand(options: StartHandOptions): PokerGameState {
   if (options.players.length < 2 || options.players.length > 6)
     throw new Error("A table requires 2 to 6 players");
-  if (options.smallBlind <= 0 || options.bigBlind <= options.smallBlind)
+  if (
+    !isChipAmount(options.smallBlind) ||
+    !isChipAmount(options.bigBlind) ||
+    options.smallBlind <= 0 ||
+    options.bigBlind <= options.smallBlind
+  )
     throw new Error("Invalid blind structure");
+  if (
+    options.players.some(
+      (player) =>
+        typeof player.id !== "string" ||
+        !player.id ||
+        !Number.isSafeInteger(player.seat) ||
+        !isChipAmount(player.stack),
+    ) ||
+    new Set(options.players.map((player) => player.id)).size !==
+      options.players.length
+  )
+    throw new Error("Invalid player identity, seat, or chip stack");
+  if (
+    options.players.reduce((sum, player) => sum + player.stack, 0) >
+    Number.MAX_SAFE_INTEGER / 100
+  )
+    throw new Error("Table has too many chips to settle safely");
   const seats = options.players.map((player) => player.seat);
   if (new Set(seats).size !== seats.length)
     throw new Error("Seats must be unique");
@@ -189,7 +222,7 @@ export function startHand(options: StartHandOptions): PokerGameState {
   if (livePlayers.length < 2)
     throw new Error("At least two funded players are required");
 
-  const seed = options.seed ?? Date.now();
+  const seed = options.seed ?? randomUint32();
   const random: RandomSource =
     options.seed === undefined ? systemRandom : new SeededRandom(seed);
   const preparedDeck = options.deck
@@ -211,12 +244,12 @@ export function startHand(options: StartHandOptions): PokerGameState {
     positionLabel: labels[player.id] ?? "",
     lastAction: null,
   }));
-  const dealt = dealHoleCards(players, preparedDeck, options.dealerSeat);
-  players = dealt.players;
   const positions = assignForcedPositions(
     activeSeats(options.players),
     options.dealerSeat,
   );
+  const dealt = dealHoleCards(players, preparedDeck, positions.button.seat);
+  players = dealt.players;
   players = players.map((player) => {
     if (player.id === positions.smallBlind.id)
       return postBlind(player, options.smallBlind);
@@ -257,13 +290,28 @@ export function startHand(options: StartHandOptions): PokerGameState {
 export function startTrainingScenario(
   options: TrainingScenarioOptions,
 ): PokerGameState {
+  if (
+    !(["preflop", "flop", "turn", "river"] as const).includes(
+      options.startStreet,
+    )
+  )
+    throw new Error("Invalid scenario street");
+  if (options.heroHoleCards && options.heroHoleCards.length !== 2)
+    throw new Error("Scenario hero requires exactly two hole cards");
+  if (
+    !options.players.some(
+      (player) => player.id === options.heroId && player.stack > 0,
+    )
+  )
+    throw new Error("Scenario hero is not seated");
   const requiredBoard = { preflop: 0, flop: 3, turn: 4, river: 5 }[
     options.startStreet
   ];
   if ((options.board?.length ?? 0) > requiredBoard)
     throw new Error("Too many board cards for the selected street");
-  const seed = options.seed ?? Date.now();
-  const random = new SeededRandom(seed);
+  const seed = options.seed ?? randomUint32();
+  const random: RandomSource =
+    options.seed === undefined ? systemRandom : new SeededRandom(seed);
   const specified = [
     ...(options.heroHoleCards ?? []),
     ...(options.board ?? []),
@@ -286,9 +334,15 @@ export function startTrainingScenario(
   let game = startHand({
     ...options,
     seed,
-    deck: shuffleDeck(createDeck(), new SeededRandom(seed + 1)),
+    deck: shuffleDeck(
+      createDeck(),
+      options.seed === undefined ? systemRandom : new SeededRandom(seed + 1),
+    ),
   });
+  if (game.settled)
+    throw new Error("Scenario cannot start after forced all-ins");
   const players = game.players.map((player) => {
+    if (player.status === "busted") return player;
     const holeCards =
       player.id === options.heroId
         ? heroHoleCards
@@ -346,7 +400,7 @@ export function startTrainingScenario(
   } else {
     game = { ...game, players, deck: available };
   }
-  return game;
+  return advance(game);
 }
 
 function nextActionable(
@@ -368,13 +422,12 @@ function potSize(players: HandPlayer[]): number {
   );
 }
 
+export function isContender(player: BettingPlayer): boolean {
+  return player.status === "active" || player.status === "all-in";
+}
+
 function contenders(players: HandPlayer[]): HandPlayer[] {
-  return players.filter(
-    (player) =>
-      player.status !== "folded" &&
-      player.status !== "busted" &&
-      player.status !== "sitting-out",
-  );
+  return players.filter(isContender);
 }
 
 function dealStreet(
@@ -478,7 +531,7 @@ function finishShowdown(
       playerId: player.id,
       seat: player.seat,
       amount: player.totalContribution,
-      folded: player.status === "folded",
+      folded: !isContender(player),
       holeCards: player.holeCards,
     })),
     state.board,
@@ -514,6 +567,16 @@ function advance(state: PokerGameState): PokerGameState {
   const actionable = remaining.filter(
     (player) => player.status === "active" && player.stack > CHIP_EPSILON,
   );
+  // A nominal short big blind is a bring-in only while two players can bet.
+  // With one funded player left, only actual opposing wagers can be called.
+  if (actionable.length === 1) {
+    state = {
+      ...state,
+      currentBet: Math.max(
+        ...remaining.map((player) => player.streetContribution),
+      ),
+    };
+  }
   if (actionable.length === 0) return autoRunout(state);
   if (actionable.length === 1 && amountToCall(state, actionable[0]) === 0)
     return autoRunout(state);
@@ -534,12 +597,12 @@ export function act(
 ): PokerGameState {
   if (state.settled) throw new Error("Hand is already complete");
   const before = potSize(state.players);
+  const betting = applyBettingAction(state, playerId, action);
   const actorBefore = state.players.find((player) => player.id === playerId)!;
   const callPaid = Math.min(
     Math.max(0, state.currentBet - actorBefore.streetContribution),
     actorBefore.stack,
   );
-  const betting = applyBettingAction(state, playerId, action);
   const actorAction = action.type === "call" ? `call ${callPaid}` : action.type;
   const players = betting.players.map((player) => ({
     ...(state.players.find(

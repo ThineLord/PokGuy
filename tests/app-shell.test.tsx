@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Home from "@/app/page";
 import {
@@ -106,5 +106,52 @@ describe("application shell", () => {
     expect(screen.getByLabelText("大盲")).toHaveValue(
       DEFAULT_SETTINGS.bigBlind,
     );
+  });
+});
+
+describe("independent UI coordination regressions", () => {
+  beforeEach(() => vi.stubGlobal("matchMedia", () => ({ matches: false })));
+  afterEach(() => vi.unstubAllGlobals());
+  it("ignores poker hotkeys away from the table and ignores repeated keydown", async () => {
+    const values = new Map<string, string>();
+    Object.defineProperty(window, "localStorage", {
+      configurable: true,
+      value: {
+        clear: () => values.clear(),
+        getItem: (key: string) => values.get(key) ?? null,
+        setItem: (key: string, value: string) => values.set(key, value),
+      },
+    });
+    const data = defaultData();
+    data.settings = { ...data.settings, seatCount: 2, autoAi: false };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const user = userEvent.setup();
+    render(<Home />);
+    expect(screen.getByRole("button", { name: "弃牌" })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: /^统计/ }));
+    fireEvent.keyDown(document.body, { key: "f" });
+    await user.click(screen.getByRole("button", { name: /^训练桌/ }));
+    expect(screen.getByRole("button", { name: "弃牌" })).toBeEnabled();
+    fireEvent.keyDown(document.body, { key: "f", repeat: true });
+    expect(screen.getByRole("button", { name: "弃牌" })).toBeEnabled();
+  });
+
+  it("starts and switches language even when browser storage access throws", async () => {
+    const descriptor = Object.getOwnPropertyDescriptor(window, "localStorage")!;
+    Object.defineProperty(window, "localStorage", {
+      configurable: true,
+      get: () => {
+        throw new DOMException("Blocked", "SecurityError");
+      },
+    });
+    try {
+      const user = userEvent.setup();
+      render(<Home />);
+      expect(screen.getByLabelText("德州扑克牌桌")).toBeInTheDocument();
+      await user.click(screen.getByRole("button", { name: "切换到英文" }));
+      expect(screen.getByLabelText("Texas Hold'em table")).toBeInTheDocument();
+    } finally {
+      Object.defineProperty(window, "localStorage", descriptor);
+    }
   });
 });

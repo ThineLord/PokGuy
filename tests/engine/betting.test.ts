@@ -72,6 +72,15 @@ describe("action validator", () => {
     });
   });
 
+  it("rejects sub-cent raise targets instead of silently changing the wager", () => {
+    expect(
+      validateAction(state(), "a", { type: "raise", amount: 20.005 }),
+    ).toMatchObject({
+      legal: false,
+      reason: "Amount must use 0.01 chip units",
+    });
+  });
+
   it("offers a legal minimum bet or raise to automated players", () => {
     expect(legalActionsFor(state({ currentBet: 0 }), "a").bet).toMatchObject({
       legal: true,
@@ -160,5 +169,66 @@ describe("action validator", () => {
     expect(next.players[0].stack).toBe(0);
     expect(next.players[0].status).toBe("all-in");
     expect(next.actingPlayerId).toBe("b");
+  });
+});
+
+describe("consecutive short all-ins", () => {
+  it("reopens individually at a full cumulative increment and preserves the next minimum", () => {
+    let round = state({
+      street: "flop",
+      currentBet: 0,
+      minRaiseIncrement: 10,
+      bigBlind: 10,
+      lastAggressorId: null,
+    });
+    round.players = [100, 14, 20, 100].map((stack, seat) => ({
+      id: String.fromCharCode(97 + seat),
+      seat,
+      stack,
+      streetContribution: 0,
+      totalContribution: 0,
+      status: "active",
+      acted: false,
+      lastActedBet: 0,
+    }));
+    round = applyBettingAction(round, "a", { type: "bet", amount: 10 });
+    round = applyBettingAction(round, "b", { type: "all-in" });
+    round = applyBettingAction(round, "c", { type: "all-in" });
+    round = applyBettingAction(round, "d", { type: "call" });
+    expect(round.actingPlayerId).toBe("a");
+    expect(
+      validateAction(round, "a", { type: "raise", amount: 29 }).legal,
+    ).toBe(false);
+    expect(
+      validateAction(round, "a", { type: "raise", amount: 30 }).legal,
+    ).toBe(true);
+    round = applyBettingAction(round, "a", { type: "raise", amount: 30 });
+    expect(round.minRaiseIncrement).toBe(10);
+    expect(round.actingPlayerId).toBe("d");
+    expect(
+      validateAction(round, "d", { type: "raise", amount: 40 }).legal,
+    ).toBe(true);
+  });
+
+  it("keeps a checked player's raising closed facing only a short opening all-in", () => {
+    let round = state({ street: "flop", currentBet: 0 });
+    round.players = round.players.map((player) => ({
+      ...player,
+      stack: player.id === "b" ? 6 : 100,
+      streetContribution: 0,
+      totalContribution: 0,
+      acted: false,
+      lastActedBet: 0,
+    }));
+    round = applyBettingAction(round, "a", { type: "check" });
+    round = applyBettingAction(round, "b", { type: "all-in" });
+    expect(
+      validateAction(round, "c", { type: "raise", amount: 16 }).legal,
+    ).toBe(true);
+    round = applyBettingAction(round, "c", { type: "call" });
+    expect(
+      validateAction(round, "a", { type: "raise", amount: 16 }).legal,
+    ).toBe(false);
+    expect(validateAction(round, "a", { type: "call" }).legal).toBe(true);
   });
 });

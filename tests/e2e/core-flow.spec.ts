@@ -404,3 +404,29 @@ test("switch the entire interface to English and keep it after reload", async ({
   ).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
+
+test("off-table hotkeys cannot fold a live hand and double clicks settle only once @webkit", async ({
+  page,
+}) => {
+  await page.evaluate(() =>
+    localStorage.setItem(
+      "riverlab-poker-v2",
+      JSON.stringify({ version: 2, settings: { seatCount: 2, autoAi: false } }),
+    ),
+  );
+  await page.reload();
+  const fold = page.getByRole("button", { name: "弃牌", exact: true });
+  await expect(fold).toBeEnabled();
+  await page.getByRole("button", { name: "统计", exact: true }).click();
+  await page.keyboard.press("f");
+  await page.getByRole("button", { name: "训练桌", exact: true }).click();
+  await expect(fold).toBeEnabled();
+  await fold.dblclick();
+  await expect(page.getByText("本手正式结束")).toBeVisible();
+  const persisted = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("riverlab-poker-v2")!),
+  );
+  expect(persisted.recentHands).toHaveLength(1);
+  expect(persisted.stats.hands).toBe(1);
+  expect(persisted.recentHands[0].game.actions).toHaveLength(1);
+});

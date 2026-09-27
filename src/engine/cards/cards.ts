@@ -54,6 +54,13 @@ export function parseCards(tokens: string): Card[] {
 }
 
 export function assertUniqueCards(cards: Card[]): void {
+  if (
+    cards.some(
+      (card) =>
+        !card || !RANKS.includes(card.rank) || !SUITS.includes(card.suit),
+    )
+  )
+    throw new Error("Invalid card in deck or hand");
   const ids = new Set(cards.map(cardId));
   if (ids.size !== cards.length)
     throw new Error("Duplicate cards are not allowed");

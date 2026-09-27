@@ -30,6 +30,19 @@ describe("pot manager", () => {
     expect(pots[2].eligiblePlayerIds).toEqual(["c"]);
   });
 
+  it("builds three side pots and conserves every contribution", () => {
+    const contributions = [1, 2, 3, 4, 4].map((amount, seat) => ({
+      playerId: `p${seat}`,
+      seat,
+      amount,
+      folded: false,
+    }));
+    const structure = calculatePotStructure(contributions);
+    expect(structure.pots.map((pot) => pot.amount)).toEqual([5, 4, 3, 2]);
+    expect(structure.pots.reduce((sum, pot) => sum + pot.amount, 0)).toBe(14);
+    expect(structure.uncalledReturns).toEqual({});
+  });
+
   it("excludes folded players from eligibility but keeps their chips", () => {
     const [pot] = calculateSidePots([
       { playerId: "a", seat: 0, amount: 30, folded: true },
@@ -111,9 +124,65 @@ describe("pot manager", () => {
       b: 0.01,
     });
   });
+
+  it("rejects duplicate contributors and sub-cent contributions", () => {
+    expect(() =>
+      calculatePotStructure([
+        { playerId: "a", seat: 0, amount: 1, folded: false },
+        { playerId: "a", seat: 1, amount: 1, folded: false },
+      ]),
+    ).toThrow("unique player IDs");
+    expect(() =>
+      calculatePotStructure([
+        { playerId: "a", seat: 0, amount: 1.005, folded: false },
+      ]),
+    ).toThrow("chip units");
+  });
+
+  it("orders odd chips by seat even when seat numbers exceed 1000", () => {
+    expect(splitPot(0.03, ["a", "b"], { a: 1100, b: 5 }, 0, 0.01)).toEqual({
+      b: 0.02,
+      a: 0.01,
+    });
+  });
 });
 
 describe("showdown", () => {
+  it("splits an odd-chip main pot while awarding a side pot to one winner", () => {
+    const result = resolveShowdown(
+      [
+        {
+          playerId: "short",
+          seat: 0,
+          amount: 0.01,
+          folded: false,
+          holeCards: parseCards("AH KD"),
+        },
+        {
+          playerId: "deep",
+          seat: 1,
+          amount: 0.02,
+          folded: false,
+          holeCards: parseCards("AS KC"),
+        },
+        {
+          playerId: "other",
+          seat: 2,
+          amount: 0.02,
+          folded: false,
+          holeCards: parseCards("QH QD"),
+        },
+      ],
+      parseCards("2C 3D 4S 5H 9C"),
+      2,
+    );
+    expect(result.awards.map((award) => award.winnerIds)).toEqual([
+      ["short", "deep"],
+      ["deep"],
+    ]);
+    expect(result.payouts).toEqual({ short: 0.02, deep: 0.03, other: 0 });
+  });
+
   it("resolves main and side pots independently", () => {
     const result = resolveShowdown(
       [

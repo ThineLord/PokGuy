@@ -44,3 +44,14 @@ describe("positions and action order", () => {
     ).toBe(4);
   });
 });
+
+it("does not make the surviving big blind post twice when the button busts into heads-up", () => {
+  // Previous hand: button 0, SB 1, BB 2. Seat 0 is eliminated.
+  const survivors = [
+    { id: "sb", seat: 1 },
+    { id: "bb", seat: 2 },
+  ];
+  const button = rotateButton(survivors, 0, 2);
+  expect(button).toBe(2);
+  expect(assignForcedPositions(survivors, button).bigBlind.id).toBe("sb");
+});
