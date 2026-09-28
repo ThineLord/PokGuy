@@ -1,10 +1,10 @@
 # Next Steps
 
-> 2026-09-28 发布收尾：当前候选已通过本地质量、浏览器、production 与 workerd 门禁；release recommendation 为 **RELEASE WITH DOCUMENTED LIMITATIONS**。当前精确候选的 Node 22 Quality 与依赖 Chromium CI job 需在提交推送后验证；托管部署和实体 iPhone/iPad 未验证。见 [CURRENT_STATE.md](../.codex/CURRENT_STATE.md) 与 [独立审计](engineering_audit.md#independent-release-candidate-review--2026-09-24)。下方 PKG-014/PKG-015、13/7 浏览器数及 Next 16.2.12 均为历史维护提案/检查点，不是当前发布门禁或依赖状态。
+> 2026-09-28 交互式测试修复已通过干净 Node 22 本地门禁；发布建议为 **RELEASE WITH DOCUMENTED LIMITATIONS**。精确提交仍以 GitHub Actions Node 22 Quality 和依赖 Chromium job 为远端门禁。门禁通过后回到维护模式，无主动开发任务。托管部署和实体 iPhone/iPad 未复验。见 [CURRENT_STATE.md](../.codex/CURRENT_STATE.md) 与 [交互式测试记录](interactive_playtest_2026-09-28.md)。下方 PKG-014/PKG-015、13/7 浏览器数及 Next 16.2.12 均为历史维护提案/检查点，不是当前发布门禁或依赖状态。
 
 ## 当前下一步
 
-提交并推送仅包含独立审计修复与发布收尾文档的候选，核对远端精确 SHA，等待既有 Node 22 Quality 及其依赖 Chromium job 全部成功。之后若要宣称实体移动设备支持，单独验证 iPhone/iPad。其余已记录限制不阻止浏览器本地训练器发布。
+完成本次 P2 修复的精确提交远端 CI 验证后，进入维护模式。没有排期中的下一项产品开发。若今后要宣称实体移动设备支持，应单独验证 iPhone/iPad；托管发布、持久化增强和工具链升级均需另行确定范围。现有限制见 [CURRENT_STATE.md](../.codex/CURRENT_STATE.md)。
 
 ## 历史 PKG-015 提案（非当前发布任务）
 

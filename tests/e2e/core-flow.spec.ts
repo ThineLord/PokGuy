@@ -96,6 +96,39 @@ test("start a hand, fold, open history and replay", async ({ page }) => {
   await expect(page.getByText(/底池/).first()).toBeVisible();
 });
 
+test("returning from a scenario preserves the cash table @webkit", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "设置" }).click();
+  await page.getByLabel("桌面人数").selectOption("2");
+  await page.getByRole("button", { name: "训练桌" }).click();
+  await page.getByRole("button", { name: "重新开局" }).click();
+  await page.getByRole("button", { name: "弃牌" }).click();
+  await expect(page.getByRole("button", { name: "下一手" })).toBeVisible();
+  await expect(
+    page.getByRole("article", { name: /Hero，筹码 99\.5/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("article", { name: /林.*筹码 100\.5/ }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "单手牌" }).click();
+  await page.getByLabel("起始街").selectOption("river");
+  await page.getByRole("button", { name: "开始此训练" }).click();
+  await expect(page.getByRole("button", { name: "弃牌" })).toBeEnabled();
+  await page.getByRole("button", { name: "弃牌" }).click();
+  await expect(page.getByRole("button", { name: "返回现金桌" })).toBeVisible();
+  await page.getByRole("button", { name: "返回现金桌" }).click();
+
+  await expect(page.getByRole("button", { name: "下一手" })).toBeVisible();
+  await expect(
+    page.getByRole("article", { name: /Hero，筹码 99\.5/ }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("article", { name: /林.*筹码 100\.5/ }),
+  ).toBeVisible();
+});
+
 test("create a real review item and keep Review Lab mobile-safe @webkit", async ({
   page,
 }) => {

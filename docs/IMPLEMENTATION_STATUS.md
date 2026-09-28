@@ -1,6 +1,12 @@
 # Implementation Status
 
-> 2026-09-28 发布收尾：基于 2026-09-24 [独立候选审计](engineering_audit.md#independent-release-candidate-review--2026-09-24) 的未提交修复，在隔离干净安装中重新通过 154 项 Vitest、production build、Chromium 14/14、WebKit 8/8、production 与本地 workerd HTTP smoke、无上传 Wrangler dry-run；production audit 0，完整审计 7 个 high 的开发/预览工具链 package findings。Node 22 精确候选 CI 待提交推送后验证；未执行托管部署或实体 iPhone/iPad 测试。权威当前状态见 [CURRENT_STATE.md](../.codex/CURRENT_STATE.md)。下文的 112/123 测试、Next 16.2.12、Phase 8.11 和 PKG-014 数字均为历史检查点。
+> 2026-09-28 交互式测试收尾：当前发布候选包含场景训练返回现金桌时恢复原现金桌的 P2 修复及 Chromium/WebKit 回归。干净克隆中使用 Node 22.23.3、锁文件 `npm ci` 验证：`npm run check` 的格式、ESLint、strict TypeScript、154 项 Vitest 和生产构建均通过；Chromium 15/15、WebKit 9/9、production HTTP smoke、`git diff --check` 通过。生产审计 0；完整审计仍有 7 个 high 工具链/构建输入 package findings。发布建议为 **RELEASE WITH DOCUMENTED LIMITATIONS**，精确提交的 Node 22 Quality 和依赖 Chromium CI 仍是远端门禁。此后恢复维护模式。当前限制见 [CURRENT_STATE.md](../.codex/CURRENT_STATE.md)，实测过程见 [交互式测试记录](interactive_playtest_2026-09-28.md)。下文的 112/123 测试、Next 16.2.12、Phase 8.11 和 PKG-014 数字均为历史检查点。
+
+## 当前发布限制
+
+- 刷新页面会新建现金桌，本手实时状态不持久化；多标签页 LocalStorage 最后写入者覆盖，持久化写入失败无界面提示，旧统计不追溯修复。
+- 本轮未复验实体 iPhone/iPad，也未执行托管部署；多名不等筹码玩家在多个平分边池中的奇数筹码分配未被交互式强制触发。
+- 完整审计剩余 7 个 high package findings；生产依赖审计为 0。未因本轮修复调整依赖。
 
 ## 历史 Phase 8.11 状态（2026-08-02；已被上方发布收尾状态取代）
 

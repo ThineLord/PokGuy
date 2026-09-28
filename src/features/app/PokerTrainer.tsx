@@ -1678,6 +1678,13 @@ function PokerTrainerApp() {
   const [aiTags, setAiTags] = useState<Record<string, string[]>>({});
   const [isReady, setIsReady] = useState(false);
   const savedHand = useRef<string | null>(null);
+  const cashBeforeScenario = useRef<{
+    game: PokerGameState;
+    aiTags: Record<string, string[]>;
+    betAmount: number;
+    error: string;
+    feedback: string;
+  } | null>(null);
   const actionBarRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -1712,6 +1719,22 @@ function PokerTrainerApp() {
     },
     [dealerSeat],
   );
+
+  const returnToCashGame = () => {
+    const previous = cashBeforeScenario.current;
+    cashBeforeScenario.current = null;
+    if (!previous) {
+      startCashHand(data);
+      return;
+    }
+    setGame(previous.game);
+    setAiTags(previous.aiTags);
+    setBetAmount(previous.betAmount);
+    setError(previous.error);
+    setFeedback(previous.feedback);
+    savedHand.current = previous.game.settled ? previous.game.handId : null;
+    setView("table");
+  };
 
   useEffect(() => {
     const loaded = loadDataWithRecovery(browserStorage);
@@ -2227,7 +2250,7 @@ function PokerTrainerApp() {
                       <button onClick={() => setView("scenario")}>
                         {t("调整场景")}
                       </button>
-                      <button onClick={() => startCashHand(data)}>
+                      <button onClick={returnToCashGame}>
                         {t("返回现金桌")}
                       </button>
                     </>
@@ -2416,7 +2439,7 @@ function PokerTrainerApp() {
                       >
                         {t("新场景")}
                       </button>
-                      <button onClick={() => startCashHand(data)}>
+                      <button onClick={returnToCashGame}>
                         {t("返回现金桌")}
                       </button>
                     </>
@@ -2608,6 +2631,15 @@ function PokerTrainerApp() {
           <ScenarioView
             data={data}
             onStart={(next) => {
+              if (game && !isScenarioHand) {
+                cashBeforeScenario.current = {
+                  game,
+                  aiTags,
+                  betAmount,
+                  error,
+                  feedback,
+                };
+              }
               setGame(next);
               setView("table");
               setAiTags({});
