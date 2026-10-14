@@ -2,8 +2,9 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { siteOriginFromHeaders } from "../src/features/app/siteOrigin";
 import "./globals.css";
+import "./pokguy.css";
 
-const title = "RiverLab · 德州扑克训练台";
+const title = "PokGuy";
 const description = "完全本地运行的单机德州扑克训练、复盘与统计工具。";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -42,7 +43,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#070b12",
+  themeColor: "#f3f2ec",
 };
 
 export default function RootLayout({

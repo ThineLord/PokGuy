@@ -70,7 +70,9 @@ test("iPad landscape has no information/action overlap @webkit", async ({
   await waitForHeroTurn(page);
 
   const metrics = await page.evaluate(() => {
-    const info = document.querySelector(".info-strip")?.getBoundingClientRect();
+    const info = document
+      .querySelector(".table-insights")
+      ?.getBoundingClientRect();
     const action = document
       .querySelector(".action-bar")
       ?.getBoundingClientRect();

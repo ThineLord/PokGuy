@@ -537,10 +537,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.title =
-      locale === "zh-CN"
-        ? "RiverLab · 德州扑克训练台"
-        : "RiverLab · Texas Hold'em Poker Trainer";
+    document.title = "PokGuy";
     const description =
       locale === "zh-CN"
         ? "完全本地运行的单机德州扑克训练、复盘与统计工具。"

@@ -212,6 +212,8 @@ test("show blind roles and clockwise dealing order", async ({ page }) => {
   await expect(bigBlind).toHaveCount(1);
   await expect(smallBlind).toContainText("小盲");
   await expect(bigBlind).toContainText("大盲");
+  await expect(page.getByText("顺时针行动")).not.toBeVisible();
+  await page.locator(".table-insights summary").click();
   await expect(page.getByText("顺时针行动")).toBeVisible();
 
   const clockwiseSeats = await page.locator(".seat").evaluateAll((seats) =>

@@ -51,6 +51,7 @@ import type {
   TrainingRecord,
 } from "../../storage/types";
 import { LanguageProvider, useI18n } from "./i18n";
+import { ArchitecturalBackdrop, PokGuyMark } from "./PokGuyIdentity";
 import {
   handNeedsReview,
   needsReview,
@@ -348,13 +349,6 @@ function PokerTable({
         <i className="flow-arrow flow-arrow-left" aria-hidden="true">
           ⌃
         </i>
-      </div>
-      <div className="table-flow-legend">
-        <span aria-hidden="true">↻</span>
-        <div>
-          <strong>{t("顺时针行动")}</strong>
-          <small>{t("从庄家左侧开始发牌")}</small>
-        </div>
       </div>
       {showShuffle && (
         <div
@@ -2168,19 +2162,18 @@ function PokerTrainerApp() {
 
   return (
     <main
-      className={`app-shell deck-${data.settings.deckTheme} ${data.settings.animations ? `speed-${data.settings.animationSpeed}` : "animations-off"}`}
+      data-view={view}
+      className={`app-shell pokguy-shell deck-${data.settings.deckTheme} ${data.settings.animations ? `speed-${data.settings.animationSpeed}` : "animations-off"}`}
     >
+      <ArchitecturalBackdrop view={view} motion={data.settings.animations} />
       <header className="topbar">
         <button
           className="brand"
           disabled={!isReady}
           onClick={() => setView("table")}
         >
-          <span>R</span>
-          <div>
-            <strong>RiverLab</strong>
-            <small>{t("德州扑克训练台")}</small>
-          </div>
+          <PokGuyMark />
+          <strong>PokGuy</strong>
         </button>
         <nav aria-label={t("主导航")}>
           {(
@@ -2195,6 +2188,7 @@ function PokerTrainerApp() {
             <button
               key={id}
               className={view === id ? "active" : ""}
+              aria-current={view === id ? "page" : undefined}
               disabled={!isReady}
               onClick={() => setView(id)}
             >
@@ -2213,12 +2207,59 @@ function PokerTrainerApp() {
             aria-label={t(locale === "zh-CN" ? "切换到英文" : "切换到中文")}
             title={t(locale === "zh-CN" ? "切换到英文" : "切换到中文")}
           >
-            <span aria-hidden="true">🌐</span>
+            <span aria-hidden="true">{locale === "zh-CN" ? "文" : "A"}</span>
             {t(locale === "zh-CN" ? "英文" : "中文")}
           </button>
         </div>
       </header>
-      <div className="app-content">
+      <div className="app-content" key={view}>
+        {view !== "table" && (
+          <div className="page-intro">
+            <p className="eyebrow">
+              {
+                (
+                  {
+                    scenario: "01 / THE PRACTICE",
+                    history: "02 / THE REVIEW",
+                    stats: "03 / THE PROGRESS",
+                    settings: "04 / THE STUDIO",
+                  } as const
+                )[view]
+              }
+            </p>
+            <h1>
+              {t(
+                (
+                  {
+                    scenario: "单手牌训练",
+                    history: "历史与复盘",
+                    stats: "长期统计",
+                    settings: "设置",
+                  } as const
+                )[view],
+              )}
+            </h1>
+            <p>
+              {locale === "zh-CN"
+                ? (
+                    {
+                      scenario: "把注意力，留给每一个决定。",
+                      history: "回到那一手，看见新的可能。",
+                      stats: "让每一次练习，都留下轨迹。",
+                      settings: "为你，调整每一个细节。",
+                    } as const
+                  )[view]
+                : (
+                    {
+                      scenario: "Make room for a better decision.",
+                      history: "A fresh perspective on every hand.",
+                      stats: "Small decisions. Lasting progress.",
+                      settings: "A space that plays your way.",
+                    } as const
+                  )[view]}
+            </p>
+          </div>
+        )}
         {recoveryNotice && (
           <p className="recovery-message" role="status">
             {t("本地数据已迁移或恢复为安全格式，并尽量保留了可用内容。")}
@@ -2281,122 +2322,139 @@ function PokerTrainerApp() {
             </section>
             <PokerTable game={game} aiBusy={aiBusy} />
             {game.settled && <ShowdownBreakdown game={game} />}
-            <section className="info-strip">
-              <span>
-                <small>{t("底池")}</small>
-                {formatChips(pot)} BB
-              </span>
-              {!game.settled && (
-                <>
-                  <span>
-                    <small>{t("跟注")}</small>
-                    {formatChips(toCall)} BB
-                  </span>
-                  <span>
-                    <small>{t("最小加注到")}</small>
-                    {formatChips(minRaiseTo)} BB
-                  </span>
-                  <span>
-                    <small>{t("有效筹码")}</small>
-                    {formatChips(
-                      Math.min(
-                        hero?.stack ?? 0,
-                        Math.max(
-                          0,
-                          ...game.players
-                            .filter(
-                              (player) =>
-                                player.id !== HERO_ID &&
-                                player.status !== "folded",
-                            )
-                            .map((player) => player.stack),
+            <details className="table-insights">
+              <summary>
+                <span>
+                  {locale === "zh-CN"
+                    ? "牌局详情与训练辅助"
+                    : "Hand details & training aids"}
+                </span>
+                <span className="insights-hint">
+                  {locale === "zh-CN" ? "按需展开" : "Explore"}
+                  <i aria-hidden="true">＋</i>
+                </span>
+              </summary>
+              <p className="dealing-note">
+                <strong>{t("顺时针行动")}</strong> · {t("从庄家左侧开始发牌")}
+              </p>
+              <section className="info-strip">
+                <span>
+                  <small>{t("底池")}</small>
+                  {formatChips(pot)} BB
+                </span>
+                {!game.settled && (
+                  <>
+                    <span>
+                      <small>{t("跟注")}</small>
+                      {formatChips(toCall)} BB
+                    </span>
+                    <span>
+                      <small>{t("最小加注到")}</small>
+                      {formatChips(minRaiseTo)} BB
+                    </span>
+                    <span>
+                      <small>{t("有效筹码")}</small>
+                      {formatChips(
+                        Math.min(
+                          hero?.stack ?? 0,
+                          Math.max(
+                            0,
+                            ...game.players
+                              .filter(
+                                (player) =>
+                                  player.id !== HERO_ID &&
+                                  player.status !== "folded",
+                              )
+                              .map((player) => player.stack),
+                          ),
                         ),
-                      ),
-                    )}{" "}
-                    BB
-                  </span>
+                      )}{" "}
+                      BB
+                    </span>
+                    <span>
+                      <small>SPR</small>
+                      {pot ? ((hero?.stack ?? 0) / pot).toFixed(1) : "—"}
+                    </span>
+                  </>
+                )}
+                <span>
+                  <small>{t("位置 / 街")}</small>
+                  {hero?.positionLabel || "—"} · {streetLabel(game.street)}
+                </span>
+                <span>
+                  <small>{t("剩余玩家")}</small>
+                  {
+                    game.players.filter(
+                      (player) =>
+                        player.status !== "folded" &&
+                        player.status !== "busted",
+                    ).length
+                  }
+                </span>
+                {game.settled && (
+                  <>
+                    <span>
+                      <small>{t("结果")}</small>
+                      {game.outcome?.reason === "showdown"
+                        ? t("摊牌")
+                        : t("弃牌结束")}
+                    </span>
+                    <span>
+                      <small>{t("本手盈亏")}</small>
+                      {(hero?.stack ?? 0) - (hero?.startingStack ?? 0) >= 0
+                        ? "+"
+                        : ""}
+                      {formatChips(
+                        ((hero?.stack ?? 0) - (hero?.startingStack ?? 0)) /
+                          game.bigBlind,
+                      )}{" "}
+                      BB
+                    </span>
+                  </>
+                )}
+                {!game.settled && data.settings.showPotOdds && (
                   <span>
-                    <small>SPR</small>
-                    {pot ? ((hero?.stack ?? 0) / pot).toFixed(1) : "—"}
-                  </span>
-                </>
-              )}
-              <span>
-                <small>{t("位置 / 街")}</small>
-                {hero?.positionLabel || "—"} · {streetLabel(game.street)}
-              </span>
-              <span>
-                <small>{t("剩余玩家")}</small>
-                {
-                  game.players.filter(
-                    (player) =>
-                      player.status !== "folded" && player.status !== "busted",
-                  ).length
-                }
-              </span>
-              {game.settled && (
-                <>
-                  <span>
-                    <small>{t("结果")}</small>
-                    {game.outcome?.reason === "showdown"
-                      ? t("摊牌")
-                      : t("弃牌结束")}
-                  </span>
-                  <span>
-                    <small>{t("本手盈亏")}</small>
-                    {(hero?.stack ?? 0) - (hero?.startingStack ?? 0) >= 0
-                      ? "+"
-                      : ""}
-                    {formatChips(
-                      ((hero?.stack ?? 0) - (hero?.startingStack ?? 0)) /
-                        game.bigBlind,
-                    )}{" "}
-                    BB
-                  </span>
-                </>
-              )}
-              {!game.settled && data.settings.showPotOdds && (
-                <span>
-                  <small>{t("底池赔率")}</small>
-                  {toCall
-                    ? `${((toCall / (pot + toCall)) * 100).toFixed(1)}%`
-                    : "0%"}
-                </span>
-              )}
-              {!game.settled && data.settings.showEquity && assessment && (
-                <span>
-                  <small>{t("粗略胜率")}</small>≈{" "}
-                  {(assessment.equityEstimate * 100).toFixed(0)}%
-                </span>
-              )}
-              {!game.settled && data.settings.showOuts && assessment && (
-                <span>
-                  <small>{t("估算补牌张数")}</small>≈{" "}
-                  {Math.round(assessment.drawStrength * 16)}
-                </span>
-              )}
-              {!game.settled && data.settings.showRecommendedAction && (
-                <span>
-                  <small>{t("可选建议")}</small>
-                  {recommendedAction}
-                </span>
-              )}
-              {!game.settled && data.settings.showRecommendedSizing && (
-                <span>
-                  <small>{t("参考尺度")}</small>
-                  {formatChips(recommendedSizing)} BB
-                </span>
-              )}
-              {!game.settled &&
-                data.settings.showBoardWarnings &&
-                assessment &&
-                assessment.boardDanger > 0.58 && (
-                  <span>
-                    <small>{t("牌面提示")}</small>
-                    {t("危险度较高")}
+                    <small>{t("底池赔率")}</small>
+                    {toCall
+                      ? `${((toCall / (pot + toCall)) * 100).toFixed(1)}%`
+                      : "0%"}
                   </span>
                 )}
-            </section>
+                {!game.settled && data.settings.showEquity && assessment && (
+                  <span>
+                    <small>{t("粗略胜率")}</small>≈{" "}
+                    {(assessment.equityEstimate * 100).toFixed(0)}%
+                  </span>
+                )}
+                {!game.settled && data.settings.showOuts && assessment && (
+                  <span>
+                    <small>{t("估算补牌张数")}</small>≈{" "}
+                    {Math.round(assessment.drawStrength * 16)}
+                  </span>
+                )}
+                {!game.settled && data.settings.showRecommendedAction && (
+                  <span>
+                    <small>{t("可选建议")}</small>
+                    {recommendedAction}
+                  </span>
+                )}
+                {!game.settled && data.settings.showRecommendedSizing && (
+                  <span>
+                    <small>{t("参考尺度")}</small>
+                    {formatChips(recommendedSizing)} BB
+                  </span>
+                )}
+                {!game.settled &&
+                  data.settings.showBoardWarnings &&
+                  assessment &&
+                  assessment.boardDanger > 0.58 && (
+                    <span>
+                      <small>{t("牌面提示")}</small>
+                      {t("危险度较高")}
+                    </span>
+                  )}
+              </section>
+            </details>
             {game.settled ? (
               <section className="action-bar complete-bar">
                 <div className="completion-copy">
