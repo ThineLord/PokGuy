@@ -1160,40 +1160,114 @@ button:disabled {
   }
 }
 
-/* Table formats stay within the existing quiet, compact visual language. */
+/* Keep table identity and format together; session actions stay on the right. */
 .table-toolbar {
-  flex-wrap: wrap;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: center;
+}
+.table-title {
+  min-width: 0;
+}
+.table-toolbar .toolbar-actions {
+  grid-column: -2 / -1;
+  grid-row: 1;
+  justify-content: flex-end;
+  align-items: center;
+}
+.table-toolbar .toolbar-actions button {
+  min-height: 44px;
 }
 .table-size-picker {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: start;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
+  gap: 7px 8px;
+  min-width: 0;
+  padding-left: 24px;
+  border-left: 1px solid #d8dfd0;
   color: #62705e;
 }
-.table-size-picker label {
+.table-size-field {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 11px;
-}
-.table-size-picker select,
-.table-size-picker button {
+  min-width: 0;
   min-height: 44px;
-  border: 1px solid #ccd6c3;
-  border-radius: 9px;
-  padding: 8px 12px;
-  background: #fafbf5;
+  padding: 0 11px;
+  border: 1px solid #d3dccb;
+  border-radius: 11px;
+  background: #fafbf5a6;
+  transition:
+    border-color 180ms,
+    box-shadow 180ms;
+}
+.table-size-field > span {
+  flex-shrink: 0;
+  color: #8a9682;
+  font-size: 10px;
+}
+.table-size-field:focus-within {
+  border-color: #8fa580;
+  box-shadow: 0 0 0 3px #8ca47a1a;
+}
+.table-size-field select {
+  width: auto;
+  min-width: 0;
+  min-height: 42px;
+  padding: 6px 16px 6px 0;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  background: transparent;
   color: #4e6246;
   font-size: 12px;
+  box-shadow: none;
+  cursor: pointer;
 }
-.table-size-picker button:not(:disabled) {
+.table-size-picker .table-size-apply {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #667f58;
+  border-radius: 11px;
   background: #667f58;
   color: #fffef6;
-}
-.table-size-picker small {
   font-size: 11px;
+  white-space: nowrap;
+}
+.table-size-picker .table-size-apply:hover {
+  background: #536c47;
+  border-color: #536c47;
+}
+.table-size-apply > span {
+  font-size: 15px;
+}
+.table-size-note {
+  grid-column: 1 / -1;
+  max-width: 360px;
+  color: #8a8068;
+  font-size: 10px;
+  line-height: 1.5;
+}
+@media (min-width: 701px) and (max-width: 1000px) {
+  .table-toolbar {
+    gap: 16px;
+  }
+  .table-size-picker {
+    padding-left: 16px;
+  }
+  .table-size-picker.has-pending-size {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .table-size-picker.has-pending-size .table-size-apply {
+    grid-row: 2;
+  }
 }
 .pokguy-shell .full-ring-table {
   height: 560px;
@@ -1212,26 +1286,36 @@ button:disabled {
   }
 }
 @media (max-width: 700px) {
+  .table-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+  }
   .table-size-picker {
-    order: 3;
-    flex-basis: 100%;
-    gap: 8px;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    grid-template-columns: minmax(0, 1fr) auto;
+    justify-content: stretch;
+    padding-left: 0;
+    border-left: 0;
   }
-  .table-size-picker label {
+  .table-size-field select {
+    width: 100%;
     flex: 1;
-    gap: 8px;
   }
-  .table-size-picker select {
-    flex: 1;
-    min-width: 0;
-    padding-inline: 6px;
+  .table-size-picker:not(.has-pending-size) .table-size-field {
+    grid-column: 1 / -1;
   }
-  .table-size-picker button {
-    padding-inline: 8px;
-    font-size: 11px;
+  .table-toolbar .toolbar-actions {
+    flex-wrap: nowrap;
+    gap: 6px;
   }
-  .table-size-picker small {
-    flex-basis: 100%;
+  .table-toolbar .toolbar-actions button {
+    padding-inline: 9px;
+  }
+  .table-size-note {
+    max-width: none;
+    padding-left: 2px;
   }
   .pokguy-shell .full-ring-table {
     height: 700px;

@@ -299,9 +299,11 @@ function TableSizePicker({
   const [count, setCount] = useState(preferredCount);
   useEffect(() => setCount(preferredCount), [preferredCount]);
   return (
-    <div className="table-size-picker">
-      <label>
-        <span>{locale === "zh-CN" ? "选择人数场" : "Table size"}</span>
+    <div
+      className={`table-size-picker ${count !== currentCount ? "has-pending-size" : ""}`}
+    >
+      <label className="table-size-field">
+        <span>{locale === "zh-CN" ? "人数场" : "Players"}</span>
         <select
           aria-label={locale === "zh-CN" ? "选择人数场" : "Table size"}
           value={count}
@@ -314,13 +316,16 @@ function TableSizePicker({
           ))}
         </select>
       </label>
-      <button onClick={() => onStart(count)} disabled={count === currentCount}>
-        {locale === "zh-CN"
-          ? `开启 ${count} 人场`
-          : `Start ${count}-player table`}
-      </button>
       {count !== currentCount && (
-        <small role="status">
+        <button className="table-size-apply" onClick={() => onStart(count)}>
+          {locale === "zh-CN"
+            ? `开启 ${count} 人场`
+            : `Start ${count}-player table`}
+          <span aria-hidden="true">↗</span>
+        </button>
+      )}
+      {count !== currentCount && (
+        <small className="table-size-note" role="status">
           {locale === "zh-CN"
             ? "开新桌将结束当前手牌，并重置本桌筹码。"
             : "A new table ends this hand and resets table stacks."}
@@ -2393,7 +2398,7 @@ function PokerTrainerApp() {
         {view === "table" && game && (
           <div className="table-view">
             <section className="table-toolbar">
-              <div>
+              <div className="table-title">
                 <p className="eyebrow">
                   {isScenarioHand ? t("单手牌训练") : t("标准现金桌训练")}
                 </p>
