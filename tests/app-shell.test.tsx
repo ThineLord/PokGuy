@@ -8,9 +8,9 @@ import {
 } from "@/src/storage/storage";
 
 describe("application shell", () => {
-  it("renders the RiverLab identity", () => {
+  it("renders the PokGuy identity", () => {
     render(<Home />);
-    expect(screen.getByText("RiverLab")).toBeInTheDocument();
+    expect(screen.getByText("PokGuy")).toBeInTheDocument();
     expect(
       screen.getByRole("navigation", { name: "主导航" }),
     ).toBeInTheDocument();
