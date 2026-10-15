@@ -1,5 +1,10 @@
 import { assertUniqueCards, type Card } from "../cards/cards";
 import {
+  MAX_TABLE_PLAYERS,
+  MIN_TABLE_PLAYERS,
+  tablePositions,
+} from "./tableConfig";
+import {
   CHIP_EPSILON,
   chipAmountsEqual,
   isChipAmount,
@@ -130,12 +135,7 @@ function labelPositions(
   labels[smallBlind.id] = smallBlind.id === button.id ? "BTN / SB" : "SB";
   labels[bigBlind.id] = "BB";
   if (seats.length > 3) {
-    const middleLabels =
-      seats.length === 4
-        ? ["CO"]
-        : seats.length === 5
-          ? ["UTG", "CO"]
-          : ["UTG", "HJ", "CO"];
+    const middleLabels = tablePositions(seats.length).slice(3);
     let cursor = nextSeat(seats, bigBlind.seat);
     middleLabels.forEach((label) => {
       labels[cursor.id] = label;
@@ -189,8 +189,11 @@ function postBlind(player: HandPlayer, amount: number): HandPlayer {
 }
 
 export function startHand(options: StartHandOptions): PokerGameState {
-  if (options.players.length < 2 || options.players.length > 6)
-    throw new Error("A table requires 2 to 6 players");
+  if (
+    options.players.length < MIN_TABLE_PLAYERS ||
+    options.players.length > MAX_TABLE_PLAYERS
+  )
+    throw new Error("A table requires 2 to 9 players");
   if (
     !isChipAmount(options.smallBlind) ||
     !isChipAmount(options.bigBlind) ||

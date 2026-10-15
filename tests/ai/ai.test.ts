@@ -179,3 +179,22 @@ describe("bounded adaptation", () => {
     ).toBeLessThanOrEqual(0.12 * base.adaptability + 1e-8);
   });
 });
+
+it("splits a shared royal flush across all nine players", () => {
+  const result = estimateEquity({
+    holeCards: parseCards("2C 3D") as AIObservation["heroHoleCards"],
+    board: parseCards("AS KS QS JS TS"),
+    opponents: 8,
+    iterations: 20,
+    seed: 9,
+  });
+  expect(result.equity).toBeCloseTo(1 / 9);
+  expect(result.ties).toBe(20);
+  expect(() =>
+    estimateEquity({
+      holeCards: parseCards("2C 3D") as AIObservation["heroHoleCards"],
+      board: [],
+      opponents: 9,
+    }),
+  ).toThrow("Opponent count must be 1 to 8");
+});

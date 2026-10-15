@@ -312,16 +312,30 @@ test("enter a deterministic river scenario and reach showdown", async ({
     await wagerInput.inputValue(),
   );
   expect(await wagerInput.inputValue()).toMatch(/^\d+(?:\.\d{1,2})?$/);
-  const check = page.getByRole("button", { name: "过牌" });
-  const call = page.getByRole("button", { name: /^跟注/ });
-  await expect
-    .poll(
-      async () => !(await check.isDisabled()) || !(await call.isDisabled()),
-      { timeout: 10_000 },
-    )
-    .toBe(true);
-  if (!(await check.isDisabled())) await check.click();
-  else await call.click();
+  const comparison = page.getByLabel("正式牌型比较");
+  const check = page
+    .getByRole("button", { name: "过牌" })
+    .and(page.locator(":enabled"));
+  const call = page
+    .getByRole("button", { name: /^跟注/ })
+    .and(page.locator(":enabled"));
+  // BB acts first postflop in heads-up; checking may be followed by an AI bet.
+  // count() also handles controls disappearing at settlement without waiting on them.
+  for (let decision = 0; decision < 3; decision++) {
+    await expect
+      .poll(
+        async () =>
+          (await comparison.count()) +
+          (await check.count()) +
+          (await call.count()),
+        { timeout: 10_000 },
+      )
+      .toBeGreaterThan(0);
+    if (await comparison.isVisible()) break;
+    if (await check.count()) await check.click();
+    else if (await call.count()) await call.click();
+  }
+
   await expect(page.getByText("摊牌完成")).toBeVisible();
   await expect(
     page.getByText("河牌下注完成，所有活牌已摊牌比较"),

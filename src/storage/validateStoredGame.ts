@@ -1,4 +1,8 @@
 import { assertUniqueCards, cardId, type Card } from "../engine/cards/cards";
+import {
+  MAX_TABLE_PLAYERS,
+  MIN_TABLE_PLAYERS,
+} from "../engine/state/tableConfig";
 import { chipAmountsEqual, isChipAmount } from "../engine/chips/chips";
 import {
   HAND_CATEGORIES,
@@ -49,8 +53,8 @@ export function isCompletedGame(value: unknown): value is PokerGameState {
       !isChipAmount(game.currentBet) ||
       !isChipAmount(game.minRaiseIncrement) ||
       !Array.isArray(game.players) ||
-      game.players.length < 2 ||
-      game.players.length > 6 ||
+      game.players.length < MIN_TABLE_PLAYERS ||
+      game.players.length > MAX_TABLE_PLAYERS ||
       !Array.isArray(game.actions) ||
       game.actions.length !== game.actionSequence ||
       !cards(game.board) ||

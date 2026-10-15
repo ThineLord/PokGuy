@@ -155,3 +155,90 @@ describe("independent UI coordination regressions", () => {
     }
   });
 });
+
+describe("table size selection", () => {
+  beforeEach(() => {
+    vi.stubGlobal("matchMedia", () => ({ matches: false }));
+    const data = defaultData();
+    data.settings = { ...data.settings, autoAi: false, animations: false };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("previews each size without interrupting the hand, then starts and persists a new table", async () => {
+    const user = userEvent.setup();
+    const { container, unmount } = render(<Home />);
+    for (const count of [2, 3, 4, 5, 6, 7, 8, 9]) {
+      const before = container.querySelectorAll(".seat").length;
+      await user.selectOptions(
+        screen.getByLabelText("选择人数场"),
+        String(count),
+      );
+      expect(container.querySelectorAll(".seat")).toHaveLength(before);
+      await user.click(
+        screen.getByRole("button", { name: `开启 ${count} 人场` }),
+      );
+      expect(container.querySelectorAll(".seat")).toHaveLength(count);
+      expect(
+        container.querySelectorAll(".hole-cards .playing-card"),
+      ).toHaveLength(count * 2);
+      expect(
+        JSON.parse(window.localStorage.getItem(STORAGE_KEY)!).settings
+          .seatCount,
+      ).toBe(count);
+    }
+    unmount();
+    render(<Home />);
+    expect(
+      screen.getByRole("heading", { name: "9 人桌 · 100 BB" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "切换到英文" }));
+    expect(screen.getByLabelText("Table size")).toHaveValue("9");
+  });
+
+  it("keeps a running table's size when settings are changed before the next hand", async () => {
+    const data = defaultData();
+    data.settings = {
+      ...data.settings,
+      seatCount: 2,
+      autoAi: false,
+      animations: false,
+    };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const user = userEvent.setup();
+    const { container } = render(<Home />);
+    await user.click(screen.getByRole("button", { name: "弃牌" }));
+    await user.click(screen.getByRole("button", { name: /^设置/ }));
+    await user.selectOptions(screen.getByLabelText("桌面人数"), "9");
+    await user.click(screen.getByRole("button", { name: /^训练桌/ }));
+    await user.click(screen.getByRole("button", { name: "下一手" }));
+    expect(container.querySelectorAll(".seat")).toHaveLength(2);
+    expect(
+      container.querySelector('.seat[data-seat="0"] .seat-meta'),
+    ).toHaveTextContent("98.5 BB");
+    await user.click(screen.getByRole("button", { name: "开启 9 人场" }));
+    expect(container.querySelectorAll(".seat")).toHaveLength(9);
+  });
+
+  it("supports full-ring scenario positions and restores the cash table afterward", async () => {
+    const user = userEvent.setup();
+    const { container } = render(<Home />);
+    await user.selectOptions(screen.getByLabelText("选择人数场"), "9");
+    await user.click(screen.getByRole("button", { name: "开启 9 人场" }));
+    await user.click(screen.getByRole("button", { name: /^单手牌/ }));
+    fireEvent.change(screen.getByLabelText("对手数量"), {
+      target: { value: "8" },
+    });
+    await user.selectOptions(screen.getByLabelText("位置"), "UTG+1");
+    await user.click(screen.getByRole("button", { name: "开始此训练" }));
+    expect(container.querySelectorAll(".seat")).toHaveLength(9);
+    expect(
+      container.querySelector('.seat[data-seat="0"] .seat-position'),
+    ).toHaveTextContent("UTG+1");
+    await user.click(screen.getByRole("button", { name: "返回现金桌" }));
+    expect(container.querySelectorAll(".seat")).toHaveLength(9);
+    expect(
+      container.querySelector('.seat[data-seat="0"] .dealer-button'),
+    ).toBeInTheDocument();
+  });
+});

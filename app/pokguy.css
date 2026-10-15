@@ -1159,3 +1159,90 @@ button:disabled {
       );
   }
 }
+
+/* Table formats stay within the existing quiet, compact visual language. */
+.table-toolbar {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.table-size-picker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: #62705e;
+}
+.table-size-picker label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+}
+.table-size-picker select,
+.table-size-picker button {
+  min-height: 44px;
+  border: 1px solid #ccd6c3;
+  border-radius: 9px;
+  padding: 8px 12px;
+  background: #fafbf5;
+  color: #4e6246;
+  font-size: 12px;
+}
+.table-size-picker button:not(:disabled) {
+  background: #667f58;
+  color: #fffef6;
+}
+.table-size-picker small {
+  font-size: 11px;
+}
+.pokguy-shell .full-ring-table {
+  height: 560px;
+}
+.pokguy-shell .full-ring-table .seat {
+  width: 152px;
+  left: var(--seat-x);
+  top: var(--seat-y);
+  right: auto;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+}
+@media (max-width: 1100px) {
+  .pokguy-shell .full-ring-table .seat {
+    width: 132px;
+  }
+}
+@media (max-width: 700px) {
+  .table-size-picker {
+    order: 3;
+    flex-basis: 100%;
+    gap: 8px;
+  }
+  .table-size-picker label {
+    flex: 1;
+    gap: 8px;
+  }
+  .table-size-picker select {
+    flex: 1;
+    min-width: 0;
+    padding-inline: 6px;
+  }
+  .table-size-picker button {
+    padding-inline: 8px;
+    font-size: 11px;
+  }
+  .table-size-picker small {
+    flex-basis: 100%;
+  }
+  .pokguy-shell .full-ring-table {
+    height: 700px;
+  }
+  .pokguy-shell .full-ring-table .seat {
+    width: min(114px, 31%);
+    left: var(--seat-mobile-x);
+    top: var(--seat-mobile-y);
+    padding: 7px;
+  }
+  .pokguy-shell .full-ring-table .table-center {
+    top: 42%;
+  }
+}

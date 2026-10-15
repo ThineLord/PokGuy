@@ -1,4 +1,8 @@
 import { PERSONALITIES } from "../ai/personalities/presets";
+import {
+  MAX_TABLE_PLAYERS,
+  MIN_TABLE_PLAYERS,
+} from "../engine/state/tableConfig";
 import type { OpponentHabitStats, PokerPersonality } from "../ai/types";
 import type { PokerGameState } from "../engine/state/gameState";
 import { chipAmountsEqual, isChipAmount } from "../engine/chips/chips";
@@ -287,15 +291,15 @@ export function normalizeSettings(
   const fallbackSeatCount = finiteInRange(
     fallback.seatCount,
     DEFAULT_SETTINGS.seatCount,
-    2,
-    6,
+    MIN_TABLE_PLAYERS,
+    MAX_TABLE_PLAYERS,
     true,
   );
   const seatCount = finiteInRange(
     candidate.seatCount,
     fallbackSeatCount,
-    2,
-    6,
+    MIN_TABLE_PLAYERS,
+    MAX_TABLE_PLAYERS,
     true,
   );
   const fallbackStartingStackBb = finiteInRange(

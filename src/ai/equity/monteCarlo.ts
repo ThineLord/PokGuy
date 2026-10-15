@@ -1,3 +1,4 @@
+import { MAX_TABLE_PLAYERS } from "../../engine/state/tableConfig";
 import { assertUniqueCards, cardId, type Card } from "../../engine/cards/cards";
 import { createDeck, shuffleDeck } from "../../engine/deck/deck";
 import { SeededRandom, type RandomSource } from "../../engine/deck/random";
@@ -40,9 +41,9 @@ export function estimateEquity(request: EquityRequest): EquityResult {
   if (
     !Number.isInteger(request.opponents) ||
     request.opponents < 1 ||
-    request.opponents > 5
+    request.opponents >= MAX_TABLE_PLAYERS
   )
-    throw new Error("Opponent count must be 1 to 5");
+    throw new Error("Opponent count must be 1 to 8");
   if (request.board.length > 5)
     throw new Error("Board cannot exceed five cards");
   const iterations = request.iterations ?? 160;

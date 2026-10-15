@@ -23,6 +23,11 @@ import { parseCards, rankLabel, type Card } from "../../engine/cards/cards";
 import type { HandEvaluation } from "../../engine/evaluator/evaluator";
 import { CHIP_EPSILON } from "../../engine/chips/chips";
 import { randomUint32 } from "../../engine/deck/random";
+import {
+  MAX_TABLE_PLAYERS,
+  TABLE_SIZES,
+  tablePositions,
+} from "../../engine/state/tableConfig";
 import { cashTableContinuation } from "../../engine/state/cashTable";
 import {
   act,
@@ -244,6 +249,9 @@ function positionScore(positionLabel: string): number {
     {
       CO: 0.78,
       HJ: 0.52,
+      LJ: 0.42,
+      MP: 0.34,
+      "UTG+1": 0.25,
       UTG: 0.18,
       SB: 0.12,
       BB: 0.28,
@@ -251,22 +259,122 @@ function positionScore(positionLabel: string): number {
   );
 }
 
-function availableScenarioPositions(playerCount: number): string[] {
-  if (playerCount <= 2) return ["BTN", "BB"];
-  if (playerCount === 3) return ["BTN", "SB", "BB"];
-  if (playerCount === 4) return ["BTN", "SB", "BB", "CO"];
-  if (playerCount === 5) return ["BTN", "SB", "BB", "UTG", "CO"];
-  return ["BTN", "SB", "BB", "UTG", "HJ", "CO"];
+function dealerSeatForPosition(position: string, playerCount: number): number {
+  const offset = tablePositions(playerCount).indexOf(position);
+  return (playerCount - Math.max(0, offset)) % playerCount;
 }
 
-function dealerSeatForPosition(position: string, playerCount: number): number {
-  if (position === "BTN") return 0;
-  if (position === "SB") return playerCount - 1;
-  if (position === "BB") return playerCount - 2;
-  if (position === "UTG") return playerCount - 3;
-  if (position === "HJ") return playerCount - 4;
-  if (position === "CO") return 1;
-  return 0;
+function tableSizeLabel(count: number, locale: "zh-CN" | "en"): string {
+  const format =
+    count === 2
+      ? locale === "zh-CN"
+        ? "单挑"
+        : "Heads-up"
+      : count === 6
+        ? locale === "zh-CN"
+          ? "六人桌"
+          : "6-max"
+        : count === 9
+          ? locale === "zh-CN"
+            ? "满员桌"
+            : "Full ring"
+          : locale === "zh-CN"
+            ? "多人桌"
+            : "Multiway";
+  return locale === "zh-CN"
+    ? `${count} 人 · ${format}`
+    : `${count} players · ${format}`;
+}
+
+function TableSizePicker({
+  preferredCount,
+  currentCount,
+  onStart,
+}: {
+  preferredCount: number;
+  currentCount: number;
+  onStart: (count: number) => void;
+}) {
+  const { locale } = useI18n();
+  const [count, setCount] = useState(preferredCount);
+  useEffect(() => setCount(preferredCount), [preferredCount]);
+  return (
+    <div className="table-size-picker">
+      <label>
+        <span>{locale === "zh-CN" ? "选择人数场" : "Table size"}</span>
+        <select
+          aria-label={locale === "zh-CN" ? "选择人数场" : "Table size"}
+          value={count}
+          onChange={(event) => setCount(Number(event.target.value))}
+        >
+          {TABLE_SIZES.map((size) => (
+            <option key={size} value={size}>
+              {tableSizeLabel(size, locale)}
+            </option>
+          ))}
+        </select>
+      </label>
+      <button onClick={() => onStart(count)} disabled={count === currentCount}>
+        {locale === "zh-CN"
+          ? `开启 ${count} 人场`
+          : `Start ${count}-player table`}
+      </button>
+      {count !== currentCount && (
+        <small role="status">
+          {locale === "zh-CN"
+            ? "开新桌将结束当前手牌，并重置本桌筹码。"
+            : "A new table ends this hand and resets table stacks."}
+        </small>
+      )}
+    </div>
+  );
+}
+
+// Larger tables retain clockwise seats and a dedicated, unobstructed board.
+function fullTableSeatStyle(
+  seat: number,
+  count: number,
+): CSSProperties | undefined {
+  if (count <= 6) return undefined;
+  const angle = (seat * Math.PI * 2) / count;
+  const compact: Record<number, number[][]> = {
+    7: [
+      [50, 91],
+      [17, 73],
+      [17, 27],
+      [33, 9],
+      [67, 9],
+      [83, 27],
+      [83, 73],
+    ],
+    8: [
+      [50, 91],
+      [17, 73],
+      [17, 27],
+      [17, 9],
+      [50, 9],
+      [83, 9],
+      [83, 27],
+      [83, 73],
+    ],
+    9: [
+      [50, 91],
+      [17, 75],
+      [17, 57],
+      [17, 27],
+      [33, 9],
+      [67, 9],
+      [83, 27],
+      [83, 57],
+      [83, 75],
+    ],
+  };
+  return {
+    "--seat-x": `${50 - 41 * Math.sin(angle)}%`,
+    "--seat-y": `${50 + 36 * Math.cos(angle)}%`,
+    "--seat-mobile-x": `${compact[count][seat][0]}%`,
+    "--seat-mobile-y": `${compact[count][seat][1]}%`,
+  } as CSSProperties;
 }
 
 function PokerTable({
@@ -329,7 +437,7 @@ function PokerTable({
   }, [game.handId]);
   return (
     <div
-      className={`poker-table street-${game.street} ${game.settled ? "is-settled" : ""}`}
+      className={`poker-table ${game.players.length > 6 ? "full-ring-table" : ""} street-${game.street} ${game.settled ? "is-settled" : ""}`}
       aria-label={t("德州扑克牌桌")}
     >
       <div className="table-rail" aria-hidden="true" />
@@ -444,6 +552,11 @@ function PokerTable({
             data-deal-order={dealOrderByPlayer.get(player.id)}
             data-last-action={lastActionType}
             data-seat={player.seat}
+            style={fullTableSeatStyle(
+              game.players.filter((candidate) => candidate.seat < player.seat)
+                .length,
+              game.players.length,
+            )}
           >
             {player.positionLabel.startsWith("BTN") && (
               <span className="dealer-button" aria-label={t("庄家按钮")}>
@@ -1110,7 +1223,7 @@ function SettingsView({
   replaceData: (data: PersistedData) => void;
   notifyRecovery: () => void;
 }) {
-  const { aiDescription, aiName, profileLabel, t } = useI18n();
+  const { aiDescription, aiName, locale, profileLabel, t } = useI18n();
   const [editingId, setEditingId] = useState(
     data.settings.selectedAiIds[0] ?? "tag",
   );
@@ -1204,8 +1317,10 @@ function SettingsView({
                 numberSetting("seatCount", Number(event.currentTarget.value))
               }
             >
-              {[2, 3, 4, 5, 6].map((value) => (
-                <option key={value}>{value}</option>
+              {TABLE_SIZES.map((value) => (
+                <option key={value} value={value}>
+                  {tableSizeLabel(value, locale)}
+                </option>
               ))}
             </select>
           </label>
@@ -1528,7 +1643,7 @@ function ScenarioView({
   const [opponents, setOpponents] = useState(2);
   const [error, setError] = useState("");
   useEffect(() => setError(""), [locale]);
-  const positionOptions = availableScenarioPositions(opponents + 1);
+  const positionOptions = tablePositions(opponents + 1);
   const effectivePosition = positionOptions.includes(position)
     ? position
     : "BTN";
@@ -1633,9 +1748,17 @@ function ScenarioView({
           <input
             type="number"
             min="1"
-            max="5"
+            max={MAX_TABLE_PLAYERS - 1}
             value={opponents}
-            onChange={(event) => setOpponents(Number(event.target.value))}
+            onChange={(event) => {
+              const count = Number(event.target.value);
+              if (
+                Number.isInteger(count) &&
+                count >= 1 &&
+                count < MAX_TABLE_PLAYERS
+              )
+                setOpponents(count);
+            }}
           />
         </label>
       </div>
@@ -1663,7 +1786,6 @@ function PokerTrainerApp() {
   const [data, setData] = useState<PersistedData>(() => defaultData());
   const [view, setView] = useState<View>("table");
   const [game, setGame] = useState<PokerGameState | null>(null);
-  const [dealerSeat, setDealerSeat] = useState(0);
   const [betAmount, setBetAmount] = useState(2.5);
   const [error, setError] = useState("");
   const [recoveryNotice, setRecoveryNotice] = useState(false);
@@ -1691,11 +1813,7 @@ function PokerTrainerApp() {
     if (typeof window !== "undefined") saveData(next, browserStorage);
   }, []);
   const startCashHand = useCallback(
-    (
-      source: PersistedData,
-      stacks?: Record<string, number>,
-      button = dealerSeat,
-    ) => {
+    (source: PersistedData, stacks?: Record<string, number>, button = 0) => {
       const funded = buildPlayers(source, stacks);
       const next = startHand({
         players: funded,
@@ -1711,7 +1829,7 @@ function PokerTrainerApp() {
       setAiTags({});
       savedHand.current = null;
     },
-    [dealerSeat],
+    [],
   );
 
   const returnToCashGame = () => {
@@ -2121,8 +2239,15 @@ function PokerTrainerApp() {
       game.dealerSeat,
       game.players.find((player) => player.positionLabel === "BB")?.seat,
     );
-    setDealerSeat(button);
-    startCashHand(data, stacks, button);
+    // Pending settings must not silently add/remove opponents in a running table.
+    startCashHand(
+      {
+        ...data,
+        settings: { ...data.settings, seatCount: game.players.length },
+      },
+      stacks,
+      button,
+    );
   };
   const nextHand = () => {
     if (!game || !continuation?.canDealNextHand) return;
@@ -2284,6 +2409,21 @@ function PokerTrainerApp() {
                   BB
                 </h1>
               </div>
+              {!isScenarioHand && (
+                <TableSizePicker
+                  preferredCount={data.settings.seatCount}
+                  currentCount={game.players.length}
+                  onStart={(seatCount) => {
+                    const next = {
+                      ...data,
+                      settings: { ...data.settings, seatCount },
+                    };
+                    persist(next);
+                    cashBeforeScenario.current = null;
+                    startCashHand(next, undefined, 0);
+                  }}
+                />
+              )}
               <div className="toolbar-actions">
                 {isScenarioHand ? (
                   !game.settled && (
