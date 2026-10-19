@@ -20,6 +20,16 @@ export type AppLocale = "zh-CN" | "en";
 const LOCALE_STORAGE_KEY = "riverlab-locale";
 
 const ENGLISH: Record<string, string> = {
+  外观: "Appearance",
+  界面偏好: "Interface preferences",
+  外观模式: "Appearance mode",
+  浅色: "Light",
+  深色: "Dark",
+  跟随系统: "System",
+  自动保存于此设备: "Saved on this device",
+  "暖纸底色，清爽明亮": "Warm paper, clear and bright",
+  "柔和暗色，专注牌局": "Soft charcoal, focused play",
+  随设备外观自动切换: "Match your device’s appearance",
   牌背: "Card back",
   尚未发出的公共牌: "Undealt community card",
   德州扑克牌桌: "Texas Hold'em table",

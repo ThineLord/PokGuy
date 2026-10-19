@@ -247,6 +247,7 @@ export function ArchitecturalBackdrop({
       const yaw = angle,
         pitch = 0.38 + lift + focus;
       const scale = Math.min(width / 530, height / 360);
+      const stroke = getComputedStyle(canvas).color;
       const project = ([x, y, z]: Point) => {
         const rx = x * Math.cos(yaw) + z * Math.sin(yaw);
         const rz = -x * Math.sin(yaw) + z * Math.cos(yaw);
@@ -265,7 +266,11 @@ export function ArchitecturalBackdrop({
         ctx.beginPath();
         ctx.moveTo(p[0], p[1]);
         ctx.lineTo(q[0], q[1]);
-        ctx.strokeStyle = `rgba(76, 101, 87, ${Math.min(0.56, 0.17 + weight * 0.17 + (p[2] + 150) / 2400)})`;
+        ctx.strokeStyle = stroke;
+        ctx.globalAlpha = Math.min(
+          0.56,
+          0.17 + weight * 0.17 + (p[2] + 150) / 2400,
+        );
         ctx.lineWidth = weight > 1 ? 1.05 : 0.7;
         ctx.stroke();
       }
@@ -302,6 +307,10 @@ export function ArchitecturalBackdrop({
     sceneObserver.observe(canvas, {
       attributes: true,
       attributeFilter: ["data-scene"],
+    });
+    sceneObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
     });
     const focusListener = (e: FocusEvent) => {
       onFocus(e);
