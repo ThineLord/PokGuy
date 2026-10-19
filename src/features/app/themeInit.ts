@@ -1,0 +1,3 @@
+// Run before paint so a saved dark preference never flashes the light palette.
+// Keep the key, accepted values and browser chrome colors aligned with theme.tsx.
+export const themeInitScript = `(function(){var m="system";try{var s=localStorage.getItem("pokguy-theme");if(s==="light"||s==="dark")m=s}catch(e){}var t=m==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):m;document.documentElement.dataset.theme=t;document.documentElement.dataset.themeMode=m;var c=document.querySelector('meta[name="theme-color"]');if(c)c.setAttribute("content",t==="dark"?"#171e1b":"#f3f2ec")})();`;

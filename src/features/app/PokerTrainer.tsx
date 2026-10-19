@@ -57,6 +57,7 @@ import type {
 } from "../../storage/types";
 import { LanguageProvider, useI18n } from "./i18n";
 import { ArchitecturalBackdrop, PokGuyMark } from "./PokGuyIdentity";
+import { ThemeProvider, ThemeSelect, ThemeSettings } from "./theme";
 import {
   handNeedsReview,
   needsReview,
@@ -1297,6 +1298,7 @@ function SettingsView({
 
   return (
     <div className="settings-layout">
+      <ThemeSettings />
       <section className="panel settings-section">
         <div className="panel-heading">
           <div>
@@ -2329,6 +2331,7 @@ function PokerTrainerApp() {
         </nav>
         <div className="topbar-meta">
           <span className="local-badge">{t("仅本地 · 非真钱")}</span>
+          <ThemeSelect />
           <button
             type="button"
             className="language-toggle"
@@ -2886,7 +2889,9 @@ function PokerTrainerApp() {
 export function PokerTrainer() {
   return (
     <LanguageProvider>
-      <PokerTrainerApp />
+      <ThemeProvider>
+        <PokerTrainerApp />
+      </ThemeProvider>
     </LanguageProvider>
   );
 }

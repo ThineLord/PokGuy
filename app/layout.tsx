@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import { siteOriginFromHeaders } from "../src/features/app/siteOrigin";
+import { themeInitScript } from "../src/features/app/themeInit";
 import "./globals.css";
 import "./pokguy.css";
+import "./theme.css";
 
 const title = "PokGuy";
 const description = "完全本地运行的单机德州扑克训练、复盘与统计工具。";
@@ -52,7 +54,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body>{children}</body>
     </html>
   );
