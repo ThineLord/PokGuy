@@ -15,6 +15,10 @@ const localBindingConfig = {
   main: "./worker/index.ts",
   compatibility_date: "2026-05-15",
   compatibility_flags: ["nodejs_compat"],
+  // The image handler fetches source files through ASSETS. Vite supplies the
+  // asset directory; Images stays locally simulated during development.
+  assets: { binding: "ASSETS" },
+  images: { binding: "IMAGES", remote: false },
   d1_databases: d1
     ? [
         {
