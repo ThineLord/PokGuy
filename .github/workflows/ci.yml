@@ -67,3 +67,9 @@ jobs:
 
       - name: Run Chromium end-to-end tests
         run: npm run test:e2e
+
+      - name: Build production Worker
+        run: npm run build
+
+      - name: Run production Worker Chromium end-to-end tests
+        run: npx playwright test --config playwright.worker.config.ts --project=chromium
