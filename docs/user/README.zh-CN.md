@@ -59,4 +59,4 @@ npm run dev:lan
 - 浏览器存储可能失败，多个标签页可能覆盖彼此最后保存的数据。建议只保留一个活动标签页并定期备份。
 - 响应式浏览器测试不等于实体 iPhone/iPad 验证；托管部署有单独的验证边界。
 
-版本范围见[更新说明](../releases/0.3.0.zh-CN.md)。报告问题请使用 [GitHub issues](https://github.com/ThineLord/PokGuy/issues)，附上版本、浏览器、复现步骤和预期结果；除非明确愿意公开分享，不要附上私人的牌局导出文件。
+版本范围见[更新说明](../releases/0.3.1.zh-CN.md)。报告问题请使用 [GitHub issues](https://github.com/ThineLord/PokGuy/issues)，附上版本、浏览器、复现步骤和预期结果；除非明确愿意公开分享，不要附上私人的牌局导出文件。

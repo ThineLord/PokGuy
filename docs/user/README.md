@@ -59,4 +59,4 @@ Connect both devices to a trusted Wi-Fi network and open the terminal's network 
 - Browser storage can fail and multiple tabs can overwrite each other's latest saved data. Use one active tab and keep backups.
 - Responsive browser tests do not certify behavior on physical iPhone/iPad hardware. Hosted deployment has a separate verification boundary.
 
-See [release notes](../releases/0.3.0.md) for the version's scope and [GitHub issues](https://github.com/ThineLord/PokGuy/issues) to report a problem. Include the version, browser, reproduction steps and expected result; do not attach private hand-history exports unless you intend to share them publicly.
+See [release notes](../releases/0.3.1.md) for the version's scope and [GitHub issues](https://github.com/ThineLord/PokGuy/issues) to report a problem. Include the version, browser, reproduction steps and expected result; do not attach private hand-history exports unless you intend to share them publicly.
