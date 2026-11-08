@@ -24,27 +24,42 @@ test("iPhone layout keeps the live controls reachable and touch sized @webkit", 
   await page.setViewportSize({ width: 393, height: 852 });
   await page.goto("/");
   await waitForHeroTurn(page);
-  await page.waitForTimeout(450);
+  const readMetrics = () =>
+    page.evaluate(() => {
+      const action = document
+        .querySelector(".action-bar")
+        ?.getBoundingClientRect();
+      const buttons = Array.from(
+        document.querySelectorAll<HTMLButtonElement>(".action-buttons button"),
+      ).map((button) => button.getBoundingClientRect());
+      return {
+        viewportWidth: window.innerWidth,
+        documentWidth: document.documentElement.scrollWidth,
+        actionBottom: action?.bottom ?? Number.POSITIVE_INFINITY,
+        viewportHeight: window.innerHeight,
+        minimumButtonHeight: Math.min(
+          ...buttons.map((button) => button.height),
+        ),
+        scrollY: window.scrollY,
+        documentHeight: document.documentElement.scrollHeight,
+        scrollBehavior: getComputedStyle(document.documentElement)
+          .scrollBehavior,
+        reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)")
+          .matches,
+      };
+    });
 
-  const metrics = await page.evaluate(() => {
-    const action = document
-      .querySelector(".action-bar")
-      ?.getBoundingClientRect();
-    const buttons = Array.from(
-      document.querySelectorAll<HTMLButtonElement>(".action-buttons button"),
-    ).map((button) => button.getBoundingClientRect());
-    return {
-      viewportWidth: window.innerWidth,
-      documentWidth: document.documentElement.scrollWidth,
-      actionBottom: action?.bottom ?? Number.POSITIVE_INFINITY,
-      viewportHeight: window.innerHeight,
-      minimumButtonHeight: Math.min(...buttons.map((button) => button.height)),
-    };
-  });
-
-  expect(metrics.documentWidth).toBe(metrics.viewportWidth);
-  expect(metrics.actionBottom).toBeLessThanOrEqual(metrics.viewportHeight + 1);
-  expect(metrics.minimumButtonHeight).toBeGreaterThanOrEqual(44);
+  // Observe the application's asynchronous scroll; never scroll from the test.
+  // Retain the same geometry contract and the normal 5-second assertion budget.
+  await expect(async () => {
+    const metrics = await readMetrics();
+    const diagnostic = JSON.stringify(metrics);
+    expect(metrics.documentWidth, diagnostic).toBe(metrics.viewportWidth);
+    expect(metrics.actionBottom, diagnostic).toBeLessThanOrEqual(
+      metrics.viewportHeight + 1,
+    );
+    expect(metrics.minimumButtonHeight, diagnostic).toBeGreaterThanOrEqual(44);
+  }).toPass({ timeout: 5_000 });
   await expect(page.getByRole("navigation", { name: "主导航" })).toBeVisible();
 
   await page.getByRole("button", { name: "切换到英文" }).click();

@@ -79,3 +79,12 @@ jobs:
 
       - name: Run production Worker Chromium end-to-end tests
         run: npm run test:e2e:worker
+
+      - name: Preserve browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: browser-failure-${{ github.run_id }}-${{ github.run_attempt }}
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
