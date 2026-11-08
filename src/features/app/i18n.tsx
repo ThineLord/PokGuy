@@ -20,6 +20,14 @@ export type AppLocale = "zh-CN" | "en";
 const LOCALE_STORAGE_KEY = "riverlab-locale";
 
 const ENGLISH: Record<string, string> = {
+  未充分评估: "Not assessed",
+  行动前筹码: "Stack before action",
+  需跟注: "To call",
+  行动前粗略胜率: "Equity estimate before action",
+  "未充分评估：当前启发式信息不足，不能据此判定决策合理或最优。请结合范围、位置和下注线复盘。":
+    "Not assessed: this heuristic has insufficient information to judge the decision sound or optimal. Review ranges, position and the betting line.",
+  "高风险：粗略胜率偏低的主动全押需要额外理由；这不是求解器结论。":
+    "High risk: an aggressive shove with low estimated equity needs additional justification. This is not a solver verdict.",
   统计范围: "Statistics scope",
   现金桌: "Cash table",
   场景训练: "Scenarios",

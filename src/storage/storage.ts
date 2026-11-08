@@ -434,6 +434,7 @@ const TRAINING_GRADES = new Set<TrainingRecord["grade"]>([
   "偏紧",
   "尺度异常",
   "高风险",
+  "未充分评估",
 ]);
 
 function isTrainingRecord(value: unknown): value is TrainingRecord {
@@ -446,7 +447,39 @@ function isTrainingRecord(value: unknown): value is TrainingRecord {
     Number.isFinite(Date.parse(record.createdAt)) &&
     typeof record.grade === "string" &&
     TRAINING_GRADES.has(record.grade as TrainingRecord["grade"]) &&
-    (record.note === undefined || typeof record.note === "string")
+    (record.note === undefined || typeof record.note === "string") &&
+    (record.context === undefined ||
+      (record.context !== null &&
+        typeof record.context === "object" &&
+        record.context.policyVersion === 1 &&
+        Number.isSafeInteger(record.context.actionIndex) &&
+        record.context.actionIndex >= 0 &&
+        ["preflop", "flop", "turn", "river"].includes(record.context.street) &&
+        [
+          record.context.potBefore,
+          record.context.toCall,
+          record.context.stackBefore,
+          record.context.amountCommitted,
+        ].every(
+          (value) =>
+            typeof value === "number" &&
+            Number.isFinite(value) &&
+            value >= 0 &&
+            value <= Number.MAX_SAFE_INTEGER,
+        ) &&
+        record.context.amountCommitted <= record.context.stackBefore &&
+        (record.context.equityEstimate === null ||
+          (typeof record.context.equityEstimate === "number" &&
+            Number.isFinite(record.context.equityEstimate) &&
+            record.context.equityEstimate >= 0 &&
+            record.context.equityEstimate <= 1)) &&
+        [
+          "oversize",
+          "free-fold",
+          "low-equity-call",
+          "low-equity-allin",
+          "unassessed",
+        ].includes(record.context.reason)))
   );
 }
 
