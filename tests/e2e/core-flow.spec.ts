@@ -162,6 +162,10 @@ test("create a real review item and keep Review Lab mobile-safe @webkit", async 
   await page.getByRole("button", { name: "统计", exact: true }).click();
   await expect(
     page.locator(".stat-card", { hasText: "已点评决策" }).locator("strong"),
+  ).toHaveText("0");
+  await page.getByLabel("统计范围").selectOption("scenario");
+  await expect(
+    page.locator(".stat-card", { hasText: "已点评决策" }).locator("strong"),
   ).toHaveText("1");
   await expect(
     page.locator(".stat-card", { hasText: "待复查决策" }).locator("strong"),

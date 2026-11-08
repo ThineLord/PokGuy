@@ -14,6 +14,11 @@ export function actionFacts(game: PokerGameState) {
   let street = game.actions[0]?.street ?? "preflop";
   let currentBet = street === "preflop" ? game.bigBlind : 0;
   let raises = 0;
+  let minRaise = game.bigBlind;
+  const lastActedBet = new Map<string, number>();
+  const live = new Set(
+    game.players.filter((p) => p.startingStack > 0).map((p) => p.id),
+  );
   const contributions = new Map(
     game.players.map((player) => [
       player.id,
@@ -43,20 +48,39 @@ export function actionFacts(game: PokerGameState) {
       street = record.street;
       currentBet = 0;
       raises = 0;
+      minRaise = game.bigBlind;
+      lastActedBet.clear();
       contributions.forEach((_, id) => contributions.set(id, 0));
     }
     const contribution = contributions.get(record.playerId) ?? 0;
     const paid = normalizeChips(record.potAfter - record.potBefore);
     const target = normalizeChips(contribution + paid);
     const aggressive = paid > 0 && target > currentBet + CHIP_EPSILON;
+    const toCall = normalizeChips(Math.max(0, currentBet - contribution));
+    const stackBefore = stacks.get(record.playerId) ?? 0;
+    const lastBet = lastActedBet.get(record.playerId);
+    const canRaise =
+      stackBefore > toCall + CHIP_EPSILON &&
+      [...live].some(
+        (id) => id !== record.playerId && (stacks.get(id) ?? 0) > CHIP_EPSILON,
+      ) &&
+      (lastBet === undefined ||
+        currentBet - lastBet >= minRaise - CHIP_EPSILON);
     const fact = {
       record,
       aggressive,
       raisesBefore: raises,
-      toCall: normalizeChips(Math.max(0, currentBet - contribution)),
-      stackBefore: stacks.get(record.playerId) ?? 0,
+      toCall,
+      stackBefore,
+      canRaise,
     };
-    if (aggressive) raises += 1;
+    if (aggressive) {
+      raises += 1;
+      if (target - currentBet >= minRaise - CHIP_EPSILON)
+        minRaise = target - currentBet;
+    }
+    if (record.action.type === "fold") live.delete(record.playerId);
+    lastActedBet.set(record.playerId, Math.max(currentBet, target));
     currentBet = Math.max(currentBet, target);
     contributions.set(record.playerId, target);
     stacks.set(record.playerId, normalizeChips(fact.stackBefore - paid));
