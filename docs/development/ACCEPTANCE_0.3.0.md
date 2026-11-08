@@ -20,7 +20,7 @@ Date: 2026-11-09. Codex implemented the changes; independent subagents reviewed 
 | Check                                                                    | Result                                                                   |
 | ------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
 | Clean Node 22 install                                                    | 594 packages installed from the lockfile                                 |
-| Unit tests                                                               | 203/203 passed in the clean quality run                                  |
+| Unit tests                                                               | 203/203 passed in the clean quality run and final single-worker run      |
 | Release metadata, local links, formatting, lint, types, production build | Passed                                                                   |
 | Development Chromium                                                     | 25/25 passed on the final feature tree                                   |
 | Desktop WebKit selection                                                 | 17/17 passed after the focus-return fix                                  |
