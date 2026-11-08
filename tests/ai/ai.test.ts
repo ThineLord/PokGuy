@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { adaptPersonality, smoothRate } from "@/src/ai/adaptation/adapt";
 import { decideAIAction } from "@/src/ai/decision/decide";
 import { estimateEquity, simulationDeck } from "@/src/ai/equity/monteCarlo";

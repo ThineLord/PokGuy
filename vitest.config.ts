@@ -4,6 +4,8 @@ import path from "node:path";
 export default defineConfig({
   resolve: { alias: { "@": path.resolve(__dirname, ".") } },
   test: {
+    // Bound CPU/memory pressure without weakening individual test timeouts.
+    maxWorkers: 2,
     environment: "jsdom",
     environmentOptions: { jsdom: { url: "http://localhost/" } },
     globals: true,
