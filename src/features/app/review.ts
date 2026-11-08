@@ -54,7 +54,26 @@ export function reviewEntriesForHand(
     hasUnambiguousNewestFirstOrder;
   return chronologicalRecords.map((record, index) => ({
     record,
-    action: canPairActions ? (heroActions[index] ?? null) : null,
+    action: record.context
+      ? (() => {
+          const action = hand.game.actions[record.context.actionIndex];
+          if (
+            !action ||
+            !humanIds.has(action.playerId) ||
+            action.street !== record.context.street ||
+            Math.abs(action.potBefore - record.context.potBefore) > 0.001 ||
+            Math.abs(
+              action.potAfter -
+                action.potBefore -
+                record.context.amountCommitted,
+            ) > 0.001
+          )
+            return null;
+          return action;
+        })()
+      : canPairActions
+        ? (heroActions[index] ?? null)
+        : null,
   }));
 }
 

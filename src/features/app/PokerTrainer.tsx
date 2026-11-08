@@ -56,6 +56,7 @@ import type {
 } from "../../storage/types";
 import { createBackup, restoreBackup, type Backup } from "../../storage/backup";
 import { DataManagement, useBackupExport } from "./DataManagement";
+import { evaluateTrainingDecision } from "./trainingFeedback";
 import { LanguageProvider, useI18n } from "./i18n";
 import { ArchitecturalBackdrop, PokGuyMark } from "./PokGuyIdentity";
 import { ThemeProvider, ThemeSelect, ThemeSettings, useTheme } from "./theme";
@@ -920,12 +921,17 @@ function reviewExplanation(
   grade: TrainingRecord["grade"],
   t: (key: string) => string,
 ): string {
+  if (grade === "未充分评估")
+    return t(
+      "未充分评估：当前启发式信息不足，不能据此判定决策合理或最优。请结合范围、位置和下注线复盘。",
+    );
   if (grade === "尺度异常")
     return t("尺度异常：该下注显著超过当前底池，通常需要很强的特定理由。");
   if (grade === "偏紧")
     return t("偏紧：无需跟注时弃牌通常损失了免费看牌机会。");
   if (grade === "偏松") return t("偏松：粗略胜率低于当前底池赔率门槛。");
-  if (grade === "高风险") return t("高风险：深街前全押会显著放大方差。");
+  if (grade === "高风险")
+    return t("高风险：粗略胜率偏低的主动全押需要额外理由；这不是求解器结论。");
   if (grade === "有争议")
     return t("有争议：建议结合对手范围、位置和当时信息重新检查。");
   return t("合理：该动作处于可辩护范围；扑克决策通常不存在唯一答案。");
@@ -1014,6 +1020,30 @@ function ReviewPanel({
                     <small className="review-fallback">
                       {t("该条旧记录缺少完整动作上下文，因此只显示原始评分。")}
                     </small>
+                  )}
+                  {record.context && (
+                    <div className="review-context">
+                      <span>
+                        {t("行动前筹码")}{" "}
+                        {formatChips(
+                          record.context.stackBefore / hand.game.bigBlind,
+                        )}{" "}
+                        BB
+                      </span>
+                      <span>
+                        {t("需跟注")}{" "}
+                        {formatChips(
+                          record.context.toCall / hand.game.bigBlind,
+                        )}{" "}
+                        BB
+                      </span>
+                      <span>
+                        {t("行动前粗略胜率")}{" "}
+                        {record.context.equityEstimate === null
+                          ? "—"
+                          : `${Math.round(record.context.equityEstimate * 100)}%`}
+                      </span>
+                    </div>
                   )}
                   <p>{record.note || reviewExplanation(record.grade, t)}</p>
                 </div>
@@ -2090,44 +2120,21 @@ function PokerTrainerApp() {
         setBetAmount(roundChips(validation.nearestLegalAmount));
       return;
     }
-    const priorToCall = toCall;
     try {
       const next = act(game, HERO_ID, action);
-      const grade: TrainingRecord["grade"] =
-        (action.type === "bet" || action.type === "raise") &&
-        (action.amount ?? 0) > pot * 2.25 + game.currentBet
-          ? "尺度异常"
-          : action.type === "fold" && priorToCall === 0
-            ? "偏紧"
-            : action.type === "call" &&
-                pot > 0 &&
-                priorToCall / (pot + priorToCall) >
-                  (assessment?.equityEstimate ?? 0) + 0.08
-              ? "偏松"
-              : action.type === "all-in" &&
-                  game.street !== "river" &&
-                  (assessment?.equityEstimate ?? 0) < 0.55
-                ? "高风险"
-                : "合理";
-      const message =
-        grade === "尺度异常"
-          ? t("尺度异常：该下注显著超过当前底池，通常需要很强的特定理由。")
-          : grade === "偏紧"
-            ? t("偏紧：无需跟注时弃牌通常损失了免费看牌机会。")
-            : grade === "偏松"
-              ? t("偏松：粗略胜率低于当前底池赔率门槛。")
-              : grade === "高风险"
-                ? t("高风险：深街前全押会显著放大方差。")
-                : t("合理：该动作处于可辩护范围；扑克决策通常不存在唯一答案。");
+      const record = evaluateTrainingDecision(
+        game,
+        HERO_ID,
+        action,
+        assessment?.equityEstimate,
+      );
+      const message = reviewExplanation(record.grade, t);
       setGame(next);
       setError("");
       setFeedback(data.settings.hintStrength === "off" ? "" : message);
       persist({
         ...data,
-        trainingRecords: [
-          { handId: game.handId, createdAt: new Date().toISOString(), grade },
-          ...data.trainingRecords,
-        ].slice(0, 500),
+        trainingRecords: [record, ...data.trainingRecords].slice(0, 500),
       });
     } catch (reason) {
       setError(

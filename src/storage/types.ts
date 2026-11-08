@@ -64,8 +64,25 @@ export interface AggregateStats {
 export interface TrainingRecord {
   handId: string;
   createdAt: string;
-  grade: "合理" | "有争议" | "偏松" | "偏紧" | "尺度异常" | "高风险";
+  grade:
+    "合理" | "有争议" | "偏松" | "偏紧" | "尺度异常" | "高风险" | "未充分评估";
   note?: string;
+  context?: {
+    policyVersion: 1;
+    actionIndex: number;
+    street: PokerGameState["street"];
+    potBefore: number;
+    toCall: number;
+    stackBefore: number;
+    amountCommitted: number;
+    equityEstimate: number | null;
+    reason:
+      | "oversize"
+      | "free-fold"
+      | "low-equity-call"
+      | "low-equity-allin"
+      | "unassessed";
+  };
 }
 
 export interface PersistedData {
