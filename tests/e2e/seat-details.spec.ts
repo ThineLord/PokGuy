@@ -45,7 +45,8 @@ test("seat details expose readable public info and return keyboard focus @webkit
         () => document.documentElement.scrollWidth <= innerWidth,
       ),
     ).toBe(true);
-    await page.keyboard.press("Escape");
+    if (width === 393) await page.keyboard.press("Escape");
+    else await dialog.getByRole("button", { name: "关闭座位详情" }).click();
     await expect(dialog).toHaveCount(0);
     await expect(trigger).toBeFocused();
   }

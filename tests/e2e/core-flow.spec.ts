@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { defaultData } from "../../src/storage/storage";
 
 async function waitForHeroOrSettlement(page: Page) {
   const fold = page.getByRole("button", { name: "弃牌" });
@@ -193,8 +194,18 @@ test("create a real review item and keep Review Lab mobile-safe @webkit", async 
 });
 
 test("use call and raise controls", async ({ page }) => {
+  // These assertions inspect the most recent actor's visual treatment. Pause
+  // opponents so an AI reply cannot replace that marker before the assertion.
+  const fixture = defaultData();
+  fixture.settings.seatCount = 2;
+  fixture.settings.autoAi = false;
+  await page.evaluate(
+    (data) => localStorage.setItem("riverlab-poker-v2", JSON.stringify(data)),
+    fixture,
+  );
+  await page.reload();
   const call = page.getByRole("button", { name: /^跟注/ });
-  while (await call.isDisabled()) await page.waitForTimeout(100);
+  await expect(call).toBeEnabled();
   await call.click();
   await expect(
     page.locator('.seat[data-seat="0"][data-last-action="call"]'),
@@ -202,10 +213,16 @@ test("use call and raise controls", async ({ page }) => {
   await expect(
     page.locator('.seat[data-seat="0"] .action-callout-call'),
   ).toBeVisible();
-  await page.waitForTimeout(700);
+
+  // Start a fresh heads-up hand with Hero first to act, then require a raise.
+  await page.reload();
   await page.getByLabel("下注总额").fill("3");
-  const raise = page.getByRole("button", { name: /^(加注|下注)$/ });
-  if (!(await raise.isDisabled())) await raise.click();
+  const raise = page.getByRole("button", { name: "加注", exact: true });
+  await expect(raise).toBeEnabled();
+  await raise.click();
+  await expect(
+    page.locator('.seat[data-seat="0"][data-last-action="raise"]'),
+  ).toBeVisible();
   await expect(page.getByLabel("德州扑克牌桌")).toBeVisible();
 });
 
