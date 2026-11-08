@@ -44,6 +44,6 @@ No environment variables are required for local practice. Only behind a trusted 
 
 ## Repository hygiene
 
-Keep runtime entry points (`app/`, `src/`, `worker/`), assets (`public/`) and build integration (`build/`) in their existing locations. Framework and package configuration remain at the root. Detailed prose lives under `docs/`; old reports live under `docs/archive/` and are not active work queues.
+Keep runtime entry points (`src/app/`, `src/worker/` and the other `src/` modules), assets (`public/`) and build integration (`scripts/`) in their existing locations. Vite, TypeScript and ESLint keep their root discovery files; test configurations live in `tests/`, and Prettier/PostCSS options live in `package.json`. Detailed prose lives under `docs/`; old reports are linked at a fixed tag from `docs/archive/` and are not active work queues.
 
 Generated `dist/`, `node_modules/`, `.wrangler/`, browser reports and user exports are not release assets. Never commit environment secrets, browser storage exports or private playtest data. Preserve unknown local files when organizing an existing checkout.

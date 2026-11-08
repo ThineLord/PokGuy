@@ -25,4 +25,4 @@ These detailed design documents are currently in Chinese.
 
 ## Historical records
 
-[Archive index](archive/README.md) preserves earlier reports and recovery records. Their dates, test counts, dependency findings and decisions describe historical snapshots, not current release verification.
+[Archive index](archive/README.md) links to fixed-tag historical reports and recovery records. Their dates, test counts, dependency findings and decisions describe historical snapshots, not current release verification.

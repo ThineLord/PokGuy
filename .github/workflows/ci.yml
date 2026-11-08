@@ -75,4 +75,4 @@ jobs:
         run: npm run build
 
       - name: Run production Worker Chromium end-to-end tests
-        run: npx playwright test --config playwright.worker.config.ts --project=chromium
+        run: npm run test:e2e:worker

@@ -1,7 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
+import { resolve } from "node:path";
+
+const projectRoot = resolve(import.meta.dirname, "..");
 
 export default defineConfig({
-  testDir: "./tests/e2e",
+  testDir: resolve(projectRoot, "tests/e2e"),
+  outputDir: resolve(projectRoot, "test-results"),
   fullyParallel: false,
   retries: 1,
   reporter: "list",
@@ -10,6 +14,7 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
+    cwd: projectRoot,
     command: "npm run dev",
     url: "http://localhost:3000",
     reuseExistingServer: false,

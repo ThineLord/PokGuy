@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config";
 import path from "node:path";
 
 export default defineConfig({
-  resolve: { alias: { "@": path.resolve(__dirname, ".") } },
+  resolve: { alias: { "@": path.resolve(__dirname, "..") } },
   test: {
     // Bound CPU/memory pressure without weakening individual test timeouts.
     maxWorkers: 2,

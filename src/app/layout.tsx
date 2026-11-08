@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import { siteOriginFromHeaders } from "../src/features/app/siteOrigin";
-import { themeInitScript } from "../src/features/app/themeInit";
+import { siteOriginFromHeaders } from "../features/app/siteOrigin";
+import { themeInitScript } from "../features/app/themeInit";
 import "./globals.css";
 import "./pokguy.css";
 import "./theme.css";
