@@ -60,6 +60,13 @@ export function parseBackup(
       !["system", "light", "dark"].includes(raw.preferences?.theme)
     )
       throw new Error("backup-preferences");
+    if (
+      raw.data.statsScope === undefined &&
+      ["scenarioStats", "legacyStats", "legacyAiHabits"].some((key) =>
+        Object.hasOwn(raw.data, key),
+      )
+    )
+      throw new Error("backup-invalid-scope");
     const data = migrateData(raw.data);
     const expected =
       raw.data.statsScope === undefined

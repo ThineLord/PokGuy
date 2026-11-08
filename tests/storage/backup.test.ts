@@ -182,3 +182,16 @@ it("accepts a valid pre-scope full backup while still rejecting damaged legacy f
     ),
   ).toThrow();
 });
+
+it("rejects a damaged modern scope marker without overwriting legacy totals", () => {
+  const data = sample();
+  data.legacyStats = { ...defaultData().stats, hands: 500 };
+  delete data.statsScope;
+  expect(() =>
+    parseBackup(
+      JSON.stringify(createBackup(data, prefs)),
+      defaultData(),
+      prefs,
+    ),
+  ).toThrow("backup-invalid-scope");
+});
