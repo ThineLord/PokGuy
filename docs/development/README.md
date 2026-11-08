@@ -26,7 +26,7 @@ npm run test:e2e
 
 Playwright owns its test server and fails if port 3000 is occupied. Stop only your own stale server or use an isolated environment; never kill unrelated servers. The Worker configuration starts only Wrangler on 4173 using the emitted `dist/server/wrangler.json`. Run development and Worker suites sequentially. The WebKit suite also runs in CI; desktop WebKit does not certify physical iOS hardware.
 
-Vitest uses at most two workers to bound CPU/memory pressure, and the pure AI suite runs in Node instead of jsdom. Individual test timeouts are unchanged. This avoids the audit's intermittent CPU-bound AI timeout without hiding failures.
+Vitest uses at most two workers to bound CPU/memory pressure, and the pure AI suite runs in Node instead of jsdom. Individual test timeouts are unchanged. This reduces resource contention without hiding failures; a heavily loaded host can still exceed an individual test limit.
 
 ```bash
 npm run check
