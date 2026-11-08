@@ -4,15 +4,13 @@
 
 **Practice a hand. Review your decisions. Build your poker intuition.**
 
-PokGuy is a local-first Texas Hold’em trainer for solo practice against configurable AI opponents. Play 2–9 seat cash tables, build a hand scenario, and revisit your decisions with hand history and statistics. No account or real-money play is involved.
+A local-first Texas Hold’em trainer: play 2–9 seat cash tables against configurable AI, create hand scenarios, and review decisions with history and statistics. No account or real-money play.
 
-**For users:** start with the [user README](docs/user/README.md).
+![PokGuy: the training table and available actions](docs/images/overview.png)
 
-**For agents:** read [AGENTS.md](AGENTS.md), then the [agent README](docs/agent/README.md).
+## Get started
 
-## Start locally
-
-Use **Node.js 22.13+ (22.x recommended)** and npm.
+Use **Node.js 22.13+ (22.x recommended)**.
 
 ```bash
 git clone https://github.com/ThineLord/PokGuy.git
@@ -21,36 +19,25 @@ npm ci
 npm run dev
 ```
 
-Open the local address printed by the terminal, normally **http://localhost:3000**. Keep the server running while you practice.
+Open the address printed by the terminal, normally **http://localhost:3000**.
 
-## Practice, review, repeat
+## Practice and review
 
-- **Play:** 2–9 players, eight editable AI personalities, legal-action guidance, side pots and showdown explanations.
-- **Train:** choose hole cards, position, stack size and starting street; toggle hints as needed.
-- **Review:** replay recent hands, add notes, inspect decision feedback and track statistics.
-- **Make it yours:** English/Chinese UI, light/dark/system appearance, card backs and animation controls.
+- **Play and train:** eight editable AI personalities, legal actions, side pots, showdown explanations and custom scenarios.
+- **Learn from decisions:** replay hands, add notes, inspect heuristic feedback, and separate cash-table statistics from scenario practice.
+- **Keep your data:** full backup with restore preview and save-failure recovery. Records stay in your browser.
+- **Make it yours:** English/Chinese, light/dark/system appearance, readable mobile seat details and keyboard controls.
 
-Game records stay in the current browser. Export a JSON backup from Settings before clearing site data or changing devices. AI feedback is a training heuristic, not a GTO solver. See [usage and limitations](docs/user/README.md).
+Export a full backup before clearing site data or changing devices. AI feedback is a training heuristic, not a GTO solver.
 
-## Find your way
+## Documentation
 
-```text
-app/              page entry points and styles
-src/              poker engine, AI, interface and browser storage
-public/           application assets
-tests/            unit and browser tests
-docs/             user, agent, architecture and release documentation
-scripts/          repository and release validation
-build/ + worker/  build integration and Worker entry point
-```
+[User guide](docs/user/README.md) · [Actual workflows](docs/user/0.3.0-walkthrough.md) · [Development](docs/development/README.md) · [All docs](docs/README.md)
 
-## Versions and documentation
+**For agents:** [AGENTS.md](AGENTS.md) → [Agent README](docs/agent/README.md).
 
-Current version: **0.3.0**. Releases use `vMAJOR.MINOR.PATCH` tags and [GitHub Releases](https://github.com/ThineLord/PokGuy/releases). Application versions and browser storage schema versions are independent.
+Source and routes live in `src/`, assets in `public/`, tests and their configuration in `tests/`, build/release helpers in `scripts/`, and guides in `docs/`.
 
-- [What changed in 0.3.0](docs/releases/0.3.0.md) · [Changelog](CHANGELOG.md)
-- [See the new flow](docs/user/0.3.0-walkthrough.md)
-- [Documentation index](docs/README.md) · [Development and tests](docs/development/README.md)
-- [Version and release workflow](docs/releases/README.md)
+Current version: **0.3.0** · [Release notes](docs/releases/0.3.0.md) · [Changelog](CHANGELOG.md) · [GitHub Releases](https://github.com/ThineLord/PokGuy/releases)
 
-PokGuy is for learning and personal practice. It has no deposits, withdrawals or real-player matchmaking. A source release does not establish a verified hosted deployment.
+Releases follow [semantic versioning](docs/releases/README.md); browser storage schema versions are independent. This is a learning tool without deposits, withdrawals or real-player matchmaking. A source release does not establish a verified hosted deployment.

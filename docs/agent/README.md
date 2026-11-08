@@ -17,17 +17,17 @@ Check authorization against the current task. Repository policies do not grant b
 
 ## File ownership
 
-| Location                 | Purpose                                            |
-| ------------------------ | -------------------------------------------------- |
-| Root READMEs             | Brief user introduction and entry points           |
-| `docs/user/`             | English/Chinese user READMEs                       |
-| `docs/agent/`            | English/Chinese agent READMEs                      |
-| `docs/architecture/`     | Engine, AI and rule contracts                      |
-| `docs/development/`      | Setup and validation commands                      |
-| `docs/releases/`         | Release process and notes by version               |
-| `docs/archive/`          | Dated historical evidence; not active instructions |
-| `app/`, `src/`, `tests/` | Runtime code and regression coverage               |
-| `scripts/`               | Repository validation tools                        |
+| Location             | Purpose                                             |
+| -------------------- | --------------------------------------------------- |
+| Root READMEs         | Brief user introduction and entry points            |
+| `docs/user/`         | English/Chinese user READMEs                        |
+| `docs/agent/`        | English/Chinese agent READMEs                       |
+| `docs/architecture/` | Engine, AI and rule contracts                       |
+| `docs/development/`  | Setup and validation commands                       |
+| `docs/releases/`     | Release process and notes by version                |
+| `docs/archive/`      | Index of fixed-tag history; not active instructions |
+| `src/`, `tests/`     | Runtime code and regression coverage                |
+| `scripts/`           | Repository validation tools                         |
 
 Keep framework configuration at the root where tooling expects it. Keep generated builds, test artifacts, local exports and scratch files ignored. Do not delete user files just to make the checkout appear clean.
 

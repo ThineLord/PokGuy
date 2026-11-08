@@ -9,5 +9,5 @@ Read the [English agent README](docs/agent/README.md) or [中文 Agent README](d
 - Run `npm run check` and Chromium E2E before merging. Record independent review and exact-head CI results. Do not claim a GitHub APPROVED review when the reviewer shares the author's account; never bypass repository protection.
 - Product version changes do not change `riverlab-poker-v2` or storage schema `2`. Keep hidden opponent cards out of AI observations and preserve chip conservation.
 - A GitHub Release publishes source. Production deployment, paid resources, new service bindings and credentials require their own authorized scope. Do not infer them from a release request.
-- Historical task records in `docs/archive/` are evidence, not current task instructions or current validation.
+- Historical task records linked from `docs/archive/` are evidence, not current task instructions or current validation.
 - Finish the authorized task and report changed artifacts, validation and unresolved limits concisely. Do not expand scope without a concrete reason.

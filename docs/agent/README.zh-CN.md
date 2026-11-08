@@ -17,17 +17,17 @@ Codex 负责组织任务、实施和仓库管理。独立 subagents 负责 revie
 
 ## 文件归属
 
-| 位置                     | 用途                             |
-| ------------------------ | -------------------------------- |
-| 根目录 README            | 简洁简介与入口                   |
-| `docs/user/`             | 中英文用户 README                |
-| `docs/agent/`            | 中英文 Agent README              |
-| `docs/architecture/`     | 引擎、AI 与规则约定              |
-| `docs/development/`      | 环境与验证命令                   |
-| `docs/releases/`         | 发布流程与逐版本说明             |
-| `docs/archive/`          | 有日期的历史证据，不作为当前指令 |
-| `app/`、`src/`、`tests/` | 运行代码与回归测试               |
-| `scripts/`               | 仓库校验工具                     |
+| 位置                 | 用途                                 |
+| -------------------- | ------------------------------------ |
+| 根目录 README        | 简洁简介与入口                       |
+| `docs/user/`         | 中英文用户 README                    |
+| `docs/agent/`        | 中英文 Agent README                  |
+| `docs/architecture/` | 引擎、AI 与规则约定                  |
+| `docs/development/`  | 环境与验证命令                       |
+| `docs/releases/`     | 发布流程与逐版本说明                 |
+| `docs/archive/`      | 固定版本历史记录索引，不作为当前指令 |
+| `src/`、`tests/`     | 运行代码与回归测试                   |
+| `scripts/`           | 仓库校验工具                         |
 
 框架配置留在工具要求的根目录。构建产物、测试输出、本地导出和临时文件应被忽略；不要为清空工作区而删除用户文件。
 
