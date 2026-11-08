@@ -13,7 +13,7 @@ test("a river shove is reviewed using its pre-action context @webkit", async ({
   await page.getByLabel("位置").selectOption("BB");
   await page.getByRole("button", { name: "开始此训练" }).click();
   await page
-    .locator(".action-bar")
+    .locator(".action-buttons")
     .getByRole("button", { name: /^全押/ })
     .click();
   await expect(page.getByText("本手正式结束")).toBeVisible();
