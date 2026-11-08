@@ -18,3 +18,9 @@ Date: 2026-11-09. Codex implemented the changes; independent subagents reviewed 
 ## Acceptance boundary
 
 Final release validation is tied to the merged source and GitHub workflow run. The release description records final test counts and links. Chromium and desktop WebKit cover browser behavior; physical iOS hardware and production deployment were not tested or changed. Local storage remains single-active-tab oriented. The npm audit retains two moderate advisory chains; see [the security assessment](SECURITY_0.3.0.md).
+
+## Issues caught during acceptance
+
+The first complete WebKit run passed 16 tests and failed the seat-dialog focus-return assertion. A separate reviewed follow-up captures the trigger and restores focus explicitly; both Escape and the close button are covered, and WebKit is now a CI gate. The corrected full WebKit run passed 17/17.
+
+Earlier local runs under concurrent machine load hit existing 5-second test limits. We did not increase timeouts or reduce sample counts. A clean independent Node 22 install passed all 203 tests and the complete quality/build gate. Test artifacts retain the earlier failure separately from the final successful run.
