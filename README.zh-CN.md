@@ -6,7 +6,8 @@
 
 PokGuy 是一款优先在本地使用的单机德州扑克训练工具。你可以与可配置的 AI 对手进行 2–9 人现金桌练习，自定义单手场景，并通过牌局历史和统计复盘决策。无需账号，不涉及真钱。
 
-**用户入口：**[用户 README](docs/user/README.zh-CN.md)。  
+**用户入口：**[用户 README](docs/user/README.zh-CN.md)。
+
 **Agent 入口：**先读 [AGENTS.md](AGENTS.md)，再读 [Agent README](docs/agent/README.zh-CN.md)。
 
 ## 本地启动

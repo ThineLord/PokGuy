@@ -6,7 +6,8 @@
 
 PokGuy is a local-first Texas Hold’em trainer for solo practice against configurable AI opponents. Play 2–9 seat cash tables, build a hand scenario, and revisit your decisions with hand history and statistics. No account or real-money play is involved.
 
-**For users:** start with the [user README](docs/user/README.md).  
+**For users:** start with the [user README](docs/user/README.md).
+
 **For agents:** read [AGENTS.md](AGENTS.md), then the [agent README](docs/agent/README.md).
 
 ## Start locally
