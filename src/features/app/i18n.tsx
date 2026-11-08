@@ -20,6 +20,30 @@ export type AppLocale = "zh-CN" | "en";
 const LOCALE_STORAGE_KEY = "riverlab-locale";
 
 const ENGLISH: Record<string, string> = {
+  牌局: "Hands",
+  笔记: "Notes",
+  "完整备份包含设置、已完成牌局、统计、笔记、训练点评、AI 习惯和界面偏好；不包含正在进行的牌局。":
+    "A full backup includes settings, completed hands, statistics, notes, decision reviews, AI habits and preferences. The active hand is not included.",
+  导出完整备份: "Export full backup",
+  导入备份或旧设置: "Import backup or legacy settings",
+  选择备份文件: "Choose backup file",
+  恢复预览: "Restore preview",
+  "旧设置文件：仅替换设置和 AI 配置，保留其他数据。":
+    "Legacy settings: replaces settings and AI profiles only; keeps other data.",
+  "恢复会替换当前设备的数据，并开始新牌局。建议先导出当前备份。":
+    "Restoring replaces this device’s data and starts a new hand. Export a current backup first.",
+  训练点评: "Decision reviews",
+  确认恢复: "Confirm restore",
+  取消: "Cancel",
+  "文件无效、不兼容或超过 10 MB。未修改现有数据。":
+    "Invalid, incompatible or over 10 MB. Existing data was not changed.",
+  "备份已恢复并保存。": "Backup restored and saved.",
+  "恢复未完成。请导出当前备份，释放存储空间后重试。":
+    "Restore did not complete. Export your current backup, free storage space and retry.",
+  "更改尚未保存。关闭或刷新页面可能丢失数据。":
+    "Changes are not saved. Closing or refreshing may lose data.",
+  重试保存: "Retry save",
+
   外观: "Appearance",
   界面偏好: "Interface preferences",
   外观模式: "Appearance mode",

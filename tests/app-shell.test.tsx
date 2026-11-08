@@ -77,7 +77,7 @@ describe("application shell", () => {
     expect(screen.getAllByText(/TAG/).length).toBeGreaterThan(0);
   });
 
-  it("reports repairs applied to an imported settings file", async () => {
+  it("rejects a damaged settings import without silently replacing data", async () => {
     const user = userEvent.setup();
     const { container } = render(<Home />);
     await user.click(await screen.findByRole("button", { name: /设置/ }));
@@ -98,7 +98,7 @@ describe("application shell", () => {
     await user.upload(input as HTMLInputElement, file);
 
     expect(
-      await screen.findByText(/本地数据.*(迁移|恢复)/),
+      await screen.findByText("文件无效、不兼容或超过 10 MB。未修改现有数据。"),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("小盲")).toHaveValue(
       DEFAULT_SETTINGS.smallBlind,

@@ -45,7 +45,6 @@ import {
   defaultData,
   EMPTY_STATS,
   loadDataWithRecovery,
-  migrateDataWithRecovery,
   normalizeSettings,
   saveData,
 } from "../../storage/storage";
@@ -55,9 +54,11 @@ import type {
   StoredHand,
   TrainingRecord,
 } from "../../storage/types";
+import { createBackup, restoreBackup, type Backup } from "../../storage/backup";
+import { DataManagement, useBackupExport } from "./DataManagement";
 import { LanguageProvider, useI18n } from "./i18n";
 import { ArchitecturalBackdrop, PokGuyMark } from "./PokGuyIdentity";
-import { ThemeProvider, ThemeSelect, ThemeSettings } from "./theme";
+import { ThemeProvider, ThemeSelect, ThemeSettings, useTheme } from "./theme";
 import {
   handNeedsReview,
   needsReview,
@@ -167,17 +168,6 @@ function buildPlayers(
       personalityId: profile.id,
     };
   });
-}
-
-function exportJson(filename: string, value: unknown) {
-  const url = URL.createObjectURL(
-    new Blob([JSON.stringify(value, null, 2)], { type: "application/json" }),
-  );
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.click();
-  URL.revokeObjectURL(url);
 }
 
 function tablePot(game: PokerGameState) {
@@ -1221,13 +1211,13 @@ function SettingsView({
   updateSettings,
   updateProfile,
   replaceData,
-  notifyRecovery,
+  onRestore,
 }: {
   data: PersistedData;
   updateSettings: (patch: Partial<AppSettings>) => void;
   updateProfile: (id: string, patch: Partial<PokerPersonality>) => void;
   replaceData: (data: PersistedData) => void;
-  notifyRecovery: () => void;
+  onRestore: (backup: Backup, restart: boolean) => boolean;
 }) {
   const { aiDescription, aiName, locale, profileLabel, t } = useI18n();
   const [editingId, setEditingId] = useState(
@@ -1237,7 +1227,6 @@ function SettingsView({
     data.aiProfiles.find((candidate) => candidate.id === editingId) ??
     data.aiProfiles[0];
   const habit = profile ? data.aiHabits[profile.id] : undefined;
-  const importRef = useRef<HTMLInputElement>(null);
   const numberSetting = (key: keyof AppSettings, value: number) => {
     if (Number.isFinite(value))
       updateSettings({ [key]: value } as Partial<AppSettings>);
@@ -1563,48 +1552,8 @@ function SettingsView({
             <h2>{t("导入与导出")}</h2>
           </div>
         </div>
+        <DataManagement data={data} onRestore={onRestore} />
         <div className="button-grid">
-          <button
-            onClick={() =>
-              exportJson("riverlab-settings.json", {
-                version: data.version,
-                settings: data.settings,
-                aiProfiles: data.aiProfiles,
-              })
-            }
-          >
-            {t("导出设置")}
-          </button>
-          <button
-            onClick={() => exportJson("riverlab-hands.json", data.recentHands)}
-          >
-            {t("导出牌局记录")}
-          </button>
-          <button onClick={() => importRef.current?.click()}>
-            {t("导入设置")}
-          </button>
-          <input
-            ref={importRef}
-            hidden
-            type="file"
-            accept="application/json"
-            onChange={async (event) => {
-              const file = event.target.files?.[0];
-              if (!file) return;
-              try {
-                const parsed = JSON.parse(await file.text());
-                const migrated = migrateDataWithRecovery({
-                  ...data,
-                  settings: { ...data.settings, ...(parsed.settings ?? {}) },
-                  aiProfiles: parsed.aiProfiles ?? data.aiProfiles,
-                });
-                replaceData(migrated.data);
-                if (migrated.recovered) notifyRecovery();
-              } catch {
-                window.alert(t("无法读取该设置文件"));
-              }
-            }}
-          />
           <button
             className="danger-button"
             onClick={() => {
@@ -1789,8 +1738,13 @@ function PokerTrainerApp() {
     streetLabel,
     t,
     toggleLocale,
+    setLocale,
   } = useI18n();
   const [data, setData] = useState<PersistedData>(() => defaultData());
+  const { mode, setMode } = useTheme();
+  const restoreFault = useRef(false);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const exportBackup = useBackupExport(data);
   const [view, setView] = useState<View>("table");
   const [game, setGame] = useState<PokerGameState | null>(null);
   const [betAmount, setBetAmount] = useState(2.5);
@@ -1815,10 +1769,37 @@ function PokerTrainerApp() {
     setFeedback("");
   }, [locale]);
 
-  const persist = useCallback((next: PersistedData) => {
-    setData(next);
-    if (typeof window !== "undefined") saveData(next, browserStorage);
-  }, []);
+  const persist = useCallback(
+    (next: PersistedData) => {
+      setData(next);
+      if (typeof window === "undefined") return;
+      if (restoreFault.current) {
+        let restored = false;
+        try {
+          restored =
+            restoreBackup(
+              createBackup(next, { locale, theme: mode }),
+              window.localStorage,
+            ) === "saved";
+        } catch {
+          /* Keep the rescue state visible. */
+        }
+        restoreFault.current = !restored;
+        setSaveFailed(!restored);
+      } else setSaveFailed(!saveData(next, browserStorage));
+    },
+    [locale, mode],
+  );
+
+  useEffect(() => {
+    if (!saveFailed) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [saveFailed]);
   const startCashHand = useCallback(
     (source: PersistedData, stacks?: Record<string, number>, button = 0) => {
       const funded = buildPlayers(source, stacks);
@@ -2291,6 +2272,31 @@ function PokerTrainerApp() {
       ),
     });
   const replaceData = (next: PersistedData) => persist(next);
+  const importBackup = (backup: Backup, restart: boolean) => {
+    let result: ReturnType<typeof restoreBackup>;
+    try {
+      result = restoreBackup(backup, window.localStorage);
+    } catch {
+      result = "failed";
+    }
+    if (result !== "saved") {
+      if (result === "rollback-failed") {
+        restoreFault.current = true;
+        setSaveFailed(true);
+      }
+      return false;
+    }
+    setData(backup.data);
+    restoreFault.current = false;
+    setSaveFailed(false);
+    setLocale(backup.preferences.locale);
+    setMode(backup.preferences.theme);
+    if (restart) {
+      cashBeforeScenario.current = null;
+      startCashHand(backup.data);
+    }
+    return true;
+  };
 
   return (
     <main
@@ -2392,6 +2398,15 @@ function PokerTrainerApp() {
                   )[view]}
             </p>
           </div>
+        )}
+        {saveFailed && (
+          <section className="recovery-message" role="alert">
+            <strong>{t("更改尚未保存。关闭或刷新页面可能丢失数据。")}</strong>
+            <div className="button-grid">
+              <button onClick={() => persist(data)}>{t("重试保存")}</button>
+              <button onClick={exportBackup}>{t("导出完整备份")}</button>
+            </div>
+          </section>
         )}
         {recoveryNotice && (
           <p className="recovery-message" role="status">
@@ -2878,7 +2893,7 @@ function PokerTrainerApp() {
               })
             }
             replaceData={replaceData}
-            notifyRecovery={() => setRecoveryNotice(true)}
+            onRestore={importBackup}
           />
         )}
       </div>
