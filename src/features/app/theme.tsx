@@ -41,6 +41,10 @@ const ThemeContext = createContext<{
   setMode: (mode: ThemeMode) => void;
 }>({ mode: "system", setMode: () => {} });
 
+export function useTheme() {
+  return useContext(ThemeContext);
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [mode, setModeState] = useState<ThemeMode>("system");
 
