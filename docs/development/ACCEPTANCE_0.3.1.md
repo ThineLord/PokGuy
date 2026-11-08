@@ -13,7 +13,20 @@ Date: 2026-11-09. Codex implemented the changes; independent native subagents re
 
 ## Regression record
 
-Feature validation passed 203 unit tests, four dependency compatibility/security gates, the complete quality/build gate, and 25 Chromium browser tests. The release description records the final complete Chromium, selected desktop WebKit and built Worker counts, exact reviewed commit, merged-main SHA and successful CI links. No existing test timeout or poker simulation sample count was changed.
+The final release candidate was installed freshly with Node 22 and tested sequentially:
+
+| Check                                                          | Observed result                                                                 |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Official-registry audit                                        | 0 vulnerabilities at every severity                                             |
+| Unit suite                                                     | 203/203 passed                                                                  |
+| Dependency security/compatibility groups                       | 4/4 passed: parser/glob, ZIP64, Node OG, Worker OG                              |
+| Development Chromium                                           | 25/25 passed                                                                    |
+| Selected desktop WebKit                                        | 17/17 passed                                                                    |
+| Built Worker Chromium                                          | 25/25 passed                                                                    |
+| Release consistency, formatting, lint, types, production build | Passed                                                                          |
+| Local Markdown file links                                      | 131 links across 29 documents passed; changed quick-start anchors also reviewed |
+
+The three final browser runs had no failures or retries. The release description records the exact reviewed commit, merged-main SHA and successful CI links. No existing test timeout or poker simulation sample count was changed.
 
 Fresh Node 22 installs are required in CI. The version, lockfile root versions, bilingual READMEs, changelog, bilingual release notes and published tag must agree before publication. Test-configuration moves retain explicit project roots, output locations and owned server working directories.
 
