@@ -20,6 +20,10 @@ export type AppLocale = "zh-CN" | "en";
 const LOCALE_STORAGE_KEY = "riverlab-locale";
 
 const ENGLISH: Record<string, string> = {
+  查看座位详情: "View seat details",
+  关闭座位详情: "Close seat details",
+  "座位详情只显示公开信息。": "Seat details show public information only.",
+  状态: "Status",
   未充分评估: "Not assessed",
   行动前筹码: "Stack before action",
   需跟注: "To call",

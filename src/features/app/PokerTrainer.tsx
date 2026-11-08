@@ -383,6 +383,12 @@ function PokerTable({
 }) {
   const { actionLabel, aiName, locale, statusLabel, streetLabel, t } =
     useI18n();
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const detailDialog = useRef<HTMLDialogElement>(null);
+  const detailPlayer = game.players.find((player) => player.id === detailId);
+  useEffect(() => {
+    if (detailId) detailDialog.current?.showModal();
+  }, [detailId]);
   const displayName = (player: PokerGameState["players"][number]) =>
     player.kind === "ai"
       ? aiName(player.personalityId, player.name)
@@ -437,6 +443,28 @@ function PokerTable({
       className={`poker-table ${game.players.length > 6 ? "full-ring-table" : ""} street-${game.street} ${game.settled ? "is-settled" : ""}`}
       aria-label={t("德州扑克牌桌")}
     >
+      {detailPlayer && (
+        <dialog
+          className="seat-detail-dialog"
+          ref={detailDialog}
+          aria-labelledby="seat-detail-title"
+          onClose={() => setDetailId(null)}
+        >
+          <h2 id="seat-detail-title">{displayName(detailPlayer)}</h2>
+          <dl>
+            <dt>{t("筹码")}</dt>
+            <dd>{formatChips(detailPlayer.stack / game.bigBlind)} BB</dd>
+            <dt>{t("位置")}</dt>
+            <dd>{detailPlayer.positionLabel}</dd>
+            <dt>{t("状态")}</dt>
+            <dd>{statusLabel(detailPlayer.status)}</dd>
+          </dl>
+          <p>{t("座位详情只显示公开信息。")}</p>
+          <form method="dialog">
+            <button autoFocus>{t("关闭座位详情")}</button>
+          </form>
+        </dialog>
+      )}
       <div className="table-rail" aria-hidden="true" />
       <div
         className="table-flow-ring"
@@ -555,6 +583,11 @@ function PokerTable({
               game.players.length,
             )}
           >
+            <button
+              className="seat-details-trigger"
+              aria-label={`${t("查看座位详情")} ${playerName}`}
+              onClick={() => setDetailId(player.id)}
+            />
             {player.positionLabel.startsWith("BTN") && (
               <span className="dealer-button" aria-label={t("庄家按钮")}>
                 D
@@ -2238,6 +2271,7 @@ function PokerTrainerApp() {
       const target = event.target as HTMLElement | null;
       if (
         target?.matches("input, select, textarea, [contenteditable='true']") ||
+        document.querySelector("dialog[open]") ||
         event.metaKey ||
         event.ctrlKey ||
         event.altKey ||
