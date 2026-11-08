@@ -4,17 +4,19 @@
 
 Use Node.js 22.13+; `.nvmrc` selects the 22.x line used by CI. Install the committed dependency graph with `npm ci` at the repository root. Do not regenerate dependencies as part of a documentation-only change.
 
-| Command                   | Purpose                                                          |
-| ------------------------- | ---------------------------------------------------------------- |
-| `npm run dev`             | Local vinext development server                                  |
-| `npm run dev:lan`         | Development server on trusted LAN interfaces                     |
-| `npm run build`           | Production build                                                 |
-| `npm run start`           | Start the production build locally                               |
-| `npm run release:check`   | Version metadata, release files and local Markdown links         |
-| `npm run check`           | Release check, formatting, ESLint, TypeScript, Vitest and build  |
-| `npm run test:e2e`        | Full Chromium E2E suite                                          |
-| `npm run test:e2e:worker` | Full Chromium suite against the built local Worker (build first) |
-| `npm run test:e2e:webkit` | Selected WebKit E2E suite                                        |
+| Command                      | Purpose                                                          |
+| ---------------------------- | ---------------------------------------------------------------- |
+| `npm run dev`                | Local vinext development server                                  |
+| `npm run dev:lan`            | Development server on trusted LAN interfaces                     |
+| `npm run build`              | Production build                                                 |
+| `npm run start`              | Start the production build locally                               |
+| `npm run release:check`      | Version metadata, release files and local Markdown links         |
+| `npm run check`              | Release check, formatting, ESLint, TypeScript, Vitest and build  |
+| `npm run test:e2e`           | Full Chromium E2E suite                                          |
+| `npm run test:e2e:worker`    | Full Chromium suite against the built local Worker (build first) |
+| `npm run test:e2e:webkit`    | Selected WebKit E2E suite                                        |
+| `npm run test:dependencies`  | Dependency caller checks and built Node/Worker OG regressions    |
+| `npm run audit:dependencies` | Official-registry audit, failing at moderate or higher           |
 
 Install browser runtimes when needed:
 
@@ -36,7 +38,7 @@ npm run test:e2e:worker
 npm audit --registry=https://registry.npmjs.org
 ```
 
-The audit intentionally reports two residual moderate advisory chains; see [the dependency assessment](SECURITY_0.3.0.md). A registry error is not a clean audit.
+The locked graph passes the official-registry audit with zero findings; see [the dependency assessment](SECURITY_0.3.1.md). CI fails on moderate or higher findings and on registry errors. The dependency regression gate also checks actual callers and built rendering; package metadata alone is insufficient.
 
 GitHub Actions runs clean Node 22 installs for both the core Quality job and its dependent Chromium job (development Chromium, WebKit and built Worker suites) on PRs to `main` and pushes to `main`. Verify successful checks on the exact reviewed SHA before merge, then check the resulting main commit before release. Test counts belong to run evidence, not permanent promises in this guide.
 
