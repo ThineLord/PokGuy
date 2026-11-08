@@ -91,7 +91,7 @@ test("start a hand, fold, open history and replay", async ({ page }) => {
   await expect(page.getByText("逐街复盘")).toBeVisible();
   await expect(page.getByRole("heading", { name: "训练反馈" })).toBeVisible();
   await expect(page.locator(".review-entry")).toHaveCount(1);
-  await expect(page.getByText(/1 个决策 · 0 个待复查/)).toBeVisible();
+  await expect(page.getByText(/1 个决策 · 1 个待复查/)).toBeVisible();
   await page.getByRole("button", { name: "下一步" }).click();
   await expect(page.getByText(/底池/).first()).toBeVisible();
 });
