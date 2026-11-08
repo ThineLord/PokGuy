@@ -20,10 +20,11 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "npm run release:check && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build",
-    "release:check": "node scripts/check-release.mjs"
+    "release:check": "node scripts/check-release.mjs",
+    "test:e2e:worker": "playwright test --config playwright.worker.config.ts --project=chromium"
   },
   "dependencies": {
-    "next": "16.3.6",
+    "next": "16.4.5",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
@@ -40,9 +41,9 @@
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
     "@vitejs/plugin-rsc": "0.5.26",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/coverage-v8": "4.1.12",
     "eslint": "9.39.4",
-    "eslint-config-next": "16.3.6",
+    "eslint-config-next": "16.4.5",
     "jsdom": "^29.1.1",
     "prettier": "^3.9.5",
     "prettier-plugin-tailwindcss": "^0.8.1",
@@ -50,10 +51,17 @@
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
     "vinext": "0.0.50",
-    "vite": "8.0.16",
-    "vitest": "^4.1.11",
+    "vite": "8.1.6",
+    "vitest": "4.1.12",
     "wrangler": "4.114.0"
   },
   "type": "module",
-  "description": "Local-first, bilingual Texas Hold’em practice, hand review, and statistics."
+  "description": "Local-first, bilingual Texas Hold’em practice, hand review, and statistics.",
+  "overrides": {
+    "miniflare": {
+      "sharp": "0.35.5",
+      "undici": "7.30.2"
+    },
+    "image-size": "2.1.0"
+  }
 }
