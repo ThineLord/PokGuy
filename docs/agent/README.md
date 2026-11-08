@@ -6,14 +6,14 @@
 
 Codex owns task organization, implementation and repository housekeeping. Independent subagents own review and the authorized merge. Do not call bots, Cursor bridges or external agent services. Use ordinary CI for validation.
 
-1. Read current user instructions, `AGENTS.md`, `package.json`, the [current release notes](../releases/0.2.0.md) and `git status`. Inspect remote `main` and existing PRs. Preserve unrelated work.
+1. Read current user instructions, `AGENTS.md`, `package.json`, the [current release notes](../releases/0.3.0.md) and `git status`. Inspect remote `main` and existing PRs. Preserve unrelated work.
 2. Create a `codex/` branch from current `main`; use an isolated worktree or clone when needed. Open a draft PR with concrete scope and validation.
 3. Implement the smallest complete change. Keep corresponding English/Chinese READMEs aligned. Put design, user, release and historical material in their documented directories.
 4. Run the [development gates](../development/README.md). Send the exact candidate SHA and diff to an independent review subagent. Fix material findings and obtain review of the resulting SHA.
 5. A separate merge subagent verifies the reviewed SHA, base branch, required CI, unresolved findings and merge authorization. Mark the PR ready and merge without bypassing protection. A same-account technical review is not a GitHub APPROVED review.
 6. For a requested release, follow the [release workflow](../releases/README.md), verify the merged commit, tag and published release, and report the results.
 
-The current user request authorizes the repository reorganization, its reviewed merge and GitHub source release. Future tasks use their own scope; a release policy does not grant blanket deployment permission.
+Check authorization against the current task. Repository policies do not grant blanket merge, release or deployment permission.
 
 ## File ownership
 
@@ -37,4 +37,4 @@ Application version and persistence schema are independent: preserve `riverlab-p
 
 Run `npm run release:check` after documentation or version changes. It checks version consistency, required release documents and local Markdown file links. `npm run check` includes it and remains the canonical core gate. Full Chromium CI must also pass for the exact candidate.
 
-GitHub Releases publish source, not proof of production deployment. Do not change hosting, credentials, bindings or paid services without task authorization. PR [#2](https://github.com/ThineLord/PokGuy/pull/2) is an independent dependency/Worker-image candidate excluded from 0.2.0; its historical validation is not this release's evidence.
+GitHub Releases publish source, not proof of production deployment. Do not change hosting, credentials, bindings or paid services without task authorization. The dependency/Worker candidate from PR [#2](https://github.com/ThineLord/PokGuy/pull/2) was superseded by merged PR [#4](https://github.com/ThineLord/PokGuy/pull/4).

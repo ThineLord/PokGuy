@@ -46,9 +46,10 @@ build/ + worker/  build integration and Worker entry point
 
 ## Versions and documentation
 
-Current version: **0.2.0**. Releases use `vMAJOR.MINOR.PATCH` tags and [GitHub Releases](https://github.com/ThineLord/PokGuy/releases). Application versions and browser storage schema versions are independent.
+Current version: **0.3.0**. Releases use `vMAJOR.MINOR.PATCH` tags and [GitHub Releases](https://github.com/ThineLord/PokGuy/releases). Application versions and browser storage schema versions are independent.
 
-- [What changed in 0.2.0](docs/releases/0.2.0.md) · [Changelog](CHANGELOG.md)
+- [What changed in 0.3.0](docs/releases/0.3.0.md) · [Changelog](CHANGELOG.md)
+- [See the new flow](docs/user/0.3.0-walkthrough.md)
 - [Documentation index](docs/README.md) · [Development and tests](docs/development/README.md)
 - [Version and release workflow](docs/releases/README.md)
 

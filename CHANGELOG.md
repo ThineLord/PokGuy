@@ -6,6 +6,15 @@ Application releases use `vMAJOR.MINOR.PATCH`. Browser storage schemas are versi
 
 No changes recorded yet.
 
+## [0.3.0] — 2026-11-09
+
+- Add complete backup preview/restore, rescue exports and visible save failures.
+- Separate cash/scenario statistics and preserve legacy mixed totals.
+- Replace unsupported positive grades with explicit unassessed feedback and pre-action context.
+- Improve mobile seat readability and accessible public details.
+- Patch dependencies, validate real Worker image transforms and strengthen fault-path tests.
+- [English release notes](docs/releases/0.3.0.md) · [中文更新说明](docs/releases/0.3.0.zh-CN.md).
+
 ## [0.2.0] — 2026-11-09
 
 ### Added
@@ -30,3 +39,4 @@ No gameplay, dependency, storage-schema or hosting configuration changes. The se
 The [historical changelog](docs/archive/changelog-before-0.2.0.md) retains the original 0.1.0 entry and dated unversioned changes. These dates are not retroactively assigned Git tags or GitHub Releases.
 
 [0.2.0]: https://github.com/ThineLord/PokGuy/releases/tag/v0.2.0
+[0.3.0]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.0
