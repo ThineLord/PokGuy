@@ -302,7 +302,7 @@ test("play consecutive hands without deadlocks, blank positions, or revealed fol
   expect(positions.size).toBeGreaterThan(1);
 });
 
-test("enter a deterministic river scenario and reach showdown", async ({
+test("enter a fixed winning river scenario and reach showdown", async ({
   page,
 }) => {
   await page.getByRole("button", { name: "单手牌" }).click();
@@ -318,7 +318,8 @@ test("enter a deterministic river scenario and reach showdown", async ({
   await page.getByLabel("对手数量").fill("1");
   await page.getByLabel("你的底牌").fill("TH 9H");
   await page.getByLabel("起始街").selectOption("river");
-  await page.getByLabel("公共牌").fill("2C 7D 9S JC 3H");
+  // Hero has a king-high straight flush; random opponent cards cannot tie it.
+  await page.getByLabel("公共牌").fill("JH QH KH 2C 3D");
   await page.getByLabel("位置").selectOption("BB");
   await page.getByRole("button", { name: "开始此训练" }).click();
   await expect(page.getByText("单手牌训练", { exact: true })).toBeVisible();
@@ -367,6 +368,12 @@ test("enter a deterministic river scenario and reach showdown", async ({
   await expect(page.getByText("只比较最佳五张牌")).toBeVisible();
   await expect(page.locator(".showdown-player")).toHaveCount(2);
   await expect(page.locator(".showdown-player.is-winner")).toHaveCount(1);
+  await expect(page.locator(".showdown-player.is-winner")).toContainText(
+    "Hero",
+  );
+  await expect(page.locator(".showdown-player.is-winner")).toContainText(
+    "同花顺",
+  );
   await expect(page.getByLabel("最佳五张").first()).toBeVisible();
   await expect(page.getByText("主池", { exact: true })).toBeVisible();
   await expect(

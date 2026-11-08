@@ -26,7 +26,7 @@ The final release candidate was installed freshly with Node 22 and tested sequen
 | Release consistency, formatting, lint, types, production build | Passed                                                                          |
 | Local Markdown file links                                      | 131 links across 29 documents passed; changed quick-start anchors also reviewed |
 
-The three final browser runs had no failures or retries. The release description records the exact reviewed commit, merged-main SHA and successful CI links. No existing test timeout or poker simulation sample count was changed.
+The release description distinguishes initial failures or retries from the final browser regression results. The release description records the exact reviewed commit, merged-main SHA and successful CI links. No existing test timeout or poker simulation sample count was changed.
 
 Fresh Node 22 installs are required in CI. The version, lockfile root versions, bilingual READMEs, changelog, bilingual release notes and published tag must agree before publication. Test-configuration moves retain explicit project roots, output locations and owned server working directories.
 
@@ -39,6 +39,8 @@ The upgraded adapter delegates development startup to Vite, whose default port d
 A final check in the original user checkout found an untracked empty `app/_sites-preview` starter directory. Automatic root-first route discovery selected it and returned 404, although fresh-checkout tests passed. The configuration now explicitly selects `src/`; the Worker dependency fixture intentionally retains an empty root `app/` directory to prevent this regression.
 
 A merged-main Linux WebKit run caught an iPhone action-area assertion after a fixed 450 ms delay; macOS repeated runs did not reproduce it. The test now observes the application's asynchronous scrolling with the normal 5-second assertion budget, preserving the viewport and 44 px touch-target limits without scrolling on the test's behalf. Failure diagnostics include scroll position and document geometry; CI preserves browser traces and screenshots. A local negative control with application scrolling disabled still failed the viewport assertion. The initial failed run remains part of the release evidence, separately from final passing checks.
+
+A Worker test also exposed an invalid fixture assumption: fixed Hero/board cards with a random opponent can legitimately split the pot. The captured hand had equal pairs and kickers. The unique-winner test now gives Hero an unbeatable king-high straight flush and asserts Hero and the hand type, preserving the one-winner requirement without changing game rules.
 
 Generated dependency-test builds are ignored by lint and removed by the test runner. Investigation logs are separate from successful final regression evidence.
 
