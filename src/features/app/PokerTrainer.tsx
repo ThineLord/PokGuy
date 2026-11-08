@@ -385,6 +385,7 @@ function PokerTable({
     useI18n();
   const [detailId, setDetailId] = useState<string | null>(null);
   const detailDialog = useRef<HTMLDialogElement>(null);
+  const detailTrigger = useRef<HTMLButtonElement | null>(null);
   const detailPlayer = game.players.find((player) => player.id === detailId);
   useEffect(() => {
     if (detailId) detailDialog.current?.showModal();
@@ -448,7 +449,11 @@ function PokerTable({
           className="seat-detail-dialog"
           ref={detailDialog}
           aria-labelledby="seat-detail-title"
-          onClose={() => setDetailId(null)}
+          onClose={() => {
+            setDetailId(null);
+            // WebKit does not focus pointer-clicked buttons by default.
+            detailTrigger.current?.focus({ preventScroll: true });
+          }}
         >
           <h2 id="seat-detail-title">{displayName(detailPlayer)}</h2>
           <dl>
@@ -586,7 +591,10 @@ function PokerTable({
             <button
               className="seat-details-trigger"
               aria-label={`${t("查看座位详情")} ${playerName}`}
-              onClick={() => setDetailId(player.id)}
+              onClick={(event) => {
+                detailTrigger.current = event.currentTarget;
+                setDetailId(player.id);
+              }}
             />
             {player.positionLabel.startsWith("BTN") && (
               <span className="dealer-button" aria-label={t("庄家按钮")}>
