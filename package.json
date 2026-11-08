@@ -1,6 +1,6 @@
 {
   "name": "riverlab-poker-trainer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -19,7 +19,8 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build"
+    "check": "npm run release:check && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build",
+    "release:check": "node scripts/check-release.mjs"
   },
   "dependencies": {
     "next": "16.3.6",
@@ -53,5 +54,6 @@
     "vitest": "^4.1.11",
     "wrangler": "4.114.0"
   },
-  "type": "module"
+  "type": "module",
+  "description": "Local-first, bilingual Texas Hold’em practice, hand review, and statistics."
 }

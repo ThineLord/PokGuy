@@ -1,130 +1,32 @@
 # Changelog
 
-## Unreleased — 2026-08-01
+Application releases use `vMAJOR.MINOR.PATCH`. Browser storage schemas are versioned separately.
+
+## Unreleased
+
+No changes recorded yet.
+
+## [0.2.0] — 2026-11-09
 
 ### Added
 
-- 新增“复盘实验室”决策时间线，把已保存的 Hero 训练评价与对应行动、街道、行动前底池及本次投入放回同一手牌；
-- 历史页新增“全部 / 待复查”队列、手牌待复查徽标，以及统计页的已点评决策、待复查决策和待复查手牌摘要；
-- 新增 RiverLab 专属社交预览图与按请求域名生成的 Open Graph / X 预览元数据。
-- 新增 7 项精选 Playwright WebKit 回归，覆盖复盘与刷新、设置持久化和导出、非法盲注恢复、响应式布局、摊牌区域及键盘输入边界；默认 Chromium 套件仍保持 13 项。
-- 新增最小 GitHub Actions 质量门禁，在 `main` push 和 pull request 上以只读权限执行干净安装、lint、类型检查、112 项单元测试和生产构建。
+- Separate English and Chinese project, user and agent READMEs.
+- A documentation index, versioned release notes and a repeatable source-release workflow.
+- A release consistency and local Markdown link check in the core quality gate.
+- A PR template and Node 22 version hint.
 
-### Fixed
+### Changed
 
-- 修复空白、非有限、越界或互相冲突的盲注/买入/桌面人数设置可能被持久化，并在刷新或下一手阻止开局的问题；
-- 修复损坏 AI profile、选择列表或习惯统计可能使启动和设置页崩溃的问题；完整合法的纯自定义 AI 对手池保持原样；
-- 数字设置清空时不再写入隐式 `0`，非法输入失焦后恢复最近安全值，盲注输入精度调整为 `0.01`。
+- Reduced the repository home page to an introduction, quick start and navigation.
+- Grouped design documents under `docs/architecture/`; archived dated audits, old changelog entries and former agent state under `docs/archive/`.
+- Established 0.2.0 as the versioned baseline for the existing trainer, including 2–9 seat tables and light/dark/system appearance already present on main.
 
-### Safety
+### Scope
 
-- 保持 LocalStorage v2、规则引擎和现有牌局数据不变；旧数据中评价数与 Hero 动作数不一致时仅展示原始评价，不猜测动作对应关系；
-- 迁移时过滤结构损坏的训练评价，避免旧数据或导入数据中的空记录使复盘与统计页面崩溃；
-- 复盘文案明确标注为训练级启发式，不把粗略 Monte Carlo 或规则评分描述为 GTO、EV loss 或唯一正确答案；
-- 复盘摘要只统计仍保留在最近 100 手牌局中的评价，避免已删除牌局的孤儿记录污染待复查数量。
-- 训练评价按时间排序；时间无效、重复、不符合最新优先存储顺序或记录数不一致时禁用动作配对，并加入 320/393px 无横向溢出与 44px 筛选触控回归。
-- 社交预览地址兼容本机、可信局域网 IPv4/IPv6 和反向代理协议，并拒绝异常 Host/端口输入。
-- LocalStorage v2 key 与数据格式保持不变；旧版迁移、启动恢复和导入修复会显示可理解提示，且不会自动覆盖未知版本的原始浏览器数据。
-- 将 `next` 与 `eslint-config-next` 从 `16.2.6` 同步升级到 `16.2.12`，消除当前审计中的 9 条 Next.js 自身安全公告；lockfile 只更新 12 个 Next 自有条目，不改变 React、Vite、vinext、Wrangler 或 Cloudflare 版本。
-- Next 稳定版仍固定受影响的 PostCSS/Sharp 范围；由于上游修复同时涉及 vendored bundle、image optimizer 与 Turbopack 代码，本轮不使用不受支持的 override，并保留明确的残余风险记录。
-- 将 React、React DOM 与 `react-server-dom-webpack` 从 `19.2.6` 同步升级到 `19.2.8`，修复 React Server Components 请求可触发资源耗尽的 `GHSA-wx67-qw84-cm4g`；除三件套和根 lock 记录外不改变其他依赖。
-- 将 Vite 从 `8.0.13` 最小升级到首个同时修复 `GHSA-v6wh-96g9-6wx3` 与 `GHSA-fx2h-pf6j-xcff` 的 `8.0.16`；lockfile 保持 724 条记录且无新增/删除依赖，Cloudflare、Wrangler、Miniflare、Next 与 React 版本不变。
-- 将 Cloudflare Vite plugin 从 `1.37.1` 升级到首个完整跨过 Miniflare/Sharp 公告边界的 `1.47.0`，同步 Wrangler `4.114.0` 与 Workers types `5.20260722.1`；显式固定原有 Worker compatibility date `2026-05-15`，避免依赖更新暗中改变运行语义。
-- 完整审计从 13 个 package records / 23 条 sources 降至 7 / 13，Cloudflare、Wrangler、Miniflare、workerd、esbuild、ws 与 undici 链全部消失；真实 workerd、production smoke 和无上传 strict deploy dry-run 均通过。
+No gameplay, dependency, storage-schema or hosting configuration changes. The separate dependency/Worker-image PR #2 is not included. See the [English](docs/releases/0.2.0.md) or [中文](docs/releases/0.2.0.zh-CN.md) release notes for limitations.
 
-## Unreleased — 2026-07-24
+## Earlier development
 
-### Fixed
+The [historical changelog](docs/archive/changelog-before-0.2.0.md) retains the original 0.1.0 entry and dated unversioned changes. These dates are not retroactively assigned Git tags or GitHub Releases.
 
-- 修复“一手结束”边界不明确：新增弃牌获胜、河牌摊牌和 all-in runout 三种结束原因，只有胜负、分池、退回和筹码支付全部完成后才进入完成态；
-- 修复只有一名玩家 all-in 时可能过早自动发完：只要仍有两名有筹码玩家可以继续下注，行动就必须继续；
-- 修复现金桌下一手会把归零 AI 静默补回 100BB、Hero 归零仍可直接发牌，以及牌局中可点击重新买入而放弃当前手牌的问题；
-- 修复小数浮点残量可能生成 `0 BB` 边池、获奖或无人跟注退回的问题，并为结算增加两组筹码守恒断言；
-- 修复从翻牌、转牌或河牌开始的单手训练仍携带 0.5/1BB 未匹配盲注，导致结算出现虚假无人跟注退回的问题；
-- 修复页面刚加载、React 尚未完成接管时点击“场景”等导航可能被静默丢失的问题；导航会短暂保持禁用，初始化完成后再接受输入；
-- 将无人跟注的超额投入从边池中分离，正式记录为退回筹码；主池和边池现在只包含至少两名玩家覆盖的投入层；
-- 修复输掉主池但拿回无人跟注筹码时被误计为“摊牌胜利”的统计错误；
-- 增补双三条葫芦、三组对子、公共牌 kicker、A2345 对六高顺子、同花逐张比较、弃牌者无资格和短码/深码返还等规则回归；
-- 修复 Safari 将结算核心区透明度动画卡在不可见状态、页面只留下空白占位的问题；
-- 修复下注数字框可能显示 `6.359999999999999` 等浮点尾数的问题，交互金额统一到两位训练筹码精度；
-- 修复用户弃牌后多人 AI 牌局可能需要等待二十秒以上的问题：弃牌动画完整播放后自动加速旁观行动。
-
-### Improved
-
-- 参照当前 TDA 与 2026 WSOP 正式规则增加“一手正式结束”结算面板，逐项确认胜者、主/边池、无人跟注退回和筹码支付；
-- 增加现金桌延续规则：归零座位退出下一手轮转，Hero 需要明确重新买入，少于两名有筹码玩家时停止发牌；
-- 单元测试增至 80 项，新增正式结束原因、现金桌延续、all-in 行动边界、小数分池和训练场景起始投入回归；
-- 新增明确的弃牌飞向弃牌区动画，并继续支持动画关闭与 reduced-motion；
-- 新增正式摊牌比较区，显示每名摊牌玩家的底牌、最佳五张、牌型比较项、主池/边池赢家及无人跟注退回；
-- 新增中英文完整界面切换，并持久化语言偏好；
-- 新增顺时针行动/发牌提示、小盲和大盲强化标识及逐动作视觉反馈；
-- Chromium E2E 维持 11 项；弃牌与河牌摊牌关键流程额外连续重复 5 轮通过；
-- 直接操控 macOS Safari 完成弃牌、旁观加速、确定性河牌摊牌和结算明细可见性复核；
-- 新增 iPhone 393×852 摊牌比较区无横向溢出回归。
-
-## Unreleased — 2026-07-23
-
-### Fixed
-
-- 修复 AI 合法动作列表遗漏正常 `bet` / `raise`，避免对手只会过牌、跟注或突然 all-in；
-- 修复多人平局胜率固定按 1/2 计算的问题，现按实际并列人数分摊 equity；
-- 修复按钮轮转后 UTG/HJ/CO 标签缺失及 AI 位置意识仍按固定座位计算的问题；
-- 修复翻牌前进攻者跨街丢失，恢复 AI 持续下注判断；
-- 修复摊牌时错误公开已弃牌 AI 底牌；
-- 修复隐藏牌/未发公共牌显示字母 `R`、十点显示 `T` 及下注滑杆与数字框精度不一致；
-- 修复已结算牌局仍展示随机胜率、底池赔率和最小加注信息；
-- 为 AI 长期习惯统计加入先验平滑，避免少量样本产生极端数值。
-- 修复真实 Safari 中启用短动画后所有底牌和公共牌槽持续不可见；
-- 修复 Safari 数字下注框聚焦时按动作快捷键会把下注额意外清零；
-- 修复单手牌场景仍显示现金桌人数和现金桌重开按钮的问题。
-- 修复 Safari 中洗牌覆盖层可能停留并遮住公共牌的问题，增加动画终态与定时卸载双保险；
-- 修复 heads-up 未匹配盲注返还层被视觉层误标为“边池”的问题；
-- 修复未知牌背主题可能造成设置页无选中项，导入和旧数据现统一回退安全默认主题。
-- 修复小数筹码运算残留极小浮点余额时，0 BB AI 仍被当作可行动玩家并可能造成行动循环死锁；
-
-### Improved
-
-- 训练界面 Monte Carlo 从 48 次提升到 240 次，并在同一牌面保持稳定 seed；AI 决策模拟从 72 次提升到 120 次；
-- 单手牌训练补齐 UTG、HJ、CO 位置选项，并按人数只展示真实存在的位置；
-- iPhone 将 Fold/Check/Call/Bet/Raise/All-in 操作前置到移动操作区顶部；
-- 新增 120 手种子化规则压力测试，以及连续 6 手真实浏览器回归；
-- 单元测试增至 58 项，Chromium E2E 增至 8 项。
-- 单手牌场景现在显示实际桌面人数，并提供“调整场景”“新场景”和“返回现金桌”；
-- 复盘标题由内部 `hand-*` 标识改为本地日期时间；
-- 使用 macOS Safari 直接完成加注、跟注、下注、键盘过牌、弃牌、摊牌、复盘和场景构建实玩。
-- 重绘为具有桌沿厚度、桌布纤维、纸张纹理、筹码和光影层次的克制 3D 牌桌；
-- 新增洗牌、分发、翻牌成组揭示、转河牌、下注、弃牌、行动切换和结算动画，不阻塞规则引擎；
-- 新增深海流纹、酒红编织和石墨构造三套原创写实牌背，并支持 LocalStorage 持久化；
-- 完成 Mac Safari、iPhone 393×852、iPad 834×1194 与 1194×834 的第二轮视觉 review/repair；
-- 单元测试增至 60 项，8 项 Chromium E2E 继续全部通过。
-
-## Unreleased — 2026-07-17
-
-### Improved
-
-- 重构响应式尺寸策略，使牌桌按可用视口高度收缩，消除 Mac 与 iPad 横屏中的操作栏覆盖；
-- iPhone 导航改为单行紧凑标签，信息条支持横向滑动，轮到用户时自动定位到完整操作区；
-- 动作按钮提升到 48px 高，加入 iOS 安全区、动态视口和防输入缩放支持；
-- Mac 新增 `F/K/C/R/A` 动作快捷键与可见键帽提示；
-- 新增 `npm run dev:lan`，可从同一可信 Wi-Fi 的 iPhone / iPad 访问；
-- 新增 3 项跨设备 Playwright 回归，E2E 总数增至 7 项。
-
-## 0.1.0 — 2026-07-17
-
-### Added
-
-- React、TypeScript、Vite/vinext、Tailwind、Vitest、Testing Library、Playwright、ESLint 和 Prettier 基线；
-- 完整第一版德州扑克规则引擎、边池与摊牌；
-- 2–6 人标准现金桌与单手牌训练；
-- 8 种可编辑 AI 人格、Monte Carlo、决策标签、习惯统计和受限适应；
-- 响应式深色牌桌、下注快捷尺度、非法动作反馈和训练提示；
-- LocalStorage v2、最近 100 手、逐步复盘、玩家笔记、训练记录和统计；
-- 设置与牌局 JSON 导入导出；
-- 核心单元、组件和 Chromium E2E 测试；
-- 架构、规则、AI、测试和断点恢复文档。
-
-### Safety
-
-- 无真钱、充值、提款、真人匹配、远程牌局或赌场品牌素材；
-- AI 观察接口不接收其他玩家未公开底牌；
-- 所有持久化仅限当前浏览器 LocalStorage。
+[0.2.0]: https://github.com/ThineLord/PokGuy/releases/tag/v0.2.0

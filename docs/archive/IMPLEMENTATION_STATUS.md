@@ -1,6 +1,8 @@
+> Historical snapshot, archived in v0.2.0. Dates, test counts, paths, and task decisions below describe past work, not current release status. Start with [the documentation index](../README.md).
+
 # Implementation Status
 
-> 2026-09-28 交互式测试收尾：当前发布候选包含场景训练返回现金桌时恢复原现金桌的 P2 修复及 Chromium/WebKit 回归。干净克隆中使用 Node 22.23.3、锁文件 `npm ci` 验证：`npm run check` 的格式、ESLint、strict TypeScript、154 项 Vitest 和生产构建均通过；Chromium 15/15、WebKit 9/9、production HTTP smoke、`git diff --check` 通过。生产审计 0；完整审计仍有 7 个 high 工具链/构建输入 package findings。发布建议为 **RELEASE WITH DOCUMENTED LIMITATIONS**，精确提交的 Node 22 Quality 和依赖 Chromium CI 仍是远端门禁。此后恢复维护模式。当前限制见 [CURRENT_STATE.md](../.codex/CURRENT_STATE.md)，实测过程见 [交互式测试记录](interactive_playtest_2026-09-28.md)。下文的 112/123 测试、Next 16.2.12、Phase 8.11 和 PKG-014 数字均为历史检查点。
+> 2026-09-28 交互式测试收尾：当前发布候选包含场景训练返回现金桌时恢复原现金桌的 P2 修复及 Chromium/WebKit 回归。干净克隆中使用 Node 22.23.3、锁文件 `npm ci` 验证：`npm run check` 的格式、ESLint、strict TypeScript、154 项 Vitest 和生产构建均通过；Chromium 15/15、WebKit 9/9、production HTTP smoke、`git diff --check` 通过。生产审计 0；完整审计仍有 7 个 high 工具链/构建输入 package findings。发布建议为 **RELEASE WITH DOCUMENTED LIMITATIONS**，精确提交的 Node 22 Quality 和依赖 Chromium CI 仍是远端门禁。此后恢复维护模式。当前限制见 [CURRENT_STATE.md](agent-state/CURRENT_STATE.md)，实测过程见 [交互式测试记录](interactive_playtest_2026-09-28.md)。下文的 112/123 测试、Next 16.2.12、Phase 8.11 和 PKG-014 数字均为历史检查点。
 
 ## 当前发布限制
 

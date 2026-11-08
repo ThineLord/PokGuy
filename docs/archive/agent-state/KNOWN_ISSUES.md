@@ -1,3 +1,5 @@
+> Historical snapshot, archived in v0.2.0. Dates, test counts, paths, and task decisions below describe past work, not current release status. Start with [the documentation index](../../README.md).
+
 # Known Issues
 
 ## Invalid persisted settings can block startup — resolved

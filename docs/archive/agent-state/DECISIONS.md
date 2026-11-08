@@ -1,3 +1,5 @@
+> Historical snapshot, archived in v0.2.0. Dates, test counts, paths, and task decisions below describe past work, not current release status. Start with [the documentation index](../../README.md).
+
 # Maintenance Decisions
 
 Architecture and poker-rule decisions remain authoritative in `ARCHITECTURE.md` and `POKER_RULES.md`. This file records only maintenance-loop decisions.
