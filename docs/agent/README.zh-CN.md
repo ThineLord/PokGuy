@@ -6,7 +6,7 @@
 
 Codex 负责组织任务、实施和仓库管理。独立 subagents 负责 review 与已授权的合并。不调用 bots、Cursor bridge 或外部 Agent 服务；使用常规 CI 完成验证。
 
-1. 阅读当前用户指令、`AGENTS.md`、`package.json`、[当前发布说明](../releases/0.2.0.zh-CN.md)和 `git status`。检查远端 main 与已有 PR，保留无关工作。
+1. 阅读当前用户指令、`AGENTS.md`、`package.json`、[当前发布说明](../releases/0.3.0.zh-CN.md)和 `git status`。检查远端 main 与已有 PR，保留无关工作。
 2. 从最新 main 创建 `codex/` 分支，需要时使用隔离 worktree 或 clone。建立 draft PR，写清具体范围与验证。
 3. 完成最小而完整的修改。保持中英文 README 内容一致；设计、用户、发布与历史资料放入规定目录。
 4. 执行[开发门禁](../development/README.md)。将精确候选 SHA 和 diff 交给独立 review subagent；修复实质问题后，对新的 SHA 再次审查。
@@ -37,4 +37,4 @@ Codex 负责组织任务、实施和仓库管理。独立 subagents 负责 revie
 
 修改文档或版本后执行 `npm run release:check`，核对版本、必要发布文档和本地 Markdown 文件链接。`npm run check` 已包含此项，继续作为核心门禁；精确候选提交还必须通过完整 Chromium CI。
 
-GitHub Release 发布源码，不证明线上部署已验证。未获任务授权时，不修改托管、凭据、绑定或付费服务。PR [#2](https://github.com/ThineLord/PokGuy/pull/2) 是独立的依赖与 Worker 图片修复候选，不包含在 0.2.0 中；它的历史验证不作为本次发布证据。
+GitHub Release 发布源码，不证明线上部署已验证。未获任务授权时，不修改托管、凭据、绑定或付费服务。旧依赖／Worker 候选 PR [#2](https://github.com/ThineLord/PokGuy/pull/2) 已由合并的 PR [#4](https://github.com/ThineLord/PokGuy/pull/4) 取代。
