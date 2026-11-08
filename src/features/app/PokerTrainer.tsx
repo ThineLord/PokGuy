@@ -570,8 +570,8 @@ function PokerTable({
             className={`${seatClass} ${active ? "is-acting" : ""} ${isLastActor ? "is-last-actor" : ""} ${actionClass} ${player.status === "folded" ? "is-folded" : ""}`}
             aria-label={
               locale === "zh-CN"
-                ? `${playerName}，${t("筹码")} ${formatChips(player.stack)}`
-                : `${playerName}, ${t("筹码")} ${formatChips(player.stack)}`
+                ? `${playerName}，${t("筹码")} ${formatChips(player.stack / game.bigBlind)}`
+                : `${playerName}, ${t("筹码")} ${formatChips(player.stack / game.bigBlind)}`
             }
             data-acting-label={t("当前行动")}
             data-deal-order={dealOrderByPlayer.get(player.id)}
@@ -648,7 +648,7 @@ function PokerTable({
               })}
             </div>
             <div className="seat-meta">
-              <span>{formatChips(player.stack)} BB</span>
+              <span>{formatChips(player.stack / game.bigBlind)} BB</span>
               <span>
                 {lostStackAtSettlement
                   ? t("筹码归零")

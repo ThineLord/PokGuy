@@ -5,6 +5,8 @@ test("seat details expose readable public info and return keyboard focus @webkit
 }) => {
   const data = defaultData();
   data.settings.autoAi = false;
+  data.settings.bigBlind = 2;
+  data.settings.smallBlind = 1;
   data.settings.playerName = "A deliberately long player name";
   await page.addInitScript(
     (data) => localStorage.setItem("riverlab-poker-v2", JSON.stringify(data)),
@@ -25,12 +27,16 @@ test("seat details expose readable public info and return keyboard focus @webkit
         .locator('.seat[data-seat="0"] .seat-topline strong')
         .evaluate((el) => parseFloat(getComputedStyle(el).fontSize)),
     ).toBeGreaterThanOrEqual(11);
+    await expect(
+      page.locator('.seat[data-seat="0"] .seat-meta span').first(),
+    ).toHaveText("100 BB");
     await trigger.click();
     const dialog = page.getByRole("dialog");
     await expect(dialog.getByRole("heading")).toHaveText(
       "A deliberately long player name",
     );
     await expect(dialog.locator(".playing-card")).toHaveCount(0);
+    await expect(dialog.locator("dd").first()).toHaveText("100 BB");
     await page.keyboard.press("f");
     await expect(dialog).toBeVisible();
     await expect(page.locator(".complete-bar")).toHaveCount(0);

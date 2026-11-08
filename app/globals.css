@@ -3249,7 +3249,7 @@ button {
 }
 
 /* The entire seat is a touch target; the compact table keeps its geometry. */
-.seat-details-trigger {
+.pokguy-shell .seat-details-trigger {
   position: absolute;
   inset: 0;
   z-index: 4;
@@ -3261,22 +3261,22 @@ button {
   background: transparent;
   cursor: pointer;
 }
-.seat-details-trigger:hover {
+.pokguy-shell .seat-details-trigger:hover {
   background: color-mix(in srgb, currentColor 5%, transparent);
 }
-.seat-details-trigger:focus-visible {
+.pokguy-shell .seat-details-trigger:focus-visible {
   outline: 2px solid var(--accent, #4b927b);
   outline-offset: 3px;
 }
-.seat-topline strong {
+.pokguy-shell .seat-topline strong {
   font-size: 12px;
   line-height: 1.3;
 }
-.seat-meta {
+.pokguy-shell .seat-meta {
   font-size: 11px;
   line-height: 1.3;
 }
-.seat-detail-dialog {
+.pokguy-shell .seat-detail-dialog {
   width: min(360px, calc(100vw - 32px));
   max-height: calc(100dvh - 48px);
   margin: auto;
@@ -3288,36 +3288,36 @@ button {
   color: #202d27;
   text-align: left;
 }
-[data-theme="dark"] .seat-detail-dialog {
+[data-theme="dark"] .pokguy-shell .seat-detail-dialog {
   background: #202b25;
   color: #f3f2ec;
 }
-.seat-detail-dialog::backdrop {
+.pokguy-shell .seat-detail-dialog::backdrop {
   background: #0008;
 }
-.seat-detail-dialog h2 {
+.pokguy-shell .seat-detail-dialog h2 {
   overflow-wrap: anywhere;
   font-size: 22px;
 }
-.seat-detail-dialog dl {
+.pokguy-shell .seat-detail-dialog dl {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   font-size: 16px;
 }
-.seat-detail-dialog dd {
+.pokguy-shell .seat-detail-dialog dd {
   margin: 0;
   text-align: right;
 }
-.seat-detail-dialog button {
+.pokguy-shell .seat-detail-dialog button {
   min-height: 44px;
   width: 100%;
 }
 @media (max-width: 600px) {
-  .seat-topline strong {
+  .pokguy-shell .seat-topline strong {
     font-size: 11px;
   }
-  .seat-meta {
+  .pokguy-shell .seat-meta {
     font-size: 10px;
   }
 }
