@@ -36,6 +36,8 @@ A simple standalone Satori override would not replace OG's embedded copy. Upgrad
 
 The upgraded adapter delegates development startup to Vite, whose default port differs. The application now uses the supported Vite commands with explicit strict port 3000, maintaining the documented URL and failing clearly on a collision.
 
+A final check in the original user checkout found an untracked empty `app/_sites-preview` starter directory. Automatic root-first route discovery selected it and returned 404, although fresh-checkout tests passed. The configuration now explicitly selects `src/`; the Worker dependency fixture intentionally retains an empty root `app/` directory to prevent this regression.
+
 Generated dependency-test builds are ignored by lint and removed by the test runner. Investigation logs are separate from successful final regression evidence.
 
 ## Boundary

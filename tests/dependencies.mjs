@@ -83,21 +83,27 @@ try {
 
   for (const runtime of ["node", "worker"]) {
     const fixture = join(temporary, runtime);
-    mkdirSync(join(fixture, "app/api/og"), { recursive: true });
+    const appDirectory = runtime === "worker" ? "src/app" : "app";
+    mkdirSync(join(fixture, appDirectory, "api/og"), { recursive: true });
+    if (runtime === "worker") {
+      // Older checkouts can retain this untracked empty starter directory.
+      // It must not shadow the configured src/app routes, even with a clean git status.
+      mkdirSync(join(fixture, "app/_sites-preview"), { recursive: true });
+    }
     writeFileSync(
       join(fixture, "package.json"),
       '{"type":"module","private":true}\n',
     );
     writeFileSync(
-      join(fixture, "app/layout.tsx"),
+      join(fixture, appDirectory, "layout.tsx"),
       "export default function Layout({children}) { return <html><body>{children}</body></html>; }",
     );
     writeFileSync(
-      join(fixture, "app/page.tsx"),
+      join(fixture, appDirectory, "page.tsx"),
       "export default function Page() { return <p>Dependency regression fixture</p>; }",
     );
     writeFileSync(
-      join(fixture, "app/api/og/route.tsx"),
+      join(fixture, appDirectory, "api/og/route.tsx"),
       `
       import {ImageResponse} from 'next/og';
       export async function GET(request: Request) {
