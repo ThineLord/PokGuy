@@ -1,5 +1,5 @@
 import packageInfo from "../../package.json" with { type: "json" };
-import { migrateData, STORAGE_KEY } from "./storage";
+import { EMPTY_STATS, migrateData, STORAGE_KEY } from "./storage";
 import type { PersistedData } from "./types";
 
 export interface Preferences {
@@ -61,7 +61,22 @@ export function parseBackup(
     )
       throw new Error("backup-preferences");
     const data = migrateData(raw.data);
-    if (canonical(data) !== canonical(raw.data))
+    const expected =
+      raw.data.statsScope === undefined
+        ? {
+            ...raw.data,
+            statsScope: "cash-v1",
+            stats: { ...EMPTY_STATS, byPosition: {} },
+            aiHabits: {},
+            scenarioStats: raw.data.scenarioStats ?? {
+              ...EMPTY_STATS,
+              byPosition: {},
+            },
+            legacyStats: raw.data.stats,
+            legacyAiHabits: raw.data.aiHabits,
+          }
+        : raw.data;
+    if (canonical(data) !== canonical(expected))
       throw new Error("backup-invalid-data");
     return { backup: { ...raw, data }, legacy: false };
   }

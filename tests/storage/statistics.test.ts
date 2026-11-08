@@ -109,3 +109,34 @@ it("counts an actual three-bet and an actual checked-to flop opportunity", () =>
   expect(stats.cbetOpportunities).toBe(1);
   expect(stats.cbets).toBe(1);
 });
+
+it("does not count a three-bet opportunity against a heads-up open shove", () => {
+  let game = startHand({
+    ...options,
+    dealerSeat: 1,
+    players: [players[0], { ...players[1], stack: 5 }],
+    handId: "hand-open-shove",
+  });
+  game = act(game, "ai", { type: "all-in" });
+  expect(legalActionsFor(game, "hero").raise.legal).toBe(false);
+  game = act(game, "hero", { type: "fold" });
+  expect(
+    appendCompletedHand(defaultData(), game, "hero").stats
+      .threeBetOpportunities,
+  ).toBe(0);
+});
+it("clamps position numerators to their actual opportunity denominator", () => {
+  const data = defaultData();
+  data.stats.byPosition.BB = {
+    hands: 10,
+    profitBb: 0,
+    opportunities: 1,
+    vpip: 8,
+    pfr: 5,
+  };
+  expect(migrateData(data).stats.byPosition.BB).toMatchObject({
+    opportunities: 1,
+    vpip: 1,
+    pfr: 1,
+  });
+});

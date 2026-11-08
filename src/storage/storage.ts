@@ -525,10 +525,15 @@ function normalizeStats(value: unknown): AggregateStats {
           }
         : {}),
       profitBb: finiteNumber(item.profitBb),
-      vpip: Math.min(nonNegativeCount(item.vpip), nonNegativeCount(item.hands)),
+      vpip: Math.min(
+        nonNegativeCount(item.vpip),
+        nonNegativeCount(item.hands),
+        nonNegativeCount(item.opportunities ?? item.hands),
+      ),
       pfr: Math.min(
         nonNegativeCount(item.pfr),
         nonNegativeCount(item.vpip),
+        nonNegativeCount(item.opportunities ?? item.hands),
         nonNegativeCount(item.hands),
       ),
     };
@@ -874,11 +879,11 @@ export function appendCompletedHand(
       stackBefore > 0,
   );
   const threeBetOpportunity = facts.some(
-    ({ record, raisesBefore, stackBefore, toCall }) =>
+    ({ record, raisesBefore, canRaise }) =>
       record.playerId === heroId &&
       record.street === "preflop" &&
       raisesBefore === 1 &&
-      stackBefore > toCall,
+      canRaise,
   );
   const wasPreflopAggressor =
     [...heroPreflopRaises].at(-1)?.playerId === heroId;

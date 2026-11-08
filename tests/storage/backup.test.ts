@@ -158,3 +158,27 @@ it("reports incomplete rollback and repairs every field on a complete retry", ()
   expect(values.get("pokguy-theme")).toBe("light");
   expect(JSON.parse(values.get(STORAGE_KEY)!)).toEqual(current.data);
 });
+
+it("accepts a valid pre-scope full backup while still rejecting damaged legacy fields", () => {
+  const data = sample();
+  delete data.statsScope;
+  delete data.scenarioStats;
+  delete data.legacyStats;
+  delete data.legacyAiHabits;
+  const backup = createBackup(data, prefs);
+  const restored = parseBackup(JSON.stringify(backup), defaultData(), prefs)
+    .backup.data;
+  expect(restored.stats.hands).toBe(0);
+  expect(restored.legacyStats).toEqual(data.stats);
+  expect(restored.recentHands).toEqual(data.recentHands);
+  expect(() =>
+    parseBackup(
+      JSON.stringify({
+        ...backup,
+        data: { ...data, stats: { ...data.stats, hands: -1 } },
+      }),
+      defaultData(),
+      prefs,
+    ),
+  ).toThrow();
+});

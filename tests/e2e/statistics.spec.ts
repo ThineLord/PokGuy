@@ -36,7 +36,9 @@ test("cash and scenario counters stay separate across reload @webkit", async ({
   data = appendCompletedHand(data, scenario, "hero");
   data.settings.autoAi = false;
   await page.addInitScript(
-    (data) => localStorage.setItem("riverlab-poker-v2", JSON.stringify(data)),
+    (data) =>
+      !localStorage.getItem("riverlab-poker-v2") &&
+      localStorage.setItem("riverlab-poker-v2", JSON.stringify(data)),
     data,
   );
   await page.goto("/");
