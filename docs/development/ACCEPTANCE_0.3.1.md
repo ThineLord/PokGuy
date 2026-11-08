@@ -38,6 +38,8 @@ The upgraded adapter delegates development startup to Vite, whose default port d
 
 A final check in the original user checkout found an untracked empty `app/_sites-preview` starter directory. Automatic root-first route discovery selected it and returned 404, although fresh-checkout tests passed. The configuration now explicitly selects `src/`; the Worker dependency fixture intentionally retains an empty root `app/` directory to prevent this regression.
 
+A merged-main Linux WebKit run caught an iPhone action-area assertion after a fixed 450 ms delay; macOS repeated runs did not reproduce it. The test now observes the application's asynchronous scrolling with the normal 5-second assertion budget, preserving the viewport and 44 px touch-target limits without scrolling on the test's behalf. Failure diagnostics include scroll position and document geometry; CI preserves browser traces and screenshots. A local negative control with application scrolling disabled still failed the viewport assertion. The initial failed run remains part of the release evidence, separately from final passing checks.
+
 Generated dependency-test builds are ignored by lint and removed by the test runner. Investigation logs are separate from successful final regression evidence.
 
 ## Boundary
