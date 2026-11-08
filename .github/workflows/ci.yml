@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Audit the locked dependency graph
+        run: npm run audit:dependencies
+
       - name: Run quality checks
         run: npm run check
 

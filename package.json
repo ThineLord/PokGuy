@@ -6,9 +6,9 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
-    "dev:lan": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev --hostname 0.0.0.0",
-    "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
+    "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vite dev --port 3000 --strictPort",
+    "dev:lan": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vite dev --host 0.0.0.0 --port 3000 --strictPort",
+    "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vite build",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config tests/vitest.config.ts",
@@ -19,9 +19,11 @@
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run release:check && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build",
+    "check": "npm run release:check && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run test:dependencies && npm run build",
     "release:check": "node scripts/check-release.mjs",
-    "test:e2e:worker": "playwright test --config tests/playwright.worker.config.ts --project=chromium"
+    "test:e2e:worker": "playwright test --config tests/playwright.worker.config.ts --project=chromium",
+    "test:dependencies": "node tests/dependencies.mjs",
+    "audit:dependencies": "npm audit --audit-level=moderate --registry=https://registry.npmjs.org"
   },
   "dependencies": {
     "next": "16.4.5",
@@ -40,7 +42,7 @@
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
-    "@vitejs/plugin-rsc": "0.5.26",
+    "@vitejs/plugin-rsc": "0.5.34",
     "@vitest/coverage-v8": "4.1.12",
     "eslint": "9.39.4",
     "eslint-config-next": "16.4.5",
@@ -50,7 +52,7 @@
     "react-server-dom-webpack": "19.2.8",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
-    "vinext": "0.0.50",
+    "vinext": "1.0.1",
     "vite": "8.1.6",
     "vitest": "4.1.12",
     "wrangler": "4.114.0"
@@ -62,7 +64,12 @@
       "sharp": "0.35.5",
       "undici": "7.30.2"
     },
-    "image-size": "2.1.0"
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "11.0.1"
+    },
+    "satori": {
+      "fflate": "0.7.5"
+    }
   },
   "prettier": {
     "plugins": [
