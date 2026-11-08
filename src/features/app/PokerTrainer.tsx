@@ -1133,8 +1133,20 @@ function HistoryView({
 
 function StatsView({ data }: { data: PersistedData }) {
   const { t } = useI18n();
-  const stats = data.stats;
-  const reviews = summarizeReviews(data.recentHands, data.trainingRecords);
+  const [scope, setScope] = useState<"cash" | "scenario" | "legacy">("cash");
+  const stats =
+    (scope === "cash"
+      ? data.stats
+      : scope === "scenario"
+        ? data.scenarioStats
+        : data.legacyStats) ?? EMPTY_STATS;
+  const scopedHands =
+    scope === "legacy"
+      ? []
+      : data.recentHands.filter(
+          (hand) => hand.id.startsWith("scenario-") === (scope === "scenario"),
+        );
+  const reviews = summarizeReviews(scopedHands, data.trainingRecords);
   const rate = (value: number, total: number) =>
     total ? `${((value / total) * 100).toFixed(1)}%` : "—";
   const items = [
@@ -1167,6 +1179,31 @@ function StatsView({ data }: { data: PersistedData }) {
           </div>
           <span className="sample-warning">{t("少量样本统计不稳定")}</span>
         </div>
+        <label>
+          {t("统计范围")}
+          <select
+            aria-label={t("统计范围")}
+            value={scope}
+            onChange={(event) => setScope(event.target.value as typeof scope)}
+          >
+            <option value="cash">{t("现金桌")}</option>
+            <option value="scenario">{t("场景训练")}</option>
+            <option value="legacy">{t("旧版混合统计")}</option>
+          </select>
+        </label>
+        <p className="muted">
+          {t(
+            scope === "legacy"
+              ? "旧版统计无法可靠拆分，单独保留；不会用于现金桌 AI 适应。"
+              : "现金桌与场景独立累计。VPIP/PFR 仅统计实际获得翻牌前行动的手牌；3-bet 与持续下注仅统计实际机会。",
+          )}
+        </p>
+        <p className="muted">
+          VPIP {stats.vpipHands}/{stats.vpipOpportunities} · PFR{" "}
+          {stats.pfrHands}/{stats.pfrOpportunities} · 3-bet {stats.threeBets}/
+          {stats.threeBetOpportunities} · {t("翻牌持续下注")} {stats.cbets}/
+          {stats.cbetOpportunities}
+        </p>
         <div className="stats-grid">
           {items.map(([label, value]) => (
             <div className="stat-card" key={String(label)}>
@@ -1196,8 +1233,8 @@ function StatsView({ data }: { data: PersistedData }) {
               <strong>{position}</strong>
               <span>{item.hands}</span>
               <span>{formatChips(item.profitBb)} BB</span>
-              <span>{rate(item.vpip, item.hands)}</span>
-              <span>{rate(item.pfr, item.hands)}</span>
+              <span>{rate(item.vpip, item.opportunities ?? item.hands)}</span>
+              <span>{rate(item.pfr, item.opportunities ?? item.hands)}</span>
             </div>
           ))}
         </div>
@@ -1561,6 +1598,8 @@ function SettingsView({
                 replaceData({
                   ...data,
                   stats: { ...EMPTY_STATS, byPosition: {} },
+                  scenarioStats: { ...EMPTY_STATS, byPosition: {} },
+                  legacyStats: { ...EMPTY_STATS, byPosition: {} },
                 });
             }}
           >

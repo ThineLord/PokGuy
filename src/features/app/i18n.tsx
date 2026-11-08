@@ -20,6 +20,14 @@ export type AppLocale = "zh-CN" | "en";
 const LOCALE_STORAGE_KEY = "riverlab-locale";
 
 const ENGLISH: Record<string, string> = {
+  统计范围: "Statistics scope",
+  现金桌: "Cash table",
+  场景训练: "Scenarios",
+  旧版混合统计: "Legacy mixed statistics",
+  "旧版统计无法可靠拆分，单独保留；不会用于现金桌 AI 适应。":
+    "Legacy totals cannot be reliably separated. They are retained independently and are excluded from cash-table AI adaptation.",
+  "现金桌与场景独立累计。VPIP/PFR 仅统计实际获得翻牌前行动的手牌；3-bet 与持续下注仅统计实际机会。":
+    "Cash and scenarios accumulate separately. VPIP/PFR count hands with an actual preflop action; 3-bet and continuation bets count actual opportunities.",
   牌局: "Hands",
   笔记: "Notes",
   "完整备份包含设置、已完成牌局、统计、笔记、训练点评、AI 习惯和界面偏好；不包含正在进行的牌局。":

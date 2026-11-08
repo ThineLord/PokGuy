@@ -516,6 +516,14 @@ function normalizeStats(value: unknown): AggregateStats {
       continue;
     stats.byPosition[position] = {
       hands: nonNegativeCount(item.hands),
+      ...(item.opportunities !== undefined
+        ? {
+            opportunities: Math.min(
+              nonNegativeCount(item.opportunities),
+              nonNegativeCount(item.hands),
+            ),
+          }
+        : {}),
       profitBb: finiteNumber(item.profitBb),
       vpip: Math.min(nonNegativeCount(item.vpip), nonNegativeCount(item.hands)),
       pfr: Math.min(
@@ -578,7 +586,11 @@ export function defaultData(): PersistedData {
     },
     aiProfiles: PERSONALITIES.map((profile) => ({ ...profile })),
     aiHabits: {},
+    statsScope: "cash-v1",
     stats: { ...EMPTY_STATS, byPosition: {} },
+    scenarioStats: { ...EMPTY_STATS, byPosition: {} },
+    legacyStats: { ...EMPTY_STATS, byPosition: {} },
+    legacyAiHabits: {},
     recentHands: [],
     trainingRecords: [],
     playerNotes: {},
@@ -600,8 +612,26 @@ export function migrateData(raw: unknown): PersistedData {
       new Set(aiProfiles.map((profile) => profile.id)),
     ),
     aiProfiles,
-    aiHabits: normalizeAiHabits(candidate.aiHabits),
-    stats: normalizeStats(candidate.stats),
+    aiHabits:
+      candidate.statsScope === "cash-v1"
+        ? normalizeAiHabits(candidate.aiHabits)
+        : {},
+    statsScope: "cash-v1",
+    stats:
+      candidate.statsScope === "cash-v1"
+        ? normalizeStats(candidate.stats)
+        : { ...EMPTY_STATS, byPosition: {} },
+    scenarioStats: normalizeStats(candidate.scenarioStats),
+    legacyStats: normalizeStats(
+      candidate.statsScope === "cash-v1"
+        ? candidate.legacyStats
+        : candidate.stats,
+    ),
+    legacyAiHabits: normalizeAiHabits(
+      candidate.statsScope === "cash-v1"
+        ? candidate.legacyAiHabits
+        : candidate.aiHabits,
+    ),
     recentHands: Array.isArray(candidate.recentHands)
       ? candidate.recentHands
           .map((hand) => {
@@ -820,6 +850,11 @@ export function appendCompletedHand(
   if (data.recentHands.some((hand) => hand.id === game.handId)) return data;
   const hero = game.players.find((player) => player.id === heroId);
   if (!hero) return data;
+  // Existing schema-2 data without this marker contains mixed-mode totals.
+  // Preserve it separately rather than inventing a split from truncated history.
+  if (data.statsScope !== "cash-v1") data = migrateData(data);
+  const scenario = game.handId.startsWith("scenario-");
+  const previous = scenario ? (data.scenarioStats ?? EMPTY_STATS) : data.stats;
   const profitBb = (hero.stack - hero.startingStack) / game.bigBlind;
   const preflop = heroStatsFor(game, heroId);
   const facts = actionFacts(game);
@@ -831,6 +866,12 @@ export function appendCompletedHand(
   );
   const heroRaiseIndex = heroPreflopRaises.findIndex(
     (action) => action.playerId === heroId,
+  );
+  const preflopOpportunity = facts.some(
+    ({ record, stackBefore }) =>
+      record.playerId === heroId &&
+      record.street === "preflop" &&
+      stackBefore > 0,
   );
   const threeBetOpportunity = facts.some(
     ({ record, raisesBefore, stackBefore, toCall }) =>
@@ -844,10 +885,13 @@ export function appendCompletedHand(
   const firstHeroFlop = facts.find(
     ({ record }) => record.playerId === heroId && record.street === "flop",
   );
-  const reachedFlop = !!firstHeroFlop && firstHeroFlop.raisesBefore === 0;
+  const reachedFlop =
+    !!firstHeroFlop &&
+    firstHeroFlop.raisesBefore === 0 &&
+    firstHeroFlop.stackBefore > 0;
   const cbet = firstHeroFlop?.aggressive ?? false;
   const position = hero.positionLabel || "Unknown";
-  const previousPosition = data.stats.byPosition[position] ?? {
+  const previousPosition = previous.byPosition[position] ?? {
     hands: 0,
     profitBb: 0,
     vpip: 0,
@@ -863,26 +907,28 @@ export function appendCompletedHand(
     ) ??
       false);
   const stats: AggregateStats = {
-    ...data.stats,
-    hands: data.stats.hands + 1,
-    profitBb: data.stats.profitBb + profitBb,
-    vpipOpportunities: data.stats.vpipOpportunities + 1,
-    vpipHands: data.stats.vpipHands + Number(preflop.vpip),
-    pfrOpportunities: data.stats.pfrOpportunities + 1,
-    pfrHands: data.stats.pfrHands + Number(preflop.pfr),
+    ...previous,
+    hands: previous.hands + 1,
+    profitBb: previous.profitBb + profitBb,
+    vpipOpportunities: previous.vpipOpportunities + Number(preflopOpportunity),
+    vpipHands: previous.vpipHands + Number(preflop.vpip),
+    pfrOpportunities: previous.pfrOpportunities + Number(preflopOpportunity),
+    pfrHands: previous.pfrHands + Number(preflop.pfr),
     threeBetOpportunities:
-      data.stats.threeBetOpportunities + Number(threeBetOpportunity),
-    threeBets: data.stats.threeBets + Number(heroRaiseIndex === 1),
+      previous.threeBetOpportunities + Number(threeBetOpportunity),
+    threeBets: previous.threeBets + Number(heroRaiseIndex === 1),
     cbetOpportunities:
-      data.stats.cbetOpportunities + Number(wasPreflopAggressor && reachedFlop),
-    cbets:
-      data.stats.cbets + Number(wasPreflopAggressor && reachedFlop && cbet),
-    showdowns: data.stats.showdowns + Number(reachedShowdown),
-    showdownWins: data.stats.showdownWins + Number(wonShowdown),
+      previous.cbetOpportunities + Number(wasPreflopAggressor && reachedFlop),
+    cbets: previous.cbets + Number(wasPreflopAggressor && reachedFlop && cbet),
+    showdowns: previous.showdowns + Number(reachedShowdown),
+    showdownWins: previous.showdownWins + Number(wonShowdown),
     byPosition: {
-      ...data.stats.byPosition,
+      ...previous.byPosition,
       [position]: {
         hands: previousPosition.hands + 1,
+        opportunities:
+          (previousPosition.opportunities ?? previousPosition.hands) +
+          Number(preflopOpportunity),
         profitBb: previousPosition.profitBb + profitBb,
         vpip: previousPosition.vpip + Number(preflop.vpip),
         pfr: previousPosition.pfr + Number(preflop.pfr),
@@ -901,8 +947,11 @@ export function appendCompletedHand(
   };
   return {
     ...data,
-    stats,
-    aiHabits: updateAiHabits(data, game, aiDecisionTags),
+    stats: scenario ? data.stats : stats,
+    scenarioStats: scenario ? stats : data.scenarioStats,
+    aiHabits: scenario
+      ? data.aiHabits
+      : updateAiHabits(data, game, aiDecisionTags),
     recentHands: [stored, ...data.recentHands].slice(0, 100),
   };
 }

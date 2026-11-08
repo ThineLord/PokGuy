@@ -51,7 +51,13 @@ export interface AggregateStats {
   showdownWins: number;
   byPosition: Record<
     string,
-    { hands: number; profitBb: number; vpip: number; pfr: number }
+    {
+      hands: number;
+      profitBb: number;
+      vpip: number;
+      pfr: number;
+      opportunities?: number;
+    }
   >;
 }
 
@@ -67,7 +73,12 @@ export interface PersistedData {
   settings: AppSettings;
   aiProfiles: PokerPersonality[];
   aiHabits: Record<string, OpponentHabitStats>;
+  /** Cash statistics collected under the opportunity-aware v0.3 policy. */
   stats: AggregateStats;
+  statsScope?: "cash-v1";
+  scenarioStats?: AggregateStats;
+  legacyStats?: AggregateStats;
+  legacyAiHabits?: Record<string, OpponentHabitStats>;
   recentHands: StoredHand[];
   trainingRecords: TrainingRecord[];
   playerNotes: Record<string, string>;
