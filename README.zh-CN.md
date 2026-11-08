@@ -38,6 +38,6 @@ npm run dev
 
 源码与页面在 `src/`，应用资源在 `public/`，测试及配置在 `tests/`，构建和发布工具在 `scripts/`，说明文档在 `docs/`。
 
-当前版本：**0.3.0** · [更新说明](docs/releases/0.3.0.zh-CN.md) · [更新记录](CHANGELOG.md) · [GitHub Releases](https://github.com/ThineLord/PokGuy/releases)
+当前版本：**0.3.1** · [更新说明](docs/releases/0.3.1.zh-CN.md) · [更新记录](CHANGELOG.md) · [GitHub Releases](https://github.com/ThineLord/PokGuy/releases)
 
 后续按[语义化版本](docs/releases/README.md)管理；浏览器存储 schema 独立演进。本项目仅用于学习，不提供充值、提现或真人匹配。源码发布不代表已经验证线上部署。

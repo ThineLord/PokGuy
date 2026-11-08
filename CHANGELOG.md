@@ -6,6 +6,15 @@ Application releases use `vMAJOR.MINOR.PATCH`. Browser storage schemas are versi
 
 No changes recorded yet.
 
+## [0.3.1] — 2026-11-09
+
+- Resolve the remaining minimatch/Satori advisory chains and the newly exposed fflate dependency; official-registry audit reports zero vulnerabilities.
+- Use the supported Node/Worker OG runtime and add actual rendering, malicious-input and audit CI gates.
+- Reduce tracked root entries from 28 to 19, remove unused template files and link obsolete reports to fixed-tag history.
+- Show one real overview screenshot in each concise bilingual home README.
+- Preserve port 3000, standard npm commands, poker behavior and browser storage schema 2.
+- [English release notes](docs/releases/0.3.1.md) · [中文更新说明](docs/releases/0.3.1.zh-CN.md).
+
 ## [0.3.0] — 2026-11-09
 
 - Add complete backup preview/restore, rescue exports and visible save failures.
@@ -40,3 +49,4 @@ The [historical changelog](https://github.com/ThineLord/PokGuy/blob/v0.3.0/docs/
 
 [0.2.0]: https://github.com/ThineLord/PokGuy/releases/tag/v0.2.0
 [0.3.0]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.0
+[0.3.1]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.1

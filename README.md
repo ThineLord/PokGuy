@@ -38,6 +38,6 @@ Export a full backup before clearing site data or changing devices. AI feedback 
 
 Source and routes live in `src/`, assets in `public/`, tests and their configuration in `tests/`, build/release helpers in `scripts/`, and guides in `docs/`.
 
-Current version: **0.3.0** · [Release notes](docs/releases/0.3.0.md) · [Changelog](CHANGELOG.md) · [GitHub Releases](https://github.com/ThineLord/PokGuy/releases)
+Current version: **0.3.1** · [Release notes](docs/releases/0.3.1.md) · [Changelog](CHANGELOG.md) · [GitHub Releases](https://github.com/ThineLord/PokGuy/releases)
 
 Releases follow [semantic versioning](docs/releases/README.md); browser storage schema versions are independent. This is a learning tool without deposits, withdrawals or real-player matchmaking. A source release does not establish a verified hosted deployment.

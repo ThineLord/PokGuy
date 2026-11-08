@@ -6,7 +6,7 @@
 
 Codex owns task organization, implementation and repository housekeeping. Independent subagents own review and the authorized merge. Do not call bots, Cursor bridges or external agent services. Use ordinary CI for validation.
 
-1. Read current user instructions, `AGENTS.md`, `package.json`, the [current release notes](../releases/0.3.0.md) and `git status`. Inspect remote `main` and existing PRs. Preserve unrelated work.
+1. Read current user instructions, `AGENTS.md`, `package.json`, the [current release notes](../releases/0.3.1.md) and `git status`. Inspect remote `main` and existing PRs. Preserve unrelated work.
 2. Create a `codex/` branch from current `main`; use an isolated worktree or clone when needed. Open a draft PR with concrete scope and validation.
 3. Implement the smallest complete change. Keep corresponding English/Chinese READMEs aligned. Put design, user, release and historical material in their documented directories.
 4. Run the [development gates](../development/README.md). Send the exact candidate SHA and diff to an independent review subagent. Fix material findings and obtain review of the resulting SHA.

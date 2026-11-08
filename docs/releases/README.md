@@ -20,14 +20,14 @@ Storage schema `2`, the `riverlab-poker-v2` key and preference keys are independ
 
 ## Publish the merged source
 
-After merge, verify a clean checkout of the resulting main commit and both main CI jobs. Publish exactly that commit, even if main subsequently advances. The following example is for 0.3.0; use the chosen version and the actual reviewed merge SHA on future releases.
+After merge, verify a clean checkout of the resulting main commit and both main CI jobs. Publish exactly that commit, even if main subsequently advances. The following example is for 0.3.1; use the chosen version and the actual reviewed merge SHA on future releases.
 
 ```bash
-npm run release:check -- --tag=v0.3.0
-git tag -a v0.3.0 <verified-merge-sha> -m "PokGuy 0.3.0"
-git push origin refs/tags/v0.3.0
-gh release create v0.3.0 --repo ThineLord/PokGuy --verify-tag \
-  --title "PokGuy 0.3.0" --notes-file /path/to/reviewed-release-notes.md
+npm run release:check -- --tag=v0.3.1
+git tag -a v0.3.1 <verified-merge-sha> -m "PokGuy 0.3.1"
+git push origin refs/tags/v0.3.1
+gh release create v0.3.1 --repo ThineLord/PokGuy --verify-tag \
+  --title "PokGuy 0.3.1" --notes-file /path/to/reviewed-release-notes.md
 ```
 
 Prepare the release body from both version-note files. Include the reviewed PR, merge SHA and links to the successful CI evidence. Verify the remote tag resolves to that commit and the release is published (not a draft). GitHub provides source archives automatically; do not attach `node_modules`, private data or generated local logs. This is a source release, not an npm package publication (`private: true` remains set).
