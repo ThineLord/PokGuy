@@ -27,9 +27,9 @@ Settings, statistics, notes, the most recent 100 hands and up to 500 training re
 3. Check the **Restore preview**, including the player, hands, notes and reviews. Cancel leaves the existing data intact.
 4. **Confirm restore** replaces saved data and preferences and starts a new hand. Export the destination's current backup first if you want to keep it.
 
-The full backup includes settings, AI profiles/habits, all retained completed hands, cash/scenario/legacy statistics, notes, decision reviews, language and theme. Active hands and the in-memory cash/scenario return snapshot are excluded. The separate **Export hands** file is for inspecting hand records; it is not a full restorable backup. Older settings exports are explicitly recognized and replace only settings/profiles while preserving the active hand and current records.
+The full backup includes settings, AI profiles/habits, all retained completed hands, cash/scenario/legacy statistics, notes, decision reviews, language and theme. Active hands and the in-memory cash/scenario return snapshot are excluded. The separate **Export hand history** file is for inspecting hand records; it is not a full restorable backup. Older settings exports are explicitly recognized and replace only settings/profiles while preserving the active hand and current records.
 
-If saving fails, an **unsaved changes** warning stays visible. Use **Retry save** after freeing storage, or **Export full backup** to rescue the current in-memory data before closing. A failed restore keeps the previous data; a rollback problem keeps the rescue warning until a complete retry succeeds. Browser unload warnings are best-effort, so export rather than relying on the warning.
+If saving fails, a **Changes are not saved** warning stays visible. Use **Retry save** after freeing storage, or **Export full backup** to rescue the current in-memory data before closing. A failed restore keeps the current in-memory data; a rollback problem keeps the rescue warning until a complete retry succeeds. Browser unload warnings are best-effort, so export rather than relying on the warning.
 
 ### Statistics, reviews and mobile details
 

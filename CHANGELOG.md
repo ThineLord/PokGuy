@@ -39,3 +39,4 @@ No gameplay, dependency, storage-schema or hosting configuration changes. The se
 The [historical changelog](docs/archive/changelog-before-0.2.0.md) retains the original 0.1.0 entry and dated unversioned changes. These dates are not retroactively assigned Git tags or GitHub Releases.
 
 [0.2.0]: https://github.com/ThineLord/PokGuy/releases/tag/v0.2.0
+[0.3.0]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.0

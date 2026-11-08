@@ -44,6 +44,8 @@ scripts/          仓库与版本校验
 build/ + worker/  构建集成与 Worker 入口
 ```
 
+[查看新流程实际截图](docs/user/0.3.0-walkthrough.zh-CN.md)。
+
 ## 版本与文档
 
 当前版本：**0.3.0**。发布使用 `v主版本.次版本.修订号` 标签，并记录在 [GitHub Releases](https://github.com/ThineLord/PokGuy/releases)。应用版本与浏览器数据格式版本独立管理。

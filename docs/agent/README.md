@@ -13,7 +13,7 @@ Codex owns task organization, implementation and repository housekeeping. Indepe
 5. A separate merge subagent verifies the reviewed SHA, base branch, required CI, unresolved findings and merge authorization. Mark the PR ready and merge without bypassing protection. A same-account technical review is not a GitHub APPROVED review.
 6. For a requested release, follow the [release workflow](../releases/README.md), verify the merged commit, tag and published release, and report the results.
 
-The current user request authorizes the repository reorganization, its reviewed merge and GitHub source release. Future tasks use their own scope; a release policy does not grant blanket deployment permission.
+Check authorization against the current task. Repository policies do not grant blanket merge, release or deployment permission.
 
 ## File ownership
 
