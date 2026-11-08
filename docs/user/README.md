@@ -6,7 +6,7 @@ PokGuy helps you practice Texas Hold’em and review how you played. It runs thr
 
 ## Start a practice session
 
-1. Follow the [local setup](../../README.md#start-locally).
+1. Follow the [local setup](../../README.md#get-started).
 2. On the table, choose 2–9 seats and start a new table. Changing the selector alone does not interrupt the current hand; starting a new table resets its stacks.
 3. Use Fold, Check, Call, Bet, Raise or All-in when available. The trainer validates legal sizes and explains settlement after the hand.
 4. Open the scenario builder to practice a chosen position, stack, hole cards and starting street. Returning to cash play restores the cash table kept in memory for that session.
