@@ -10,7 +10,7 @@ Assessed on 2026-11-09. This supersedes the residual dependency findings in the 
 | vinext → @vercel/og → Satori  | vinext 1.0.1 and plugin-rsc 0.5.34 bring the supported OG 1.0.3 / Satori 0.33.5 stack | Actual built Node and Worker routes decode a 240×120 PNG and reject unsafe internal SVG styles                          |
 | Satori → fflate               | Scope fflate 0.7.5 to Satori                                                          | Valid ZIP roundtrip and malformed ZIP64 rejection in a process with a five-second limit                                 |
 
-React/React DOM/RSC stay at 19.2.8. Existing bounded Miniflare sharp/Undici overrides remain. The obsolete image-size override was removed because the upgraded adapter no longer installs that dependency.
+React/React DOM/RSC stay at 19.2.8. Development/build commands use the supported Vite CLI. Port 3000 is explicit and strict, preserving the documented address and preventing silent port fallback after the adapter upgrade. Existing bounded Miniflare sharp/Undici overrides remain. The obsolete image-size override was removed because the upgraded adapter no longer installs that dependency.
 
 The official-registry audit of the locked graph reports **0 vulnerabilities**, including development and optional dependencies. `npm run audit:dependencies` is a CI gate at moderate severity; an unavailable registry fails the gate instead of being reported as a clean audit.
 

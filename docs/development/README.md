@@ -6,7 +6,7 @@ Use Node.js 22.13+; `.nvmrc` selects the 22.x line used by CI. Install the commi
 
 | Command                      | Purpose                                                          |
 | ---------------------------- | ---------------------------------------------------------------- |
-| `npm run dev`                | Local vinext development server                                  |
+| `npm run dev`                | Local Vite/vinext development server                             |
 | `npm run dev:lan`            | Development server on trusted LAN interfaces                     |
 | `npm run build`              | Production build                                                 |
 | `npm run start`              | Start the production build locally                               |
