@@ -43,11 +43,33 @@ jobs:
       - name: Run quality checks
         run: npm run check
 
+  # Browsers come from the official Playwright image. Do not restore
+  # `npx playwright install --with-deps`: on ubuntu-24.04 that apt install
+  # cancelled this job twice at 15 minutes before any suite started.
+  #
+  # Pin: linux/amd64 manifest of mcr.microsoft.com/playwright:v1.61.1-noble,
+  # the same Playwright release locked for @playwright/test, playwright, and
+  # playwright-core. GitHub-hosted ubuntu-24.04 runners are linux/amd64, so
+  # this is the platform manifest rather than the multi-arch index
+  # sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48.
+  #
+  # The image's /usr/bin/node is v24.17.0. Suites use the same setup-node
+  # 22.x path as the Quality job above. `options: --init` makes Docker init
+  # PID 1 so it reaps orphaned children; vinext's dev lock only checks
+  # whether that recorded pid is still alive. timeout-minutes includes a
+  # cold image pull plus the suites; it is not a retry of the removed apt
+  # install.
   chromium-e2e:
-    name: Node 22 Chromium E2E gate
+    name: Browser E2E gate
     needs: check
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 20
+    container:
+      options: --init
+      image: mcr.microsoft.com/playwright@sha256:cf0daee9b994042e011bc29f20cdff1a9f682a039b43fcd738f7d8a9d3bcd9d6
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
 
     steps:
       - name: Check out repository
@@ -62,12 +84,21 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
 
+      - name: Require Node.js 22
+        run: |
+          node -v
+          node -e 'const version = process.versions.node; if (!/^22\./.test(version)) { console.error("expected Node.js 22.x from setup-node, got v" + version); process.exit(1); }'
+
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Chromium and WebKit
-        run: npx playwright install --with-deps chromium webkit
+      - name: Require preinstalled Chromium and WebKit
+        run: |
+          find "${PLAYWRIGHT_BROWSERS_PATH}" -mindepth 1 -maxdepth 1 -printf '%f\n'
+          node --input-type=module -e 'import { chromium, webkit } from "@playwright/test"; import { existsSync } from "node:fs"; for (const [name, browserType] of [["chromium", chromium], ["webkit", webkit]]) { const executable = browserType.executablePath(); console.log(name, executable); if (!existsSync(executable)) { console.error("missing preinstalled " + name + " at " + executable); process.exit(1); } }'
 
+      # The job shell is sh and does not enable pipefail. A `| tee` would
+      # report success when the npm command failed.
       - name: Run Chromium end-to-end tests
         run: npm run test:e2e
 
