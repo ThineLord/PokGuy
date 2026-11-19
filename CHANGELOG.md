@@ -4,7 +4,11 @@ Application releases use `vMAJOR.MINOR.PATCH`. Browser storage schemas are versi
 
 ## Unreleased
 
-No changes recorded yet.
+- Optional action hints recommend only a legal action. When an opponent is already all-in and a further raise is forbidden, a strong hand suggests a call; a strong hand that can still raise or bet still suggests that action. Reference sizing is omitted when a bet or raise is not legal.
+- Folded players' different contribution levels no longer create extra pots with the same eligible set. Tied live players split the one contestable pot, so odd chips are awarded once. Hands already settled under the previous layer split keep their original payouts in schema 2 history and backups.
+- Saved hands and backups stay valid when JSON object keys are reordered, including nested pot objects. Changing pot amounts, eligibility, shares, or payouts is still rejected.
+- Patch React, React DOM, and `react-server-dom-webpack` from 19.2.8 to 19.2.9 for GHSA-xqc2-xf4c-x3h3. Application version, `riverlab-poker-v2`, and storage schema 2 are unchanged.
+- [Bug scan record](docs/development/BUGSCAN-1119.md).
 
 ## [0.3.1] — 2026-11-09
 

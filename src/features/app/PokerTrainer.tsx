@@ -10,6 +10,7 @@ import {
   type CSSProperties,
 } from "react";
 import { assessHand } from "../../ai/assessment/assessHand";
+import { recommendedHintAction } from "./recommendedAction";
 import { decideAIAction } from "../../ai/decision/decide";
 import { getPersonality } from "../../ai/personalities/presets";
 import type { PokerPersonality } from "../../ai/types";
@@ -2223,21 +2224,24 @@ function PokerTrainerApp() {
         : roundChips(current),
     );
   }, [game, hero]);
-  const potOdds = toCall > 0 ? toCall / (pot + toCall) : 0;
-  const recommendedAction = !assessment
-    ? "—"
-    : assessment.equityEstimate > 0.62
-      ? game?.currentBet === 0
-        ? actionLabel("bet")
-        : actionLabel("raise")
-      : toCall === 0
-        ? actionLabel("check")
-        : assessment.equityEstimate + 0.04 >= potOdds
-          ? actionLabel("call")
-          : actionLabel("fold");
-  const recommendedSizing = game
-    ? Math.min(maxRaiseTo, Math.max(minRaiseTo, game.currentBet + pot * 0.66))
-    : 0;
+  const hintAction =
+    assessment && game
+      ? recommendedHintAction({
+          equity: assessment.equityEstimate,
+          currentBet: game.currentBet,
+          toCall,
+          pot,
+          legal,
+        })
+      : null;
+  const recommendedAction = hintAction ? actionLabel(hintAction) : "—";
+  const sizedActionLegal = Boolean(
+    legal && (game?.currentBet === 0 ? legal.bet.legal : legal.raise.legal),
+  );
+  const recommendedSizing =
+    game && sizedActionLegal
+      ? Math.min(maxRaiseTo, Math.max(minRaiseTo, game.currentBet + pot * 0.66))
+      : null;
   const quickSizes = !game
     ? []
     : game.street === "preflop"
@@ -2692,7 +2696,9 @@ function PokerTrainerApp() {
                 {!game.settled && data.settings.showRecommendedSizing && (
                   <span>
                     <small>{t("参考尺度")}</small>
-                    {formatChips(recommendedSizing)} BB
+                    {recommendedSizing === null
+                      ? "—"
+                      : `${formatChips(recommendedSizing)} BB`}
                   </span>
                 )}
                 {!game.settled &&

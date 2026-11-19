@@ -20,7 +20,15 @@ export interface PotStructure {
   uncalledReturns: Record<string, number>;
 }
 
-export function calculatePotStructure(
+function sameEligible(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) return false;
+  const ids = new Set(left);
+  return right.every((id) => ids.has(id));
+}
+
+// Schema 2 hands settled before equivalent layers were coalesced store this
+// decomposition. Validation still recognizes it; live settlement does not.
+export function calculateLegacyPotStructure(
   contributions: PotContribution[],
 ): PotStructure {
   if (contributions.some((entry) => !isChipAmount(entry.amount))) {
@@ -75,6 +83,39 @@ export function calculatePotStructure(
   });
 
   return { pots, uncalledReturns };
+}
+
+// Folded players do not create a new contestable pot. Layers that still have
+// the same eligible set are one pot, so odd chips are awarded once.
+export function calculatePotStructure(
+  contributions: PotContribution[],
+): PotStructure {
+  const layered = calculateLegacyPotStructure(contributions);
+  const pots: SidePot[] = [];
+  for (const pot of layered.pots) {
+    const previous = pots.at(-1);
+    if (
+      previous &&
+      sameEligible(previous.eligiblePlayerIds, pot.eligiblePlayerIds)
+    ) {
+      previous.amount = normalizeChips(previous.amount + pot.amount);
+      // Keep the opening cap. Contributors stay the players who covered it,
+      // including folded players whose chips are in this pot.
+      continue;
+    }
+    pots.push({
+      ...pot,
+      contributors: [...pot.contributors],
+      eligiblePlayerIds: [...pot.eligiblePlayerIds],
+    });
+  }
+  return {
+    pots: pots.map((pot, index) => ({
+      ...pot,
+      id: index === 0 ? "main" : `side-${index}`,
+    })),
+    uncalledReturns: layered.uncalledReturns,
+  };
 }
 
 export function calculateSidePots(contributions: PotContribution[]): SidePot[] {

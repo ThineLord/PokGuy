@@ -4,7 +4,12 @@ import { decideAIAction } from "@/src/ai/decision/decide";
 import { estimateEquity, simulationDeck } from "@/src/ai/equity/monteCarlo";
 import { getPersonality, PERSONALITIES } from "@/src/ai/personalities/presets";
 import type { AIObservation } from "@/src/ai/types";
-import { cardId, parseCards } from "@/src/engine/cards/cards";
+import {
+  legalActionsFor,
+  validateAction,
+} from "@/src/engine/betting/actionValidator";
+import { cardId, parseCards, type Card } from "@/src/engine/cards/cards";
+import { startHand } from "@/src/engine/state/gameState";
 
 function observation(): AIObservation {
   return {
@@ -43,6 +48,68 @@ describe("AI personalities", () => {
     const first = decideAIAction(observation(), getPersonality("tag"), 77);
     const second = decideAIAction(observation(), getPersonality("tag"), 77);
     expect(second).toEqual(first);
+  });
+
+  it("stays inside the legal actions when the opponent is already all-in", () => {
+    const game = startHand({
+      players: [
+        { id: "hero", name: "Hero", seat: 0, stack: 100, kind: "human" },
+        { id: "villain", name: "Villain", seat: 1, stack: 0.75, kind: "ai" },
+      ],
+      dealerSeat: 0,
+      smallBlind: 0.5,
+      bigBlind: 1,
+      seed: 11,
+    });
+    const actor = game.players.find((player) => player.id === "hero");
+    const villain = game.players.find((player) => player.id === "villain");
+    if (!actor || !villain) throw new Error("missing players");
+    const legal = legalActionsFor(game, actor.id);
+    const legalActions = Object.entries(legal)
+      .filter(([, result]) => result.legal)
+      .map(([action]) => action);
+    const observation: AIObservation = {
+      heroHoleCards: actor.holeCards as AIObservation["heroHoleCards"],
+      board: game.board,
+      street: game.street,
+      pot: game.players.reduce(
+        (sum, player) => sum + player.totalContribution,
+        0,
+      ),
+      toCall: legal.call.toCall,
+      minRaiseTo: legal.raise.minRaiseTo,
+      maxRaiseTo: legal.raise.maxRaiseTo,
+      currentBet: game.currentBet,
+      heroStreetContribution: actor.streetContribution,
+      heroStack: actor.stack,
+      effectiveStack: Math.min(actor.stack, villain.stack),
+      position: 0.2,
+      opponents: 1,
+      allInOpponents: 1,
+      legalActions: legalActions as AIObservation["legalActions"],
+      wasPreflopAggressor: false,
+    };
+    const containsCard = (value: unknown, id: string): boolean => {
+      if (!value || typeof value !== "object") return false;
+      if ("rank" in value && "suit" in value && cardId(value as Card) === id)
+        return true;
+      return Object.values(value).some((inner) => containsCard(inner, id));
+    };
+    for (const card of villain.holeCards) {
+      expect(containsCard(observation, cardId(card))).toBe(false);
+    }
+    for (const profile of PERSONALITIES) {
+      for (let seed = 1; seed <= 8; seed += 1) {
+        const decision = decideAIAction(observation, profile, seed);
+        expect(legalActions).toContain(decision.action);
+        expect(
+          validateAction(game, actor.id, {
+            type: decision.action,
+            amount: decision.amount,
+          }).legal,
+        ).toBe(true);
+      }
+    }
   });
 
   it("ignores any extraneous hidden opponent cards", () => {

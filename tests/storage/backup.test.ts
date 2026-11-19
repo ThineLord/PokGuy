@@ -7,8 +7,10 @@ import {
 import {
   appendCompletedHand,
   defaultData,
+  loadDataWithRecovery,
   STORAGE_KEY,
 } from "@/src/storage/storage";
+import { legalActionsFor } from "@/src/engine/betting/actionValidator";
 import { act, startHand } from "@/src/engine/state/gameState";
 const prefs = { locale: "en", theme: "dark" } as const;
 function sample() {
@@ -34,6 +36,73 @@ function sample() {
   ];
   return data;
 }
+
+function reverseKeys(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(reverseKeys);
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .reverse()
+        .map(([key, inner]) => [key, reverseKeys(inner)]),
+    );
+  }
+  return value;
+}
+
+function keptHands(data: ReturnType<typeof sample>) {
+  const loaded = loadDataWithRecovery({
+    getItem: (key: string) =>
+      key === STORAGE_KEY ? JSON.stringify(data) : null,
+  });
+  const parsed = parseBackup(
+    JSON.stringify(createBackup(data, prefs)),
+    defaultData(),
+    prefs,
+  );
+  expect(parsed.backup.preferences).toEqual(prefs);
+  expect(loaded.data.recentHands).toEqual(parsed.backup.data.recentHands);
+  return loaded.data.recentHands;
+}
+
+function playedHand(
+  handId: string,
+  stacks: number[],
+  seed: number,
+  script: "check-down" | "all-in",
+) {
+  let game = startHand({
+    players: stacks.map((stack, seat) => ({
+      id: seat === 0 ? "hero" : `ai-${seat}`,
+      name: seat === 0 ? "Hero" : `AI ${seat}`,
+      seat,
+      stack,
+      kind: (seat === 0 ? "human" : "ai") as "human" | "ai",
+    })),
+    dealerSeat: 0,
+    smallBlind: 0.5,
+    bigBlind: 1,
+    seed,
+    handId,
+  });
+  if (script === "all-in") {
+    game = act(game, "hero", { type: "all-in" });
+    while (!game.settled) {
+      const id = game.actingPlayerId!;
+      const legal = legalActionsFor(game, id);
+      game = act(game, id, { type: legal.call.legal ? "call" : "fold" });
+    }
+  } else {
+    while (!game.settled) {
+      const id = game.actingPlayerId!;
+      const legal = legalActionsFor(game, id);
+      game = act(game, id, {
+        type: legal.check.legal ? "check" : legal.call.legal ? "call" : "fold",
+      });
+    }
+  }
+  return appendCompletedHand(defaultData(), game, "hero", {});
+}
+
 it("round trips every persisted field and preferences without depending on key order", () => {
   const data = sample();
   const backup = createBackup(data, prefs);
@@ -44,6 +113,18 @@ it("round trips every persisted field and preferences without depending on key o
   expect(
     parseBackup(JSON.stringify(reordered), defaultData(), prefs).backup,
   ).toEqual(backup);
+
+  const nested = sample();
+  const pots = nested.recentHands[0].game.outcome?.pots;
+  if (!pots) throw new Error("fixture must be complete");
+  nested.recentHands[0].game.outcome!.pots = pots.map((pot) => ({
+    eligiblePlayerIds: pot.eligiblePlayerIds,
+    contributors: pot.contributors,
+    cap: pot.cap,
+    amount: pot.amount,
+    id: pot.id,
+  }));
+  expect(keptHands(nested)).toEqual(nested.recentHands);
 });
 it("rejects future formats, invalid records, and legacy hand exports without mutating current data", () => {
   const data = sample();
@@ -194,4 +275,32 @@ it("rejects a damaged modern scope marker without overwriting legacy totals", ()
       prefs,
     ),
   ).toThrow("backup-invalid-scope");
+});
+
+it("keeps fold, showdown, and unequal all-in hands after reversing object keys", () => {
+  const showdown = playedHand("hand-river-showdown", [10, 10], 4, "check-down");
+  const allIn = playedHand("hand-unequal-allin", [10, 4, 10], 8, "all-in");
+  expect(showdown.recentHands[0].game.outcome?.reason).toBe("showdown");
+  expect(allIn.recentHands[0].game.outcome?.pots.length).toBeGreaterThan(1);
+  for (const data of [sample(), showdown, allIn]) {
+    expect(
+      keptHands(reverseKeys(data) as typeof data).map((hand) => hand.id),
+    ).toEqual(data.recentHands.map((hand) => hand.id));
+  }
+});
+
+it("accepts a showdown award pot whose keys were reordered on their own", () => {
+  const data = playedHand("hand-award-order", [10, 10], 6, "check-down");
+  const awards = data.recentHands[0].game.outcome?.showdown?.awards;
+  if (!awards?.length) throw new Error("showdown fixture must award a pot");
+  for (const award of awards) {
+    award.pot = {
+      eligiblePlayerIds: award.pot.eligiblePlayerIds,
+      contributors: award.pot.contributors,
+      cap: award.pot.cap,
+      amount: award.pot.amount,
+      id: award.pot.id,
+    };
+  }
+  expect(keptHands(data).map((hand) => hand.id)).toEqual(["hand-award-order"]);
 });

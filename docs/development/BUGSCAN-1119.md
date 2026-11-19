@@ -1,0 +1,16 @@
+# POKGUY-BUGSCAN-1119
+
+Scan of `df6246de63d6c3279a62c85a4e9c1cbbf4433e43`. Only independently reproduced defects were fixed. Storage key `riverlab-poker-v2` and schema 2 are unchanged.
+
+## Scope
+
+| Area                         | Result                                                                                                                                                                                                                                                               |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Chip settlement and showdown | Reproduced. Folded-only contribution levels were separate pots, so a tied 0.24 pot paid 0.13 and 0.11. Equivalent eligible layers are now one pot. Unequal all-in caps, folded-player exclusion, uncalled returns, and distinct side pots stay separate.             |
+| Saved history and backup     | Reproduced. Reordering nested pot keys made `JSON.stringify` reject a valid hand. Comparison is now order-independent. Hands settled by the old layer split still load with their original payouts; a validator does not recompute those payouts with the new split. |
+| AI legal actions             | Covered. On a heads-up hand where the opponent is all-in, every preset stays inside `legalActionsFor` and `validateAction`. No product defect.                                                                                                                       |
+| Hidden-card isolation        | Covered. The decision observation is built from the actor's own hole cards, the board, and public numbers. Opponent hole cards are not part of that object, and the table keeps AI cards face down until showdown. No product defect.                                |
+| Primary table UI             | Reproduced. `recommendedAction` suggested raise whenever equity was above 0.62, including when the engine forbade a raise. The hint now requires a legal action. Action buttons were already disabled from `legalActionsFor`.                                        |
+| Dependency audit             | `react-server-dom-webpack` 19.2.8 is GHSA-xqc2-xf4c-x3h3. React, React DOM, and that package move together to 19.2.9 because 19.2.9 peers require `react` and `react-dom` `^19.2.9`. vinext 1.0.1 already accepts `^19.2.6`.                                         |
+
+Not in this pass: tournament structures, solver equity, physical iOS, and anything outside local synthetic hands. The active cash hand is still not part of a backup; that is the existing storage contract.
