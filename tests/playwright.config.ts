@@ -18,6 +18,8 @@ export default defineConfig({
     cwd: projectRoot,
     command: "npm run dev",
     url: "http://localhost:3000",
+    // scripts/stop-owned-vinext-dev.mjs clears this checkout's vinext dev
+    // server between suites. Each suite still starts its own server.
     reuseExistingServer: false,
     timeout: 120_000,
   },

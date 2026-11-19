@@ -86,23 +86,57 @@ jobs:
       - name: Require preinstalled Chromium and WebKit
         run: node --input-type=module -e 'import { chromium, webkit } from "@playwright/test"; import { existsSync } from "node:fs"; for (const [name, browserType] of [["chromium", chromium], ["webkit", webkit]]) { const executable = browserType.executablePath(); console.log(name, executable); if (!existsSync(executable)) { console.error("missing preinstalled " + name + " at " + executable); process.exit(1); } }'
 
+      # Playwright kills its webServer process group on teardown. The vinext
+      # dev pid in .vinext/dev/lock.json can still be alive afterwards, and the
+      # next `npm run dev` then exits with "Another vinext dev server is
+      # already running." Stop that pid only when the lock and the process
+      # belong to this checkout. Do not set reuseExistingServer: true, and do
+      # not restore `npx playwright install --with-deps`.
       - name: Run Chromium end-to-end tests
-        run: npm run test:e2e
+        run: |
+          mkdir -p ci-evidence
+          npm run test:e2e 2>&1 | tee ci-evidence/chromium-e2e.log
+
+      - name: Stop owned vinext dev server before WebKit
+        run: node scripts/stop-owned-vinext-dev.mjs
 
       - name: Run WebKit end-to-end tests
-        run: npm run test:e2e:webkit
+        run: |
+          mkdir -p ci-evidence
+          npm run test:e2e:webkit 2>&1 | tee ci-evidence/webkit-e2e.log
+
+      - name: Stop owned vinext dev server before production build
+        run: node scripts/stop-owned-vinext-dev.mjs
 
       - name: Build production Worker
         run: npm run build
 
       - name: Run production Worker Chromium end-to-end tests
-        run: npm run test:e2e:worker
+        run: |
+          mkdir -p ci-evidence
+          npm run test:e2e:worker 2>&1 | tee ci-evidence/worker-e2e.log
+
+      - name: Record browser failure context
+        if: failure()
+        run: |
+          mkdir -p ci-evidence
+          {
+            printf 'run=%s attempt=%s sha=%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$GITHUB_SHA"
+            echo '--- vinext dev lock ---'
+            if [ -f .vinext/dev/lock.json ]; then
+              cat .vinext/dev/lock.json
+            else
+              echo '(none)'
+            fi
+          } > ci-evidence/failure-context.txt
 
       - name: Preserve browser failure evidence
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: browser-failure-${{ github.run_id }}-${{ github.run_attempt }}
-          path: test-results/
-          if-no-files-found: ignore
+          path: |
+            test-results/
+            ci-evidence/
+          if-no-files-found: error
           retention-days: 7
