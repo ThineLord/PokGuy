@@ -2,7 +2,9 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Home from "@/src/app/page";
 import { formatBigBlinds } from "@/src/features/app/blindDisplay";
+import { act, startHand } from "@/src/engine/state/gameState";
 import {
+  appendCompletedHand,
   defaultData,
   DEFAULT_SETTINGS,
   STORAGE_KEY,
@@ -370,5 +372,75 @@ describe("table size selection", () => {
     expect(wager.valueAsNumber).not.toBe(2);
     expect(slider.valueAsNumber).not.toBe(2);
     expect(formatBigBlinds(0.01, 10_000_000)).not.toBe("0");
+  });
+
+  it("shows chip remainders for seats, details, review, and hand profit at a 3-chip blind", async () => {
+    const user = userEvent.setup();
+    let settled = startHand({
+      players: [
+        { id: "hero", name: "Hero", seat: 0, stack: 300, kind: "human" },
+        { id: "ai", name: "Villain", seat: 1, stack: 300.01, kind: "ai" },
+      ],
+      dealerSeat: 0,
+      smallBlind: 1,
+      bigBlind: 3,
+      seed: 4,
+      handId: "hand-bb3-remainder",
+    });
+    settled = act(settled, "hero", { type: "fold" });
+    const data = appendCompletedHand(defaultData(), settled, "hero");
+    data.settings = {
+      ...data.settings,
+      seatCount: 2,
+      smallBlind: 1,
+      bigBlind: 3,
+      autoAi: false,
+      animations: false,
+    };
+    const heroAction = settled.actions.find(
+      (action) => action.playerId === "hero",
+    )!;
+    data.trainingRecords = [
+      {
+        handId: settled.handId,
+        createdAt: "2026-11-19T00:00:02.000Z",
+        grade: "未充分评估",
+        context: {
+          policyVersion: 1,
+          actionIndex: settled.actions.indexOf(heroAction),
+          street: heroAction.street,
+          potBefore: heroAction.potBefore,
+          toCall: 0.01,
+          stackBefore: 300.01,
+          amountCommitted: 0,
+          equityEstimate: null,
+          reason: "unassessed",
+        },
+      },
+    ];
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    HTMLDialogElement.prototype.showModal = function showModal() {
+      this.open = true;
+    };
+    const { container } = render(<Home />);
+    const heroSeat = container.querySelector('.seat[data-seat="0"]')!;
+    expect(heroSeat.querySelector(".seat-meta")).toHaveTextContent("99.667 BB");
+    expect(heroSeat).toHaveAccessibleName(/筹码 99\.667/);
+    await user.click(screen.getByRole("button", { name: "查看座位详情 Hero" }));
+    expect(screen.getByRole("dialog")).toHaveTextContent("99.667 BB");
+    await user.click(screen.getByRole("button", { name: "关闭座位详情" }));
+    await user.click(screen.getByRole("button", { name: /历史与复盘/ }));
+    expect(screen.getByRole("button", { name: /-0\.333 BB/ })).toBeVisible();
+    expect(document.querySelector(".review-panel")).toHaveTextContent(
+      "行动前筹码 100.003 BB",
+    );
+    expect(document.querySelector(".review-panel")).toHaveTextContent(
+      "需跟注 0.003 BB",
+    );
+    await user.click(screen.getByRole("button", { name: /训练桌/ }));
+    await user.click(screen.getByRole("button", { name: "弃牌" }));
+    expect(container.querySelector(".info-strip")).toHaveTextContent(
+      /-0\.333 BB/,
+    );
   });
 });

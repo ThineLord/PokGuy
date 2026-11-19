@@ -14,6 +14,7 @@ import {
   bigBlindStep,
   chipsToBigBlinds,
   formatBigBlinds,
+  formatRecordedHandProfit,
   reasonWithBlindUnits,
 } from "./blindDisplay";
 import { recommendedHintAction } from "./recommendedAction";
@@ -465,7 +466,7 @@ function PokerTable({
           <h2 id="seat-detail-title">{displayName(detailPlayer)}</h2>
           <dl>
             <dt>{t("筹码")}</dt>
-            <dd>{formatChips(detailPlayer.stack / game.bigBlind)} BB</dd>
+            <dd>{formatBigBlinds(detailPlayer.stack, game.bigBlind)} BB</dd>
             <dt>{t("位置")}</dt>
             <dd>{detailPlayer.positionLabel}</dd>
             <dt>{t("状态")}</dt>
@@ -583,8 +584,8 @@ function PokerTable({
             className={`${seatClass} ${active ? "is-acting" : ""} ${isLastActor ? "is-last-actor" : ""} ${actionClass} ${player.status === "folded" ? "is-folded" : ""}`}
             aria-label={
               locale === "zh-CN"
-                ? `${playerName}，${t("筹码")} ${formatChips(player.stack / game.bigBlind)}`
-                : `${playerName}, ${t("筹码")} ${formatChips(player.stack / game.bigBlind)}`
+                ? `${playerName}，${t("筹码")} ${formatBigBlinds(player.stack, game.bigBlind)}`
+                : `${playerName}, ${t("筹码")} ${formatBigBlinds(player.stack, game.bigBlind)}`
             }
             data-acting-label={t("当前行动")}
             data-deal-order={dealOrderByPlayer.get(player.id)}
@@ -668,7 +669,7 @@ function PokerTable({
               })}
             </div>
             <div className="seat-meta">
-              <span>{formatChips(player.stack / game.bigBlind)} BB</span>
+              <span>{formatBigBlinds(player.stack, game.bigBlind)} BB</span>
               <span>
                 {lostStackAtSettlement
                   ? t("筹码归零")
@@ -882,7 +883,7 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
         </div>
         <span className={hand.heroProfitBb >= 0 ? "positive" : "negative"}>
           {hand.heroProfitBb >= 0 ? "+" : ""}
-          {formatChips(hand.heroProfitBb)} BB
+          {formatRecordedHandProfit(hand)} BB
         </span>
       </div>
       <div className="replay-board">
@@ -1086,15 +1087,17 @@ function ReviewPanel({
                     <div className="review-context">
                       <span>
                         {t("行动前筹码")}{" "}
-                        {formatChips(
-                          record.context.stackBefore / hand.game.bigBlind,
+                        {formatBigBlinds(
+                          record.context.stackBefore,
+                          hand.game.bigBlind,
                         )}{" "}
                         BB
                       </span>
                       <span>
                         {t("需跟注")}{" "}
-                        {formatChips(
-                          record.context.toCall / hand.game.bigBlind,
+                        {formatBigBlinds(
+                          record.context.toCall,
+                          hand.game.bigBlind,
                         )}{" "}
                         BB
                       </span>
@@ -1197,7 +1200,7 @@ function HistoryView({
                   className={item.heroProfitBb >= 0 ? "positive" : "negative"}
                 >
                   {item.heroProfitBb >= 0 ? "+" : ""}
-                  {formatChips(item.heroProfitBb)} BB
+                  {formatRecordedHandProfit(item)} BB
                 </strong>
               </button>
             );
@@ -2679,9 +2682,9 @@ function PokerTrainerApp() {
                       {(hero?.stack ?? 0) - (hero?.startingStack ?? 0) >= 0
                         ? "+"
                         : ""}
-                      {formatChips(
-                        ((hero?.stack ?? 0) - (hero?.startingStack ?? 0)) /
-                          game.bigBlind,
+                      {formatBigBlinds(
+                        (hero?.stack ?? 0) - (hero?.startingStack ?? 0),
+                        game.bigBlind,
                       )}{" "}
                       BB
                     </span>

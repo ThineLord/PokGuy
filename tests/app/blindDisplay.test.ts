@@ -3,6 +3,7 @@ import {
   bigBlindStep,
   chipsToBigBlinds,
   formatBigBlinds,
+  formatRecordedHandProfit,
   reasonWithBlindUnits,
 } from "@/src/features/app/blindDisplay";
 
@@ -56,5 +57,40 @@ describe("big blind display", () => {
     }
     expect(formatBigBlinds(1.5, 1)).toBe("1.5");
     expect(formatBigBlinds(3, 2)).toBe("1.5");
+    expect(formatBigBlinds(98.5, 1)).toBe("98.5");
+    expect(formatBigBlinds(-1.5, 1)).toBe("-1.5");
+  });
+
+  it("keeps a 0.01 chip remainder visible at a 3-chip blind, including a loss", () => {
+    expect(Number((100 / 3).toFixed(2))).toBe(Number((99.99 / 3).toFixed(2)));
+    expect(formatBigBlinds(100, 3)).toBe("33.333");
+    expect(formatBigBlinds(99.99, 3)).toBe("33.33");
+    expect(formatBigBlinds(100.01, 3)).toBe("33.337");
+    expect(formatBigBlinds(0.01, 3)).toBe("0.003");
+    expect(formatBigBlinds(-0.01, 3)).toBe("-0.003");
+    expect(formatBigBlinds(-1, 3)).toBe("-0.333");
+    expect(
+      formatRecordedHandProfit({
+        heroProfitBb: -1 / 3,
+        game: {
+          bigBlind: 3,
+          players: [
+            { kind: "human", stack: 299, startingStack: 300 },
+            { kind: "ai", stack: 301.01, startingStack: 300.01 },
+          ],
+        },
+      }),
+    ).toBe("-0.333");
+    expect(
+      formatRecordedHandProfit({
+        heroProfitBb: -1 / 3,
+        game: { bigBlind: 3 },
+      }),
+    ).toBe("-0.333");
+    expect(
+      formatRecordedHandProfit({
+        heroProfitBb: 1.5,
+      }),
+    ).toBe("1.5");
   });
 });

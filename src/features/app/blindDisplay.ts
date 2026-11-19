@@ -57,3 +57,39 @@ export function reasonWithBlindUnits(reason: string, bigBlind: number) {
   }
   return reason;
 }
+
+export function formatRecordedHandProfit(hand: {
+  heroProfitBb: number;
+  game?: {
+    bigBlind?: number;
+    players?: Array<{
+      kind?: string;
+      stack?: number;
+      startingStack?: number;
+    }>;
+  };
+}) {
+  const blind = hand.game?.bigBlind;
+  const hero = hand.game?.players?.find((player) => player.kind === "human");
+  if (
+    typeof blind === "number" &&
+    blind > 0 &&
+    hero &&
+    typeof hero.stack === "number" &&
+    typeof hero.startingStack === "number" &&
+    Number.isFinite(hero.stack) &&
+    Number.isFinite(hero.startingStack)
+  ) {
+    return formatBigBlinds(hero.stack - hero.startingStack, blind);
+  }
+  if (
+    typeof blind === "number" &&
+    blind > 0 &&
+    Number.isFinite(hand.heroProfitBb)
+  ) {
+    return formatBigBlinds(hand.heroProfitBb * blind, blind);
+  }
+  return Number.isFinite(hand.heroProfitBb)
+    ? Number(hand.heroProfitBb.toFixed(2)).toString()
+    : "0";
+}

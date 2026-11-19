@@ -14,3 +14,5 @@ Scan of `df6246de63d6c3279a62c85a4e9c1cbbf4433e43`. Only independently reproduce
 | Dependency audit             | `react-server-dom-webpack` 19.2.8 is GHSA-xqc2-xf4c-x3h3. React, React DOM, and that package move together to 19.2.9 because 19.2.9 peers require `react` and `react-dom` `^19.2.9`. vinext 1.0.1 already accepts `^19.2.6`.                                                                                                                                                                                                                             |
 
 Not in this pass: tournament structures, solver equity, physical iOS, and anything outside local synthetic hands. The active cash hand is still not part of a backup; that is the existing storage contract.
+
+Seat stacks, accessible names, seat details, review context, and single-hand profit use that hand's chip amounts and its own big blind, so a 0.01 chip remainder stays visible at a 3-chip blind. Saved `heroProfitBb` values stay in storage.
