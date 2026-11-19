@@ -18,10 +18,12 @@ export default defineConfig({
     cwd: projectRoot,
     command: "npm run dev",
     url: "http://localhost:3000",
-    // scripts/stop-owned-vinext-dev.mjs clears this checkout's vinext dev
-    // server between suites. Each suite still starts its own server.
     reuseExistingServer: false,
     timeout: 120_000,
+    // vinext 1.0.1 keeps .vinext/dev/lock.json until this process exits, and
+    // treats the recorded pid as live for as long as it exists. SIGTERM lets
+    // that process release the lock before the next suite starts npm run dev.
+    gracefulShutdown: { signal: "SIGTERM", timeout: 5_000 },
   },
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },

@@ -14,7 +14,6 @@
 /coverage
 /playwright-report/
 /test-results/
-/ci-evidence/
 /.playwright-cli/
 /output/
 

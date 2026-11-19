@@ -52,17 +52,20 @@ jobs:
   # playwright-core. GitHub-hosted ubuntu-24.04 runners are linux/amd64, so
   # this is the platform manifest rather than the multi-arch index
   # sha256:5b8f294aff9041b7191c34a4bab3ac270157a28774d4b0660e9743297b697e48.
-  # The image's /usr/bin/node is v24.17.0, which satisfies engines.node
-  # >=22.13.0. wrangler 4.114.0, miniflare, and vinext accept >=22. The
-  # Quality job above stays on Node 22 and ubuntu-24.04.
-  # timeout-minutes includes a cold image pull plus the suites; it is not a
-  # retry of the removed apt install.
+  #
+  # The image's /usr/bin/node is v24.17.0. Suites use the same setup-node
+  # 22.x path as the Quality job above. `options: --init` makes Docker init
+  # PID 1 so it reaps orphaned children; vinext's dev lock only checks
+  # whether that recorded pid is still alive. timeout-minutes includes a
+  # cold image pull plus the suites; it is not a retry of the removed apt
+  # install.
   chromium-e2e:
     name: Browser E2E gate
     needs: check
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     container:
+      options: --init
       image: mcr.microsoft.com/playwright@sha256:cf0daee9b994042e011bc29f20cdff1a9f682a039b43fcd738f7d8a9d3bcd9d6
     env:
       PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
@@ -74,69 +77,45 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Show image Node and preinstalled browsers
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.x
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Require Node.js 22
         run: |
           node -v
-          node -e 'const [major, minor] = process.versions.node.split(".").map(Number); if (major < 22 || (major === 22 && minor < 13)) { console.error("image Node " + process.versions.node + " does not satisfy >=22.13.0"); process.exit(1); }'
-          find "${PLAYWRIGHT_BROWSERS_PATH}" -mindepth 1 -maxdepth 1 -printf '%f\n' | sort
+          node -e 'const version = process.versions.node; if (!/^22\./.test(version)) { console.error("expected Node.js 22.x from setup-node, got v" + version); process.exit(1); }'
 
       - name: Install dependencies
         run: npm ci
 
       - name: Require preinstalled Chromium and WebKit
-        run: node --input-type=module -e 'import { chromium, webkit } from "@playwright/test"; import { existsSync } from "node:fs"; for (const [name, browserType] of [["chromium", chromium], ["webkit", webkit]]) { const executable = browserType.executablePath(); console.log(name, executable); if (!existsSync(executable)) { console.error("missing preinstalled " + name + " at " + executable); process.exit(1); } }'
-
-      # Playwright kills its webServer process group on teardown. The vinext
-      # dev pid in .vinext/dev/lock.json can still be alive afterwards, and the
-      # next `npm run dev` then exits with "Another vinext dev server is
-      # already running." Stop that pid only when the lock and the process
-      # belong to this checkout. Do not set reuseExistingServer: true, and do
-      # not restore `npx playwright install --with-deps`.
-      - name: Run Chromium end-to-end tests
         run: |
-          mkdir -p ci-evidence
-          npm run test:e2e 2>&1 | tee ci-evidence/chromium-e2e.log
+          find "${PLAYWRIGHT_BROWSERS_PATH}" -mindepth 1 -maxdepth 1 -printf '%f\n'
+          node --input-type=module -e 'import { chromium, webkit } from "@playwright/test"; import { existsSync } from "node:fs"; for (const [name, browserType] of [["chromium", chromium], ["webkit", webkit]]) { const executable = browserType.executablePath(); console.log(name, executable); if (!existsSync(executable)) { console.error("missing preinstalled " + name + " at " + executable); process.exit(1); } }'
 
-      - name: Stop owned vinext dev server before WebKit
-        run: node scripts/stop-owned-vinext-dev.mjs
+      # The job shell is sh and does not enable pipefail. A `| tee` would
+      # report success when the npm command failed.
+      - name: Run Chromium end-to-end tests
+        run: npm run test:e2e
 
       - name: Run WebKit end-to-end tests
-        run: |
-          mkdir -p ci-evidence
-          npm run test:e2e:webkit 2>&1 | tee ci-evidence/webkit-e2e.log
-
-      - name: Stop owned vinext dev server before production build
-        run: node scripts/stop-owned-vinext-dev.mjs
+        run: npm run test:e2e:webkit
 
       - name: Build production Worker
         run: npm run build
 
       - name: Run production Worker Chromium end-to-end tests
-        run: |
-          mkdir -p ci-evidence
-          npm run test:e2e:worker 2>&1 | tee ci-evidence/worker-e2e.log
-
-      - name: Record browser failure context
-        if: failure()
-        run: |
-          mkdir -p ci-evidence
-          {
-            printf 'run=%s attempt=%s sha=%s\n' "$GITHUB_RUN_ID" "$GITHUB_RUN_ATTEMPT" "$GITHUB_SHA"
-            echo '--- vinext dev lock ---'
-            if [ -f .vinext/dev/lock.json ]; then
-              cat .vinext/dev/lock.json
-            else
-              echo '(none)'
-            fi
-          } > ci-evidence/failure-context.txt
+        run: npm run test:e2e:worker
 
       - name: Preserve browser failure evidence
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: browser-failure-${{ github.run_id }}-${{ github.run_attempt }}
-          path: |
-            test-results/
-            ci-evidence/
-          if-no-files-found: error
+          path: test-results/
+          if-no-files-found: ignore
           retention-days: 7
