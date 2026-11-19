@@ -4,13 +4,16 @@ Application releases use `vMAJOR.MINOR.PATCH`. Browser storage schemas are versi
 
 ## Unreleased
 
+## [0.3.2] — 2026-11-19
+
 - Optional action hints recommend only a legal action. When an opponent is already all-in and a further raise is forbidden, a strong hand suggests a call; a strong hand that can still raise or bet still suggests that action. Reference sizing is omitted when a bet or raise is not legal.
-- Table amounts labeled in big blinds stay in big blinds when the big blind is not one chip. Pot, bets, calls, showdown awards, and the sizing control use the same unit as the seat stacks. The sizing control still submits the chip amount to the engine. Illegal-amount messages use that same unit, and the field keeps a one-chip step when the blind does not divide evenly.
+- Table amounts labeled in big blinds stay in big blinds when the big blind is not one chip. Pot, bets, calls, showdown awards, and the sizing control use the same unit as the seat stacks. The sizing control still submits the chip amount to the engine. Illegal-amount messages use that same unit, and the field keeps a 0.01 chip step when the blind does not divide evenly.
 - Seat stacks, review context, and single-hand profit keep a 0.01 chip remainder visible when the big blind is 3. Those labels use that hand's chips and its own big blind. Saved profit summaries stay in storage.
 - Folded players' different contribution levels no longer create extra pots with the same eligible set. Tied live players split the one contestable pot, so odd chips are awarded once. Hands already settled under the previous layer split keep their original payouts in schema 2 history and backups.
 - Saved hands and backups stay valid when JSON object keys are reordered, including nested pot objects. Changing pot amounts, eligibility, shares, or payouts is still rejected.
-- Patch React, React DOM, and `react-server-dom-webpack` from 19.2.8 to 19.2.9 for GHSA-xqc2-xf4c-x3h3. Application version, `riverlab-poker-v2`, and storage schema 2 are unchanged.
-- [Bug scan record](docs/development/BUGSCAN-1119.md).
+- Patch React, React DOM, and `react-server-dom-webpack` from 19.2.8 to 19.2.9 for GHSA-xqc2-xf4c-x3h3.
+- The quality job name is `Node 22 quality gate`. Pull request [#17](https://github.com/ThineLord/PokGuy/pull/17) renamed the browser job from `Node 22 Chromium E2E gate` to `Browser E2E gate` (job id `chromium-e2e`). The quality job stays on Node 22. The browser job runs directly on the pinned official Playwright image. `actions/setup-node` 22.x runs in that container, so the suites do not use the image Node 24. Suite commands are direct npm commands with no `| tee`. The container uses `options: --init`. Playwright shuts the development server down with `webServer.gracefulShutdown`. Failure uploads keep the original `test-results/` path, with `if-no-files-found: ignore` and 7-day retention.
+- [English release notes](docs/releases/0.3.2.md) · [中文更新说明](docs/releases/0.3.2.zh-CN.md).
 
 ## [0.3.1] — 2026-11-09
 
@@ -56,3 +59,4 @@ The [historical changelog](https://github.com/ThineLord/PokGuy/blob/v0.3.0/docs/
 [0.2.0]: https://github.com/ThineLord/PokGuy/releases/tag/v0.2.0
 [0.3.0]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.0
 [0.3.1]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.1
+[0.3.2]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.2
