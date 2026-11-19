@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Home from "@/src/app/page";
+import { formatBigBlinds } from "@/src/features/app/blindDisplay";
 import {
   defaultData,
   DEFAULT_SETTINGS,
@@ -276,5 +277,98 @@ describe("table size selection", () => {
     expect(
       container.querySelector('.seat[data-seat="0"] .seat-bet'),
     ).toHaveTextContent("投入 3");
+  });
+
+  it("reports an undersized raise in big blinds, not raw chips", () => {
+    const data = defaultData();
+    data.settings = {
+      ...data.settings,
+      seatCount: 2,
+      smallBlind: 1,
+      bigBlind: 2,
+      autoAi: false,
+      animations: false,
+    };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    render(<Home />);
+    const wager = screen.getByLabelText("下注总额");
+    fireEvent.change(wager, { target: { value: "1.5" } });
+    expect(wager).toHaveValue(1.5);
+    const error = document.querySelector(".sizing-error");
+    expect(error).toHaveTextContent("最小合法加注总额为 2 BB");
+    expect(error).toHaveTextContent("最近合法值 2 BB");
+    expect(error).not.toHaveTextContent("总额为 4");
+    expect(error?.textContent).not.toMatch(/最近合法值(?:为)?\s*4/);
+  });
+
+  it("shows the legal minimum in big blinds when the blind is not an integer", () => {
+    const data = defaultData();
+    data.settings = {
+      ...data.settings,
+      seatCount: 2,
+      smallBlind: 0.5,
+      bigBlind: 1.5,
+      autoAi: false,
+      animations: false,
+    };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const { container } = render(<Home />);
+    expect(container.querySelector(".info-strip")).toHaveTextContent(
+      /最小加注到\s*2 BB/,
+    );
+    const wager = screen.getByLabelText("下注总额");
+    fireEvent.change(wager, { target: { value: "1.5" } });
+    expect(wager).toHaveValue(1.5);
+    expect(document.querySelector(".sizing-error")).toHaveTextContent(
+      "最小合法加注总额为 2 BB",
+    );
+  });
+
+  it("keeps a 6.01 chip bet on the native step and advances it by one chip", () => {
+    const data = defaultData();
+    data.settings = {
+      ...data.settings,
+      seatCount: 2,
+      smallBlind: 1,
+      bigBlind: 3,
+      autoAi: false,
+      animations: false,
+    };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    render(<Home />);
+    const wager = screen.getByLabelText("下注总额") as HTMLInputElement;
+    const slider = screen.getByLabelText("下注滑杆") as HTMLInputElement;
+    fireEvent.change(wager, { target: { value: String(6.01 / 3) } });
+    expect(wager.value).not.toBe("2.003");
+    expect(Number((wager.valueAsNumber * 3).toFixed(2))).toBe(6.01);
+    expect(slider.valueAsNumber).toBeCloseTo(6.01 / 3, 10);
+    wager.stepUp();
+    fireEvent.input(wager);
+    expect(Number((wager.valueAsNumber * 3).toFixed(2))).toBe(6.02);
+    expect(slider.valueAsNumber).toBeCloseTo(6.02 / 3, 10);
+    expect(slider.valueAsNumber).not.toBeCloseTo(6.01 / 3, 10);
+  });
+
+  it("does not give two legal chip totals the same sizing value at a 10,000,000 blind", () => {
+    const data = defaultData();
+    data.settings = {
+      ...data.settings,
+      seatCount: 2,
+      smallBlind: 5_000_000,
+      bigBlind: 10_000_000,
+      autoAi: false,
+      animations: false,
+    };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    render(<Home />);
+    const wager = screen.getByLabelText("下注总额") as HTMLInputElement;
+    const slider = screen.getByLabelText("下注滑杆") as HTMLInputElement;
+    fireEvent.change(wager, { target: { value: "2.000000001" } });
+    expect(Number((wager.valueAsNumber * 10_000_000).toFixed(2))).toBe(
+      20_000_000.01,
+    );
+    expect(wager.valueAsNumber).not.toBe(2);
+    expect(slider.valueAsNumber).not.toBe(2);
+    expect(formatBigBlinds(0.01, 10_000_000)).not.toBe("0");
   });
 });

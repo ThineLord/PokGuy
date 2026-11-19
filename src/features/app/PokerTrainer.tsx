@@ -10,6 +10,12 @@ import {
   type CSSProperties,
 } from "react";
 import { assessHand } from "../../ai/assessment/assessHand";
+import {
+  bigBlindStep,
+  chipsToBigBlinds,
+  formatBigBlinds,
+  reasonWithBlindUnits,
+} from "./blindDisplay";
 import { recommendedHintAction } from "./recommendedAction";
 import { decideAIAction } from "../../ai/decision/decide";
 import { getPersonality } from "../../ai/personalities/presets";
@@ -128,20 +134,6 @@ function CardView({
 
 function formatChips(value: number) {
   return Number(value.toFixed(2)).toString();
-}
-
-function chipsToBigBlinds(chips: number, bigBlind: number) {
-  return bigBlind > 0 ? chips / bigBlind : chips;
-}
-
-function formatBigBlinds(chips: number, bigBlind: number) {
-  const blinds = chipsToBigBlinds(chips, bigBlind);
-  const step = bigBlind > 0 ? 0.01 / bigBlind : 0.01;
-  const decimals = Math.min(
-    8,
-    Math.max(2, Math.ceil(-Math.log10(step) - 1e-9)),
-  );
-  return Number(blinds.toFixed(decimals)).toString();
 }
 
 function roundChips(value: number) {
@@ -2177,7 +2169,7 @@ function PokerTrainerApp() {
     const validation = validateAction(game, HERO_ID, action);
     if (!validation.legal) {
       setError(
-        `${runtimeMessage(validation.reason ?? "")}${
+        `${runtimeMessage(reasonWithBlindUnits(validation.reason ?? "", game.bigBlind))}${
           validation.nearestLegalAmount !== undefined
             ? locale === "zh-CN"
               ? `；${t("最近合法值")}为 ${formatBigBlinds(validation.nearestLegalAmount, game.bigBlind)} BB`
@@ -2208,7 +2200,7 @@ function PokerTrainerApp() {
     } catch (reason) {
       setError(
         reason instanceof Error
-          ? runtimeMessage(reason.message)
+          ? runtimeMessage(reasonWithBlindUnits(reason.message, game.bigBlind))
           : t("动作失败"),
       );
     }
@@ -2881,12 +2873,10 @@ function PokerTrainerApp() {
                         game.bigBlind,
                       )}
                       max={chipsToBigBlinds(maxRaiseTo, game.bigBlind)}
-                      step={chipsToBigBlinds(0.01, game.bigBlind)}
-                      value={Number(
-                        formatBigBlinds(
-                          Math.min(maxRaiseTo, Math.max(0, betAmount)),
-                          game.bigBlind,
-                        ),
+                      step={bigBlindStep(game.bigBlind)}
+                      value={chipsToBigBlinds(
+                        Math.min(maxRaiseTo, Math.max(0, betAmount)),
+                        game.bigBlind,
                       )}
                       onChange={(event) => {
                         const nextAmount = event.currentTarget.valueAsNumber;
@@ -2902,8 +2892,8 @@ function PokerTrainerApp() {
                         game.bigBlind,
                       )}
                       max={chipsToBigBlinds(maxRaiseTo, game.bigBlind)}
-                      step={chipsToBigBlinds(0.01, game.bigBlind)}
-                      value={Number(formatBigBlinds(betAmount, game.bigBlind))}
+                      step={bigBlindStep(game.bigBlind)}
+                      value={chipsToBigBlinds(betAmount, game.bigBlind)}
                       aria-invalid={
                         game.actingPlayerId === HERO_ID &&
                         sizedActionValidation?.legal === false
@@ -2918,7 +2908,12 @@ function PokerTrainerApp() {
                   {game.actingPlayerId === HERO_ID &&
                     sizedActionValidation?.legal === false && (
                       <small className="sizing-error" role="status">
-                        {runtimeMessage(sizedActionValidation.reason ?? "")}
+                        {runtimeMessage(
+                          reasonWithBlindUnits(
+                            sizedActionValidation.reason ?? "",
+                            game.bigBlind,
+                          ),
+                        )}
                         {sizedActionValidation.nearestLegalAmount !== undefined
                           ? locale === "zh-CN"
                             ? `；${t("最近合法值")} ${formatBigBlinds(sizedActionValidation.nearestLegalAmount, game.bigBlind)} BB`
