@@ -1,7 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Home from "@/src/app/page";
+import { formatBigBlinds } from "@/src/features/app/blindDisplay";
+import { act, startHand } from "@/src/engine/state/gameState";
 import {
+  appendCompletedHand,
   defaultData,
   DEFAULT_SETTINGS,
   STORAGE_KEY,
@@ -240,5 +243,204 @@ describe("table size selection", () => {
     expect(
       container.querySelector('.seat[data-seat="0"] .dealer-button'),
     ).toBeInTheDocument();
+  });
+
+  it("labels table amounts in big blinds when one blind is more than one chip", () => {
+    const data = defaultData();
+    data.settings = {
+      ...data.settings,
+      seatCount: 2,
+      smallBlind: 1,
+      bigBlind: 2,
+      autoAi: false,
+      animations: false,
+    };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const { container } = render(<Home />);
+    expect(container.querySelector(".pot-pill strong")).toHaveTextContent(
+      "1.5 BB",
+    );
+    expect(
+      container.querySelector('.seat[data-seat="0"] .seat-meta'),
+    ).toHaveTextContent("99.5 BB");
+    expect(
+      container.querySelector('.seat[data-seat="0"] .seat-bet'),
+    ).toHaveTextContent("投入 0.5");
+    expect(screen.getByRole("button", { name: /^跟注/ })).toHaveTextContent(
+      "0.5",
+    );
+    expect(container.querySelector(".info-strip")).toHaveTextContent(
+      /跟注\s*0\.5 BB/,
+    );
+    const wager = screen.getByLabelText("下注总额");
+    expect(wager).toHaveValue(2.5);
+    fireEvent.change(wager, { target: { value: "3" } });
+    fireEvent.click(screen.getByRole("button", { name: /^加注/ }));
+    expect(
+      container.querySelector('.seat[data-seat="0"] .seat-bet'),
+    ).toHaveTextContent("投入 3");
+  });
+
+  it("reports an undersized raise in big blinds, not raw chips", () => {
+    const data = defaultData();
+    data.settings = {
+      ...data.settings,
+      seatCount: 2,
+      smallBlind: 1,
+      bigBlind: 2,
+      autoAi: false,
+      animations: false,
+    };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    render(<Home />);
+    const wager = screen.getByLabelText("下注总额");
+    fireEvent.change(wager, { target: { value: "1.5" } });
+    expect(wager).toHaveValue(1.5);
+    const error = document.querySelector(".sizing-error");
+    expect(error).toHaveTextContent("最小合法加注总额为 2 BB");
+    expect(error).toHaveTextContent("最近合法值 2 BB");
+    expect(error).not.toHaveTextContent("总额为 4");
+    expect(error?.textContent).not.toMatch(/最近合法值(?:为)?\s*4/);
+  });
+
+  it("shows the legal minimum in big blinds when the blind is not an integer", () => {
+    const data = defaultData();
+    data.settings = {
+      ...data.settings,
+      seatCount: 2,
+      smallBlind: 0.5,
+      bigBlind: 1.5,
+      autoAi: false,
+      animations: false,
+    };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const { container } = render(<Home />);
+    expect(container.querySelector(".info-strip")).toHaveTextContent(
+      /最小加注到\s*2 BB/,
+    );
+    const wager = screen.getByLabelText("下注总额");
+    fireEvent.change(wager, { target: { value: "1.5" } });
+    expect(wager).toHaveValue(1.5);
+    expect(document.querySelector(".sizing-error")).toHaveTextContent(
+      "最小合法加注总额为 2 BB",
+    );
+  });
+
+  it("keeps a 6.01 chip bet on the native step and advances it by one chip", () => {
+    const data = defaultData();
+    data.settings = {
+      ...data.settings,
+      seatCount: 2,
+      smallBlind: 1,
+      bigBlind: 3,
+      autoAi: false,
+      animations: false,
+    };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    render(<Home />);
+    const wager = screen.getByLabelText("下注总额") as HTMLInputElement;
+    const slider = screen.getByLabelText("下注滑杆") as HTMLInputElement;
+    fireEvent.change(wager, { target: { value: String(6.01 / 3) } });
+    expect(wager.value).not.toBe("2.003");
+    expect(Number((wager.valueAsNumber * 3).toFixed(2))).toBe(6.01);
+    expect(slider.valueAsNumber).toBeCloseTo(6.01 / 3, 10);
+    wager.stepUp();
+    fireEvent.input(wager);
+    expect(Number((wager.valueAsNumber * 3).toFixed(2))).toBe(6.02);
+    expect(slider.valueAsNumber).toBeCloseTo(6.02 / 3, 10);
+    expect(slider.valueAsNumber).not.toBeCloseTo(6.01 / 3, 10);
+  });
+
+  it("does not give two legal chip totals the same sizing value at a 10,000,000 blind", () => {
+    const data = defaultData();
+    data.settings = {
+      ...data.settings,
+      seatCount: 2,
+      smallBlind: 5_000_000,
+      bigBlind: 10_000_000,
+      autoAi: false,
+      animations: false,
+    };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    render(<Home />);
+    const wager = screen.getByLabelText("下注总额") as HTMLInputElement;
+    const slider = screen.getByLabelText("下注滑杆") as HTMLInputElement;
+    fireEvent.change(wager, { target: { value: "2.000000001" } });
+    expect(Number((wager.valueAsNumber * 10_000_000).toFixed(2))).toBe(
+      20_000_000.01,
+    );
+    expect(wager.valueAsNumber).not.toBe(2);
+    expect(slider.valueAsNumber).not.toBe(2);
+    expect(formatBigBlinds(0.01, 10_000_000)).not.toBe("0");
+  });
+
+  it("shows chip remainders for seats, details, review, and hand profit at a 3-chip blind", async () => {
+    const user = userEvent.setup();
+    let settled = startHand({
+      players: [
+        { id: "hero", name: "Hero", seat: 0, stack: 300, kind: "human" },
+        { id: "ai", name: "Villain", seat: 1, stack: 300.01, kind: "ai" },
+      ],
+      dealerSeat: 0,
+      smallBlind: 1,
+      bigBlind: 3,
+      seed: 4,
+      handId: "hand-bb3-remainder",
+    });
+    settled = act(settled, "hero", { type: "fold" });
+    const data = appendCompletedHand(defaultData(), settled, "hero");
+    data.settings = {
+      ...data.settings,
+      seatCount: 2,
+      smallBlind: 1,
+      bigBlind: 3,
+      autoAi: false,
+      animations: false,
+    };
+    const heroAction = settled.actions.find(
+      (action) => action.playerId === "hero",
+    )!;
+    data.trainingRecords = [
+      {
+        handId: settled.handId,
+        createdAt: "2026-11-19T00:00:02.000Z",
+        grade: "未充分评估",
+        context: {
+          policyVersion: 1,
+          actionIndex: settled.actions.indexOf(heroAction),
+          street: heroAction.street,
+          potBefore: heroAction.potBefore,
+          toCall: 0.01,
+          stackBefore: 300.01,
+          amountCommitted: 0,
+          equityEstimate: null,
+          reason: "unassessed",
+        },
+      },
+    ];
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    HTMLDialogElement.prototype.showModal = function showModal() {
+      this.open = true;
+    };
+    const { container } = render(<Home />);
+    const heroSeat = container.querySelector('.seat[data-seat="0"]')!;
+    expect(heroSeat.querySelector(".seat-meta")).toHaveTextContent("99.667 BB");
+    expect(heroSeat).toHaveAccessibleName(/筹码 99\.667/);
+    await user.click(screen.getByRole("button", { name: "查看座位详情 Hero" }));
+    expect(screen.getByRole("dialog")).toHaveTextContent("99.667 BB");
+    await user.click(screen.getByRole("button", { name: "关闭座位详情" }));
+    await user.click(screen.getByRole("button", { name: /历史与复盘/ }));
+    expect(screen.getByRole("button", { name: /-0\.333 BB/ })).toBeVisible();
+    expect(document.querySelector(".review-panel")).toHaveTextContent(
+      "行动前筹码 100.003 BB",
+    );
+    expect(document.querySelector(".review-panel")).toHaveTextContent(
+      "需跟注 0.003 BB",
+    );
+    await user.click(screen.getByRole("button", { name: /训练桌/ }));
+    await user.click(screen.getByRole("button", { name: "弃牌" }));
+    expect(container.querySelector(".info-strip")).toHaveTextContent(
+      /-0\.333 BB/,
+    );
   });
 });

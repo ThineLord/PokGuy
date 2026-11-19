@@ -5,9 +5,11 @@ import {
   type HandEvaluation,
 } from "../evaluator/evaluator";
 import {
+  calculateLegacyPotStructure,
   calculatePotStructure,
   splitPot,
   type PotContribution,
+  type PotStructure,
   type SidePot,
 } from "../pots/sidePots";
 import { CHIP_UNIT, normalizeChips } from "../chips/chips";
@@ -29,14 +31,13 @@ export interface ShowdownResult {
   uncalledReturns: Record<string, number>;
 }
 
-export function resolveShowdown(
+function settleShowdown(
   players: ShowdownPlayer[],
   board: Card[],
   dealerSeat: number,
-  chipUnit = CHIP_UNIT,
+  structure: PotStructure,
+  chipUnit: number,
 ): ShowdownResult {
-  if (board.length !== 5)
-    throw new Error("Showdown requires a complete five-card board");
   const seats = Object.fromEntries(
     players.map((player) => [player.playerId, player.seat]),
   );
@@ -48,7 +49,7 @@ export function resolveShowdown(
         evaluateBestHand([...player.holeCards, ...board]),
       ]),
   );
-  const { pots, uncalledReturns } = calculatePotStructure(players);
+  const { pots, uncalledReturns } = structure;
   const payouts: Record<string, number> = Object.fromEntries(
     players.map((player) => [
       player.playerId,
@@ -77,6 +78,40 @@ export function resolveShowdown(
     return { pot, winnerIds: winners, shares };
   });
   return { evaluations, awards, payouts, uncalledReturns };
+}
+
+export function resolveShowdown(
+  players: ShowdownPlayer[],
+  board: Card[],
+  dealerSeat: number,
+  chipUnit = CHIP_UNIT,
+): ShowdownResult {
+  if (board.length !== 5)
+    throw new Error("Showdown requires a complete five-card board");
+  return settleShowdown(
+    players,
+    board,
+    dealerSeat,
+    calculatePotStructure(players),
+    chipUnit,
+  );
+}
+
+export function resolveLegacyShowdown(
+  players: ShowdownPlayer[],
+  board: Card[],
+  dealerSeat: number,
+  chipUnit = CHIP_UNIT,
+): ShowdownResult {
+  if (board.length !== 5)
+    throw new Error("Showdown requires a complete five-card board");
+  return settleShowdown(
+    players,
+    board,
+    dealerSeat,
+    calculateLegacyPotStructure(players),
+    chipUnit,
+  );
 }
 
 export function awardUncontestedPot(

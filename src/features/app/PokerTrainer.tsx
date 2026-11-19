@@ -10,6 +10,14 @@ import {
   type CSSProperties,
 } from "react";
 import { assessHand } from "../../ai/assessment/assessHand";
+import {
+  bigBlindStep,
+  chipsToBigBlinds,
+  formatBigBlinds,
+  formatRecordedHandProfit,
+  reasonWithBlindUnits,
+} from "./blindDisplay";
+import { recommendedHintAction } from "./recommendedAction";
 import { decideAIAction } from "../../ai/decision/decide";
 import { getPersonality } from "../../ai/personalities/presets";
 import type { PokerPersonality } from "../../ai/types";
@@ -458,7 +466,7 @@ function PokerTable({
           <h2 id="seat-detail-title">{displayName(detailPlayer)}</h2>
           <dl>
             <dt>{t("筹码")}</dt>
-            <dd>{formatChips(detailPlayer.stack / game.bigBlind)} BB</dd>
+            <dd>{formatBigBlinds(detailPlayer.stack, game.bigBlind)} BB</dd>
             <dt>{t("位置")}</dt>
             <dd>{detailPlayer.positionLabel}</dd>
             <dt>{t("状态")}</dt>
@@ -511,7 +519,8 @@ function PokerTable({
             <i />
           </span>
           <span>
-            {t("底池")} <strong>{formatChips(tablePot(game))} BB</strong>
+            {t("底池")}{" "}
+            <strong>{formatBigBlinds(tablePot(game), game.bigBlind)} BB</strong>
           </span>
           {sidePotCount > 0 && (
             <small>
@@ -575,8 +584,8 @@ function PokerTable({
             className={`${seatClass} ${active ? "is-acting" : ""} ${isLastActor ? "is-last-actor" : ""} ${actionClass} ${player.status === "folded" ? "is-folded" : ""}`}
             aria-label={
               locale === "zh-CN"
-                ? `${playerName}，${t("筹码")} ${formatChips(player.stack / game.bigBlind)}`
-                : `${playerName}, ${t("筹码")} ${formatChips(player.stack / game.bigBlind)}`
+                ? `${playerName}，${t("筹码")} ${formatBigBlinds(player.stack, game.bigBlind)}`
+                : `${playerName}, ${t("筹码")} ${formatBigBlinds(player.stack, game.bigBlind)}`
             }
             data-acting-label={t("当前行动")}
             data-deal-order={dealOrderByPlayer.get(player.id)}
@@ -607,21 +616,25 @@ function PokerTable({
                 className={`seat-position ${blindClass}`}
                 aria-label={
                   isSmallBlind
-                    ? `${t("小盲")}，${formatChips(game.smallBlind)} BB`
+                    ? `${t("小盲")}，${formatBigBlinds(game.smallBlind, game.bigBlind)} BB`
                     : isBigBlind
-                      ? `${t("大盲")}，${formatChips(game.bigBlind)} BB`
+                      ? `${t("大盲")}，${formatBigBlinds(game.bigBlind, game.bigBlind)} BB`
                       : player.positionLabel
                 }
               >
                 {isSmallBlind ? (
                   <>
                     <b>{t("小盲")}</b>
-                    <small>SB · {formatChips(game.smallBlind)}</small>
+                    <small>
+                      SB · {formatBigBlinds(game.smallBlind, game.bigBlind)}
+                    </small>
                   </>
                 ) : isBigBlind ? (
                   <>
                     <b>{t("大盲")}</b>
-                    <small>BB · {formatChips(game.bigBlind)}</small>
+                    <small>
+                      BB · {formatBigBlinds(game.bigBlind, game.bigBlind)}
+                    </small>
                   </>
                 ) : (
                   player.positionLabel
@@ -656,7 +669,7 @@ function PokerTable({
               })}
             </div>
             <div className="seat-meta">
-              <span>{formatChips(player.stack / game.bigBlind)} BB</span>
+              <span>{formatBigBlinds(player.stack, game.bigBlind)} BB</span>
               <span>
                 {lostStackAtSettlement
                   ? t("筹码归零")
@@ -680,7 +693,8 @@ function PokerTable({
                   <i />
                 </span>
                 <span>
-                  {t("投入")} {formatChips(player.streetContribution)}
+                  {t("投入")}{" "}
+                  {formatBigBlinds(player.streetContribution, game.bigBlind)}
                 </span>
               </span>
             )}
@@ -767,7 +781,7 @@ function ShowdownBreakdown({ game }: { game: PokerGameState }) {
                 <span>
                   {won ? t("获胜") : t("摊牌")}
                   {won && winnings[player.id] > 0
-                    ? ` +${formatChips(winnings[player.id])} BB`
+                    ? ` +${formatBigBlinds(winnings[player.id], game.bigBlind)} BB`
                     : ""}
                 </span>
                 <strong>{playerName(player.id)}</strong>
@@ -805,11 +819,14 @@ function ShowdownBreakdown({ game }: { game: PokerGameState }) {
         {awards.map((award, index) => (
           <span key={award.pot.id}>
             <small>{index === 0 ? t("主池") : `${t("边池")} ${index}`}</small>
-            <strong>{formatChips(award.pot.amount)} BB</strong>
+            <strong>
+              {formatBigBlinds(award.pot.amount, game.bigBlind)} BB
+            </strong>
             <i aria-hidden="true">→</i>
             {award.winnerIds.map((id) => (
               <b key={id}>
-                {playerName(id)} +{formatChips(award.shares[id])}
+                {playerName(id)} +
+                {formatBigBlinds(award.shares[id] ?? 0, game.bigBlind)}
               </b>
             ))}
           </span>
@@ -817,7 +834,7 @@ function ShowdownBreakdown({ game }: { game: PokerGameState }) {
         {uncalledReturns.map(([id, amount]) => (
           <span className="uncalled-return" key={id}>
             <small>{t("无人跟注退回")}</small>
-            <strong>{formatChips(amount)} BB</strong>
+            <strong>{formatBigBlinds(amount, game.bigBlind)} BB</strong>
             <i aria-hidden="true">→</i>
             <b>{playerName(id)}</b>
           </span>
@@ -866,7 +883,7 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
         </div>
         <span className={hand.heroProfitBb >= 0 ? "positive" : "negative"}>
           {hand.heroProfitBb >= 0 ? "+" : ""}
-          {formatChips(hand.heroProfitBb)} BB
+          {formatRecordedHandProfit(hand)} BB
         </span>
       </div>
       <div className="replay-board">
@@ -889,11 +906,12 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
             </strong>{" "}
             · {streetLabel(current.street)} · {actionLabel(current.action.type)}
             {current.action.amount
-              ? ` ${t("到")} ${current.action.amount}`
+              ? ` ${t("到")} ${formatBigBlinds(current.action.amount, hand.game.bigBlind)} BB`
               : ""}
             <small>
-              {t("底池")} {formatChips(current.potBefore)} →{" "}
-              {formatChips(current.potAfter)}
+              {t("底池")}{" "}
+              {formatBigBlinds(current.potBefore, hand.game.bigBlind)} BB →{" "}
+              {formatBigBlinds(current.potAfter, hand.game.bigBlind)} BB
             </small>
           </>
         ) : (
@@ -1049,11 +1067,14 @@ function ReviewPanel({
                   {action ? (
                     <div className="review-context">
                       <span>
-                        {t("行动前底池")} {formatChips(action.potBefore)} BB
+                        {t("行动前底池")}{" "}
+                        {formatBigBlinds(action.potBefore, hand.game.bigBlind)}{" "}
+                        BB
                       </span>
                       {paid > 0 && (
                         <span>
-                          {t("本次投入")} {formatChips(paid)} BB
+                          {t("本次投入")}{" "}
+                          {formatBigBlinds(paid, hand.game.bigBlind)} BB
                         </span>
                       )}
                     </div>
@@ -1066,15 +1087,17 @@ function ReviewPanel({
                     <div className="review-context">
                       <span>
                         {t("行动前筹码")}{" "}
-                        {formatChips(
-                          record.context.stackBefore / hand.game.bigBlind,
+                        {formatBigBlinds(
+                          record.context.stackBefore,
+                          hand.game.bigBlind,
                         )}{" "}
                         BB
                       </span>
                       <span>
                         {t("需跟注")}{" "}
-                        {formatChips(
-                          record.context.toCall / hand.game.bigBlind,
+                        {formatBigBlinds(
+                          record.context.toCall,
+                          hand.game.bigBlind,
                         )}{" "}
                         BB
                       </span>
@@ -1177,7 +1200,7 @@ function HistoryView({
                   className={item.heroProfitBb >= 0 ? "positive" : "negative"}
                 >
                   {item.heroProfitBb >= 0 ? "+" : ""}
-                  {formatChips(item.heroProfitBb)} BB
+                  {formatRecordedHandProfit(item)} BB
                 </strong>
               </button>
             );
@@ -2149,11 +2172,11 @@ function PokerTrainerApp() {
     const validation = validateAction(game, HERO_ID, action);
     if (!validation.legal) {
       setError(
-        `${runtimeMessage(validation.reason ?? "")}${
+        `${runtimeMessage(reasonWithBlindUnits(validation.reason ?? "", game.bigBlind))}${
           validation.nearestLegalAmount !== undefined
             ? locale === "zh-CN"
-              ? `；${t("最近合法值")}为 ${formatChips(validation.nearestLegalAmount)}`
-              : ` ${t("最近合法值")}: ${formatChips(validation.nearestLegalAmount)}`
+              ? `；${t("最近合法值")}为 ${formatBigBlinds(validation.nearestLegalAmount, game.bigBlind)} BB`
+              : ` ${t("最近合法值")}: ${formatBigBlinds(validation.nearestLegalAmount, game.bigBlind)} BB`
             : ""
         }`,
       );
@@ -2180,7 +2203,7 @@ function PokerTrainerApp() {
     } catch (reason) {
       setError(
         reason instanceof Error
-          ? runtimeMessage(reason.message)
+          ? runtimeMessage(reasonWithBlindUnits(reason.message, game.bigBlind))
           : t("动作失败"),
       );
     }
@@ -2223,21 +2246,24 @@ function PokerTrainerApp() {
         : roundChips(current),
     );
   }, [game, hero]);
-  const potOdds = toCall > 0 ? toCall / (pot + toCall) : 0;
-  const recommendedAction = !assessment
-    ? "—"
-    : assessment.equityEstimate > 0.62
-      ? game?.currentBet === 0
-        ? actionLabel("bet")
-        : actionLabel("raise")
-      : toCall === 0
-        ? actionLabel("check")
-        : assessment.equityEstimate + 0.04 >= potOdds
-          ? actionLabel("call")
-          : actionLabel("fold");
-  const recommendedSizing = game
-    ? Math.min(maxRaiseTo, Math.max(minRaiseTo, game.currentBet + pot * 0.66))
-    : 0;
+  const hintAction =
+    assessment && game
+      ? recommendedHintAction({
+          equity: assessment.equityEstimate,
+          currentBet: game.currentBet,
+          toCall,
+          pot,
+          legal,
+        })
+      : null;
+  const recommendedAction = hintAction ? actionLabel(hintAction) : "—";
+  const sizedActionLegal = Boolean(
+    legal && (game?.currentBet === 0 ? legal.bet.legal : legal.raise.legal),
+  );
+  const recommendedSizing =
+    game && sizedActionLegal
+      ? Math.min(maxRaiseTo, Math.max(minRaiseTo, game.currentBet + pot * 0.66))
+      : null;
   const quickSizes = !game
     ? []
     : game.street === "preflop"
@@ -2591,21 +2617,21 @@ function PokerTrainerApp() {
               <section className="info-strip">
                 <span>
                   <small>{t("底池")}</small>
-                  {formatChips(pot)} BB
+                  {formatBigBlinds(pot, game.bigBlind)} BB
                 </span>
                 {!game.settled && (
                   <>
                     <span>
                       <small>{t("跟注")}</small>
-                      {formatChips(toCall)} BB
+                      {formatBigBlinds(toCall, game.bigBlind)} BB
                     </span>
                     <span>
                       <small>{t("最小加注到")}</small>
-                      {formatChips(minRaiseTo)} BB
+                      {formatBigBlinds(minRaiseTo, game.bigBlind)} BB
                     </span>
                     <span>
                       <small>{t("有效筹码")}</small>
-                      {formatChips(
+                      {formatBigBlinds(
                         Math.min(
                           hero?.stack ?? 0,
                           Math.max(
@@ -2619,6 +2645,7 @@ function PokerTrainerApp() {
                               .map((player) => player.stack),
                           ),
                         ),
+                        game.bigBlind,
                       )}{" "}
                       BB
                     </span>
@@ -2655,9 +2682,9 @@ function PokerTrainerApp() {
                       {(hero?.stack ?? 0) - (hero?.startingStack ?? 0) >= 0
                         ? "+"
                         : ""}
-                      {formatChips(
-                        ((hero?.stack ?? 0) - (hero?.startingStack ?? 0)) /
-                          game.bigBlind,
+                      {formatBigBlinds(
+                        (hero?.stack ?? 0) - (hero?.startingStack ?? 0),
+                        game.bigBlind,
                       )}{" "}
                       BB
                     </span>
@@ -2692,7 +2719,9 @@ function PokerTrainerApp() {
                 {!game.settled && data.settings.showRecommendedSizing && (
                   <span>
                     <small>{t("参考尺度")}</small>
-                    {formatChips(recommendedSizing)} BB
+                    {recommendedSizing === null
+                      ? "—"
+                      : `${formatBigBlinds(recommendedSizing, game.bigBlind)} BB`}
                   </span>
                 )}
                 {!game.settled &&
@@ -2804,8 +2833,9 @@ function PokerTrainerApp() {
                         return `${actorName} ${t("行动中")}`;
                       })()}
                   <span className="decision-context">
-                    {t("底池")} {formatChips(pot)} · {t("跟注")}{" "}
-                    {formatChips(toCall)} · {hero?.positionLabel || "—"}
+                    {t("底池")} {formatBigBlinds(pot, game.bigBlind)} ·{" "}
+                    {t("跟注")} {formatBigBlinds(toCall, game.bigBlind)} ·{" "}
+                    {hero?.positionLabel || "—"}
                   </span>
                   {feedback && <small>{feedback}</small>}
                   {error && (
@@ -2841,23 +2871,32 @@ function PokerTrainerApp() {
                     <input
                       aria-label={t("下注滑杆")}
                       type="range"
-                      min={Math.min(minRaiseTo, maxRaiseTo)}
-                      max={maxRaiseTo}
-                      step={0.01}
-                      value={Math.min(maxRaiseTo, Math.max(0, betAmount))}
+                      min={chipsToBigBlinds(
+                        Math.min(minRaiseTo, maxRaiseTo),
+                        game.bigBlind,
+                      )}
+                      max={chipsToBigBlinds(maxRaiseTo, game.bigBlind)}
+                      step={bigBlindStep(game.bigBlind)}
+                      value={chipsToBigBlinds(
+                        Math.min(maxRaiseTo, Math.max(0, betAmount)),
+                        game.bigBlind,
+                      )}
                       onChange={(event) => {
                         const nextAmount = event.currentTarget.valueAsNumber;
                         if (Number.isFinite(nextAmount))
-                          setBetAmount(roundChips(nextAmount));
+                          setBetAmount(roundChips(nextAmount * game.bigBlind));
                       }}
                     />
                     <input
                       aria-label={t("下注总额")}
                       type="number"
-                      min={Math.min(minRaiseTo, maxRaiseTo)}
-                      max={maxRaiseTo}
-                      step={0.01}
-                      value={betAmount}
+                      min={chipsToBigBlinds(
+                        Math.min(minRaiseTo, maxRaiseTo),
+                        game.bigBlind,
+                      )}
+                      max={chipsToBigBlinds(maxRaiseTo, game.bigBlind)}
+                      step={bigBlindStep(game.bigBlind)}
+                      value={chipsToBigBlinds(betAmount, game.bigBlind)}
                       aria-invalid={
                         game.actingPlayerId === HERO_ID &&
                         sizedActionValidation?.legal === false
@@ -2865,18 +2904,23 @@ function PokerTrainerApp() {
                       onChange={(event) => {
                         const nextAmount = event.currentTarget.valueAsNumber;
                         if (Number.isFinite(nextAmount))
-                          setBetAmount(roundChips(nextAmount));
+                          setBetAmount(roundChips(nextAmount * game.bigBlind));
                       }}
                     />
                   </div>
                   {game.actingPlayerId === HERO_ID &&
                     sizedActionValidation?.legal === false && (
                       <small className="sizing-error" role="status">
-                        {runtimeMessage(sizedActionValidation.reason ?? "")}
+                        {runtimeMessage(
+                          reasonWithBlindUnits(
+                            sizedActionValidation.reason ?? "",
+                            game.bigBlind,
+                          ),
+                        )}
                         {sizedActionValidation.nearestLegalAmount !== undefined
                           ? locale === "zh-CN"
-                            ? `；${t("最近合法值")} ${formatChips(sizedActionValidation.nearestLegalAmount)} BB`
-                            : `; ${t("最近合法值")}: ${formatChips(sizedActionValidation.nearestLegalAmount)} BB`
+                            ? `；${t("最近合法值")} ${formatBigBlinds(sizedActionValidation.nearestLegalAmount, game.bigBlind)} BB`
+                            : `; ${t("最近合法值")}: ${formatBigBlinds(sizedActionValidation.nearestLegalAmount, game.bigBlind)} BB`
                           : ""}
                       </small>
                     )}
@@ -2904,7 +2948,8 @@ function PokerTrainerApp() {
                     }
                     onClick={() => humanAction({ type: "call" })}
                   >
-                    {actionLabel("call")} {formatChips(toCall)}{" "}
+                    {actionLabel("call")}{" "}
+                    {formatBigBlinds(toCall, game.bigBlind)}{" "}
                     <kbd aria-hidden="true">C</kbd>
                   </button>
                   <button

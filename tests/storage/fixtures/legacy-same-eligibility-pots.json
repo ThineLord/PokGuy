@@ -1,0 +1,751 @@
+{
+  "version": 2,
+  "settings": {
+    "playerName": "Hero",
+    "seatCount": 6,
+    "startingStackBb": 100,
+    "smallBlind": 0.5,
+    "bigBlind": 1,
+    "selectedAiIds": ["tag", "lag", "rock", "station", "grinder"],
+    "animations": true,
+    "animationSpeed": "normal",
+    "deckTheme": "river-current",
+    "autoAi": true,
+    "aiDelayMs": 1000,
+    "showEquity": false,
+    "showPotOdds": true,
+    "showOuts": false,
+    "showRecommendedAction": false,
+    "showRecommendedSizing": false,
+    "showBoardWarnings": true,
+    "hintStrength": "light",
+    "sound": false
+  },
+  "aiProfiles": [
+    {
+      "vpip": 0.22,
+      "pfr": 0.18,
+      "aggression": 0.68,
+      "bluffFrequency": 0.16,
+      "callDownTendency": 0.42,
+      "foldToPressure": 0.56,
+      "positionAwareness": 0.85,
+      "potOddsAwareness": 0.65,
+      "stackAwareness": 0.65,
+      "boardTextureAwareness": 0.65,
+      "continuationBetFrequency": 0.62,
+      "doubleBarrelFrequency": 0.43,
+      "checkRaiseFrequency": 0.09,
+      "slowPlayFrequency": 0.09,
+      "trapFrequency": 0.07,
+      "tiltSensitivity": 0.2,
+      "adaptability": 0.68,
+      "variance": 0.12,
+      "id": "tag",
+      "name": "林 · TAG",
+      "description": "选择性入池，主动争夺价值，位置纪律良好。",
+      "thinkingSpeed": "normal"
+    },
+    {
+      "vpip": 0.38,
+      "pfr": 0.3,
+      "aggression": 0.78,
+      "bluffFrequency": 0.34,
+      "callDownTendency": 0.42,
+      "foldToPressure": 0.42,
+      "positionAwareness": 0.82,
+      "potOddsAwareness": 0.65,
+      "stackAwareness": 0.65,
+      "boardTextureAwareness": 0.65,
+      "continuationBetFrequency": 0.62,
+      "doubleBarrelFrequency": 0.43,
+      "checkRaiseFrequency": 0.09,
+      "slowPlayFrequency": 0.09,
+      "trapFrequency": 0.07,
+      "tiltSensitivity": 0.2,
+      "adaptability": 0.72,
+      "variance": 0.2,
+      "id": "lag",
+      "name": "Kai · LAG",
+      "description": "范围宽、施压频繁，擅长利用位置和弃牌率。",
+      "thinkingSpeed": "normal"
+    },
+    {
+      "vpip": 0.13,
+      "pfr": 0.09,
+      "aggression": 0.32,
+      "bluffFrequency": 0.04,
+      "callDownTendency": 0.25,
+      "foldToPressure": 0.76,
+      "positionAwareness": 0.65,
+      "potOddsAwareness": 0.65,
+      "stackAwareness": 0.65,
+      "boardTextureAwareness": 0.65,
+      "continuationBetFrequency": 0.62,
+      "doubleBarrelFrequency": 0.43,
+      "checkRaiseFrequency": 0.09,
+      "slowPlayFrequency": 0.05,
+      "trapFrequency": 0.07,
+      "tiltSensitivity": 0.2,
+      "adaptability": 0.45,
+      "variance": 0.05,
+      "id": "rock",
+      "name": "石 · Rock",
+      "description": "极其谨慎，只用强范围投入大底池。",
+      "thinkingSpeed": "fast"
+    },
+    {
+      "vpip": 0.47,
+      "pfr": 0.08,
+      "aggression": 0.18,
+      "bluffFrequency": 0.05,
+      "callDownTendency": 0.82,
+      "foldToPressure": 0.2,
+      "positionAwareness": 0.65,
+      "potOddsAwareness": 0.38,
+      "stackAwareness": 0.65,
+      "boardTextureAwareness": 0.36,
+      "continuationBetFrequency": 0.62,
+      "doubleBarrelFrequency": 0.43,
+      "checkRaiseFrequency": 0.09,
+      "slowPlayFrequency": 0.09,
+      "trapFrequency": 0.07,
+      "tiltSensitivity": 0.2,
+      "adaptability": 0.45,
+      "variance": 0.11,
+      "id": "station",
+      "name": "Momo · Calling Station",
+      "description": "入池宽、喜欢跟到底，主动加注较少。",
+      "thinkingSpeed": "fast"
+    },
+    {
+      "vpip": 0.41,
+      "pfr": 0.12,
+      "aggression": 0.24,
+      "bluffFrequency": 0.12,
+      "callDownTendency": 0.62,
+      "foldToPressure": 0.38,
+      "positionAwareness": 0.28,
+      "potOddsAwareness": 0.3,
+      "stackAwareness": 0.65,
+      "boardTextureAwareness": 0.65,
+      "continuationBetFrequency": 0.62,
+      "doubleBarrelFrequency": 0.43,
+      "checkRaiseFrequency": 0.09,
+      "slowPlayFrequency": 0.09,
+      "trapFrequency": 0.07,
+      "tiltSensitivity": 0.2,
+      "adaptability": 0.45,
+      "variance": 0.28,
+      "id": "recreational",
+      "name": "阿乐 · Recreational",
+      "description": "被动而随性，偏爱看翻牌，尺度偶有偏差。",
+      "thinkingSpeed": "fast"
+    },
+    {
+      "vpip": 0.62,
+      "pfr": 0.48,
+      "aggression": 0.95,
+      "bluffFrequency": 0.58,
+      "callDownTendency": 0.57,
+      "foldToPressure": 0.17,
+      "positionAwareness": 0.65,
+      "potOddsAwareness": 0.65,
+      "stackAwareness": 0.65,
+      "boardTextureAwareness": 0.65,
+      "continuationBetFrequency": 0.88,
+      "doubleBarrelFrequency": 0.76,
+      "checkRaiseFrequency": 0.09,
+      "slowPlayFrequency": 0.09,
+      "trapFrequency": 0.07,
+      "tiltSensitivity": 0.2,
+      "adaptability": 0.45,
+      "variance": 0.34,
+      "id": "maniac",
+      "name": "Vex · Maniac",
+      "description": "极高频率下注与诈唬，用巨大方差持续施压。",
+      "thinkingSpeed": "fast"
+    },
+    {
+      "vpip": 0.25,
+      "pfr": 0.2,
+      "aggression": 0.61,
+      "bluffFrequency": 0.17,
+      "callDownTendency": 0.46,
+      "foldToPressure": 0.5,
+      "positionAwareness": 0.65,
+      "potOddsAwareness": 0.96,
+      "stackAwareness": 0.94,
+      "boardTextureAwareness": 0.9,
+      "continuationBetFrequency": 0.62,
+      "doubleBarrelFrequency": 0.43,
+      "checkRaiseFrequency": 0.09,
+      "slowPlayFrequency": 0.09,
+      "trapFrequency": 0.07,
+      "tiltSensitivity": 0.2,
+      "adaptability": 0.75,
+      "variance": 0.04,
+      "id": "grinder",
+      "name": "Nora · Grinder",
+      "description": "数学导向，重视赔率、有效筹码和稳定决策。",
+      "thinkingSpeed": "slow"
+    },
+    {
+      "vpip": 0.23,
+      "pfr": 0.14,
+      "aggression": 0.5,
+      "bluffFrequency": 0.13,
+      "callDownTendency": 0.5,
+      "foldToPressure": 0.5,
+      "positionAwareness": 0.65,
+      "potOddsAwareness": 0.65,
+      "stackAwareness": 0.65,
+      "boardTextureAwareness": 0.65,
+      "continuationBetFrequency": 0.62,
+      "doubleBarrelFrequency": 0.43,
+      "checkRaiseFrequency": 0.27,
+      "slowPlayFrequency": 0.38,
+      "trapFrequency": 0.42,
+      "tiltSensitivity": 0.2,
+      "adaptability": 0.45,
+      "variance": 0.1,
+      "id": "trapper",
+      "name": "Silva · Trapper",
+      "description": "控制底池并隐藏强度，伺机慢打与反加。",
+      "thinkingSpeed": "slow"
+    }
+  ],
+  "aiHabits": {
+    "s1": {
+      "hands": 1,
+      "vpip": 0.23809523809523808,
+      "pfr": 0.1714285714285714,
+      "threeBet": 0.0761904761904762,
+      "foldToThreeBet": 0.5,
+      "continuationBet": 0.5238095238095238,
+      "foldToContinuationBet": 0.45,
+      "aggressionFactor": 1.4285714285714286,
+      "showdownFrequency": 0.2857142857142857,
+      "bluffFrequencyEstimate": 0.14285714285714285,
+      "riverCallFrequency": 0.42857142857142855
+    },
+    "s2": {
+      "hands": 1,
+      "vpip": 0.23809523809523808,
+      "pfr": 0.1714285714285714,
+      "threeBet": 0.0761904761904762,
+      "foldToThreeBet": 0.5,
+      "continuationBet": 0.5238095238095238,
+      "foldToContinuationBet": 0.45,
+      "aggressionFactor": 1.4285714285714286,
+      "showdownFrequency": 0.2857142857142857,
+      "bluffFrequencyEstimate": 0.14285714285714285,
+      "riverCallFrequency": 0.42857142857142855
+    },
+    "s3": {
+      "hands": 1,
+      "vpip": 0.2857142857142857,
+      "pfr": 0.21904761904761902,
+      "threeBet": 0.0761904761904762,
+      "foldToThreeBet": 0.5,
+      "continuationBet": 0.5238095238095238,
+      "foldToContinuationBet": 0.45,
+      "aggressionFactor": 1.4761904761904763,
+      "showdownFrequency": 0.2857142857142857,
+      "bluffFrequencyEstimate": 0.14285714285714285,
+      "riverCallFrequency": 0.42857142857142855
+    },
+    "s4": {
+      "hands": 1,
+      "vpip": 0.2857142857142857,
+      "pfr": 0.21904761904761902,
+      "threeBet": 0.12380952380952381,
+      "foldToThreeBet": 0.5,
+      "continuationBet": 0.5238095238095238,
+      "foldToContinuationBet": 0.45,
+      "aggressionFactor": 1.4761904761904763,
+      "showdownFrequency": 0.3333333333333333,
+      "bluffFrequencyEstimate": 0.14285714285714285,
+      "riverCallFrequency": 0.42857142857142855
+    }
+  },
+  "statsScope": "cash-v1",
+  "stats": {
+    "hands": 1,
+    "profitBb": 1.499999999999968,
+    "vpipOpportunities": 1,
+    "vpipHands": 1,
+    "pfrOpportunities": 1,
+    "pfrHands": 0,
+    "threeBetOpportunities": 0,
+    "threeBets": 0,
+    "cbetOpportunities": 0,
+    "cbets": 0,
+    "showdowns": 1,
+    "showdownWins": 1,
+    "byPosition": {
+      "BTN": {
+        "hands": 1,
+        "opportunities": 1,
+        "profitBb": 1.499999999999968,
+        "vpip": 1,
+        "pfr": 0
+      }
+    }
+  },
+  "scenarioStats": {
+    "hands": 0,
+    "profitBb": 0,
+    "vpipOpportunities": 0,
+    "vpipHands": 0,
+    "pfrOpportunities": 0,
+    "pfrHands": 0,
+    "threeBetOpportunities": 0,
+    "threeBets": 0,
+    "cbetOpportunities": 0,
+    "cbets": 0,
+    "showdowns": 0,
+    "showdownWins": 0,
+    "byPosition": {}
+  },
+  "legacyStats": {
+    "hands": 0,
+    "profitBb": 0,
+    "vpipOpportunities": 0,
+    "vpipHands": 0,
+    "pfrOpportunities": 0,
+    "pfrHands": 0,
+    "threeBetOpportunities": 0,
+    "threeBets": 0,
+    "cbetOpportunities": 0,
+    "cbets": 0,
+    "showdowns": 0,
+    "showdownWins": 0,
+    "byPosition": {}
+  },
+  "legacyAiHabits": {},
+  "recentHands": [
+    {
+      "id": "hand-legacy-seed-23",
+      "startedAt": "1970-01-01T00:00:00.023Z",
+      "completedAt": "2026-11-19T00:00:00.000Z",
+      "game": {
+        "handId": "hand-legacy-seed-23",
+        "dealerSeat": 0,
+        "smallBlind": 0.01,
+        "bigBlind": 0.02,
+        "seed": 23,
+        "deck": [
+          { "rank": 8, "suit": "diamonds" },
+          { "rank": 13, "suit": "diamonds" },
+          { "rank": 5, "suit": "diamonds" },
+          { "rank": 9, "suit": "diamonds" },
+          { "rank": 13, "suit": "clubs" },
+          { "rank": 3, "suit": "spades" },
+          { "rank": 6, "suit": "spades" },
+          { "rank": 14, "suit": "spades" },
+          { "rank": 8, "suit": "hearts" },
+          { "rank": 7, "suit": "clubs" },
+          { "rank": 6, "suit": "hearts" },
+          { "rank": 14, "suit": "diamonds" },
+          { "rank": 8, "suit": "clubs" },
+          { "rank": 13, "suit": "hearts" },
+          { "rank": 10, "suit": "diamonds" },
+          { "rank": 10, "suit": "spades" },
+          { "rank": 3, "suit": "clubs" },
+          { "rank": 2, "suit": "hearts" },
+          { "rank": 6, "suit": "diamonds" },
+          { "rank": 12, "suit": "spades" },
+          { "rank": 14, "suit": "hearts" },
+          { "rank": 13, "suit": "spades" },
+          { "rank": 10, "suit": "clubs" },
+          { "rank": 5, "suit": "hearts" },
+          { "rank": 2, "suit": "clubs" },
+          { "rank": 12, "suit": "hearts" },
+          { "rank": 5, "suit": "spades" },
+          { "rank": 12, "suit": "diamonds" },
+          { "rank": 12, "suit": "clubs" },
+          { "rank": 4, "suit": "diamonds" },
+          { "rank": 3, "suit": "diamonds" },
+          { "rank": 7, "suit": "hearts" },
+          { "rank": 5, "suit": "clubs" },
+          { "rank": 6, "suit": "clubs" }
+        ],
+        "board": [
+          { "rank": 9, "suit": "spades" },
+          { "rank": 4, "suit": "hearts" },
+          { "rank": 4, "suit": "spades" },
+          { "rank": 7, "suit": "diamonds" },
+          { "rank": 11, "suit": "diamonds" }
+        ],
+        "burnCards": [
+          { "rank": 9, "suit": "hearts" },
+          { "rank": 2, "suit": "spades" },
+          { "rank": 2, "suit": "diamonds" }
+        ],
+        "players": [
+          {
+            "id": "hero",
+            "name": "Hero",
+            "seat": 0,
+            "stack": 10.03,
+            "kind": "human",
+            "startingStack": 10,
+            "holeCards": [
+              { "rank": 11, "suit": "clubs" },
+              { "rank": 8, "suit": "spades" }
+            ],
+            "streetContribution": 0,
+            "totalContribution": 0.08,
+            "status": "active",
+            "acted": true,
+            "lastActedBet": 0,
+            "positionLabel": "BTN",
+            "lastAction": "check"
+          },
+          {
+            "id": "s1",
+            "name": "S1",
+            "seat": 1,
+            "stack": 9.99,
+            "kind": "ai",
+            "startingStack": 10,
+            "holeCards": [
+              { "rank": 9, "suit": "clubs" },
+              { "rank": 10, "suit": "hearts" }
+            ],
+            "streetContribution": 0,
+            "totalContribution": 0.01,
+            "status": "folded",
+            "acted": true,
+            "lastActedBet": 0,
+            "positionLabel": "SB",
+            "lastAction": "fold"
+          },
+          {
+            "id": "s2",
+            "name": "S2",
+            "seat": 2,
+            "stack": 9.98,
+            "kind": "ai",
+            "startingStack": 10,
+            "holeCards": [
+              { "rank": 11, "suit": "hearts" },
+              { "rank": 14, "suit": "clubs" }
+            ],
+            "streetContribution": 0,
+            "totalContribution": 0.02,
+            "status": "folded",
+            "acted": true,
+            "lastActedBet": 0,
+            "positionLabel": "BB",
+            "lastAction": "fold"
+          },
+          {
+            "id": "s3",
+            "name": "S3",
+            "seat": 3,
+            "stack": 9.95,
+            "kind": "ai",
+            "startingStack": 10,
+            "holeCards": [
+              { "rank": 7, "suit": "spades" },
+              { "rank": 4, "suit": "clubs" }
+            ],
+            "streetContribution": 0,
+            "totalContribution": 0.05,
+            "status": "folded",
+            "acted": true,
+            "lastActedBet": 0,
+            "positionLabel": "UTG",
+            "lastAction": "fold"
+          },
+          {
+            "id": "s4",
+            "name": "S4",
+            "seat": 4,
+            "stack": 10.05,
+            "kind": "ai",
+            "startingStack": 10,
+            "holeCards": [
+              { "rank": 11, "suit": "spades" },
+              { "rank": 3, "suit": "hearts" }
+            ],
+            "streetContribution": 0,
+            "totalContribution": 0.08,
+            "status": "active",
+            "acted": true,
+            "lastActedBet": 0,
+            "positionLabel": "CO",
+            "lastAction": "check"
+          }
+        ],
+        "street": "complete",
+        "actingPlayerId": null,
+        "currentBet": 0,
+        "minRaiseIncrement": 0.02,
+        "actionSequence": 12,
+        "lastAggressorId": null,
+        "actions": [
+          {
+            "sequence": 1,
+            "street": "preflop",
+            "playerId": "s3",
+            "action": { "type": "raise", "amount": 0.05 },
+            "potBefore": 0.03,
+            "potAfter": 0.08,
+            "board": []
+          },
+          {
+            "sequence": 2,
+            "street": "preflop",
+            "playerId": "s4",
+            "action": { "type": "raise", "amount": 0.08 },
+            "potBefore": 0.08,
+            "potAfter": 0.16,
+            "board": []
+          },
+          {
+            "sequence": 3,
+            "street": "preflop",
+            "playerId": "hero",
+            "action": { "type": "call" },
+            "potBefore": 0.16,
+            "potAfter": 0.24,
+            "board": []
+          },
+          {
+            "sequence": 4,
+            "street": "preflop",
+            "playerId": "s1",
+            "action": { "type": "fold" },
+            "potBefore": 0.24,
+            "potAfter": 0.24,
+            "board": []
+          },
+          {
+            "sequence": 5,
+            "street": "preflop",
+            "playerId": "s2",
+            "action": { "type": "fold" },
+            "potBefore": 0.24,
+            "potAfter": 0.24,
+            "board": []
+          },
+          {
+            "sequence": 6,
+            "street": "preflop",
+            "playerId": "s3",
+            "action": { "type": "fold" },
+            "potBefore": 0.24,
+            "potAfter": 0.24,
+            "board": []
+          },
+          {
+            "sequence": 7,
+            "street": "flop",
+            "playerId": "s4",
+            "action": { "type": "check" },
+            "potBefore": 0.24,
+            "potAfter": 0.24,
+            "board": [
+              { "rank": 9, "suit": "spades" },
+              { "rank": 4, "suit": "hearts" },
+              { "rank": 4, "suit": "spades" }
+            ]
+          },
+          {
+            "sequence": 8,
+            "street": "flop",
+            "playerId": "hero",
+            "action": { "type": "check" },
+            "potBefore": 0.24,
+            "potAfter": 0.24,
+            "board": [
+              { "rank": 9, "suit": "spades" },
+              { "rank": 4, "suit": "hearts" },
+              { "rank": 4, "suit": "spades" }
+            ]
+          },
+          {
+            "sequence": 9,
+            "street": "turn",
+            "playerId": "s4",
+            "action": { "type": "check" },
+            "potBefore": 0.24,
+            "potAfter": 0.24,
+            "board": [
+              { "rank": 9, "suit": "spades" },
+              { "rank": 4, "suit": "hearts" },
+              { "rank": 4, "suit": "spades" },
+              { "rank": 7, "suit": "diamonds" }
+            ]
+          },
+          {
+            "sequence": 10,
+            "street": "turn",
+            "playerId": "hero",
+            "action": { "type": "check" },
+            "potBefore": 0.24,
+            "potAfter": 0.24,
+            "board": [
+              { "rank": 9, "suit": "spades" },
+              { "rank": 4, "suit": "hearts" },
+              { "rank": 4, "suit": "spades" },
+              { "rank": 7, "suit": "diamonds" }
+            ]
+          },
+          {
+            "sequence": 11,
+            "street": "river",
+            "playerId": "s4",
+            "action": { "type": "check" },
+            "potBefore": 0.24,
+            "potAfter": 0.24,
+            "board": [
+              { "rank": 9, "suit": "spades" },
+              { "rank": 4, "suit": "hearts" },
+              { "rank": 4, "suit": "spades" },
+              { "rank": 7, "suit": "diamonds" },
+              { "rank": 11, "suit": "diamonds" }
+            ]
+          },
+          {
+            "sequence": 12,
+            "street": "river",
+            "playerId": "hero",
+            "action": { "type": "check" },
+            "potBefore": 0.24,
+            "potAfter": 0.24,
+            "board": [
+              { "rank": 9, "suit": "spades" },
+              { "rank": 4, "suit": "hearts" },
+              { "rank": 4, "suit": "spades" },
+              { "rank": 7, "suit": "diamonds" },
+              { "rank": 11, "suit": "diamonds" }
+            ]
+          }
+        ],
+        "outcome": {
+          "reason": "showdown",
+          "termination": "river-showdown",
+          "payouts": { "hero": 0.11, "s1": 0, "s2": 0, "s3": 0, "s4": 0.13 },
+          "pots": [
+            {
+              "id": "main",
+              "amount": 0.05,
+              "cap": 0.01,
+              "contributors": ["hero", "s1", "s2", "s3", "s4"],
+              "eligiblePlayerIds": ["hero", "s4"]
+            },
+            {
+              "id": "side-1",
+              "amount": 0.04,
+              "cap": 0.02,
+              "contributors": ["hero", "s2", "s3", "s4"],
+              "eligiblePlayerIds": ["hero", "s4"]
+            },
+            {
+              "id": "side-2",
+              "amount": 0.09,
+              "cap": 0.05,
+              "contributors": ["hero", "s3", "s4"],
+              "eligiblePlayerIds": ["hero", "s4"]
+            },
+            {
+              "id": "side-3",
+              "amount": 0.06,
+              "cap": 0.08,
+              "contributors": ["hero", "s4"],
+              "eligiblePlayerIds": ["hero", "s4"]
+            }
+          ],
+          "uncalledReturns": {},
+          "showdown": {
+            "evaluations": {
+              "hero": {
+                "category": "two-pair",
+                "categoryRank": 2,
+                "tiebreakers": [11, 4, 9],
+                "cards": [
+                  { "rank": 11, "suit": "clubs" },
+                  { "rank": 9, "suit": "spades" },
+                  { "rank": 4, "suit": "hearts" },
+                  { "rank": 4, "suit": "spades" },
+                  { "rank": 11, "suit": "diamonds" }
+                ],
+                "label": "two-pair"
+              },
+              "s4": {
+                "category": "two-pair",
+                "categoryRank": 2,
+                "tiebreakers": [11, 4, 9],
+                "cards": [
+                  { "rank": 11, "suit": "spades" },
+                  { "rank": 9, "suit": "spades" },
+                  { "rank": 4, "suit": "hearts" },
+                  { "rank": 4, "suit": "spades" },
+                  { "rank": 11, "suit": "diamonds" }
+                ],
+                "label": "two-pair"
+              }
+            },
+            "awards": [
+              {
+                "pot": {
+                  "id": "main",
+                  "amount": 0.05,
+                  "cap": 0.01,
+                  "contributors": ["hero", "s1", "s2", "s3", "s4"],
+                  "eligiblePlayerIds": ["hero", "s4"]
+                },
+                "winnerIds": ["hero", "s4"],
+                "shares": { "s4": 0.03, "hero": 0.02 }
+              },
+              {
+                "pot": {
+                  "id": "side-1",
+                  "amount": 0.04,
+                  "cap": 0.02,
+                  "contributors": ["hero", "s2", "s3", "s4"],
+                  "eligiblePlayerIds": ["hero", "s4"]
+                },
+                "winnerIds": ["hero", "s4"],
+                "shares": { "s4": 0.02, "hero": 0.02 }
+              },
+              {
+                "pot": {
+                  "id": "side-2",
+                  "amount": 0.09,
+                  "cap": 0.05,
+                  "contributors": ["hero", "s3", "s4"],
+                  "eligiblePlayerIds": ["hero", "s4"]
+                },
+                "winnerIds": ["hero", "s4"],
+                "shares": { "s4": 0.05, "hero": 0.04 }
+              },
+              {
+                "pot": {
+                  "id": "side-3",
+                  "amount": 0.06,
+                  "cap": 0.08,
+                  "contributors": ["hero", "s4"],
+                  "eligiblePlayerIds": ["hero", "s4"]
+                },
+                "winnerIds": ["hero", "s4"],
+                "shares": { "s4": 0.03, "hero": 0.03 }
+              }
+            ],
+            "payouts": { "hero": 0.11, "s1": 0, "s2": 0, "s3": 0, "s4": 0.13 },
+            "uncalledReturns": {}
+          }
+        },
+        "settled": true
+      },
+      "heroProfitBb": 1.499999999999968,
+      "aiDecisionTags": {}
+    }
+  ],
+  "trainingRecords": [],
+  "playerNotes": {}
+}

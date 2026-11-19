@@ -9,9 +9,26 @@ import {
   compareEvaluations,
   evaluateBestHand,
 } from "../engine/evaluator/evaluator";
-import { resolveShowdown } from "../engine/showdown/showdown";
-import { calculatePotStructure } from "../engine/pots/sidePots";
+import {
+  resolveLegacyShowdown,
+  resolveShowdown,
+} from "../engine/showdown/showdown";
+import {
+  calculateLegacyPotStructure,
+  calculatePotStructure,
+} from "../engine/pots/sidePots";
 import { isContender, type PokerGameState } from "../engine/state/gameState";
+
+function stable(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stable).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.entries(value)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, inner]) => `${JSON.stringify(key)}:${stable(inner)}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}
 
 const streets = ["preflop", "flop", "turn", "river"];
 const statuses = ["active", "all-in", "folded", "busted", "sitting-out"];
@@ -167,13 +184,17 @@ export function isCompletedGame(value: unknown): value is PokerGameState {
       folded: !isContender(player),
       holeCards: player.holeCards,
     }));
-    const expected = calculatePotStructure(contributions);
-    if (JSON.stringify(outcome.pots) !== JSON.stringify(expected.pots))
-      return false;
+    const currentStructure = calculatePotStructure(contributions);
+    const legacyStructure = calculateLegacyPotStructure(contributions);
+    const matchesCurrent =
+      stable(outcome.pots) === stable(currentStructure.pots);
+    const matchesLegacy =
+      !matchesCurrent && stable(outcome.pots) === stable(legacyStructure.pots);
+    if (!matchesCurrent && !matchesLegacy) return false;
+    const structure = matchesCurrent ? currentStructure : legacyStructure;
     if (
       outcome.uncalledReturns &&
-      JSON.stringify(outcome.uncalledReturns) !==
-        JSON.stringify(expected.uncalledReturns)
+      stable(outcome.uncalledReturns) !== stable(structure.uncalledReturns)
     )
       return false;
     const sum = (values: number[]) => values.reduce((a, b) => a + b, 0);
@@ -243,7 +264,7 @@ export function isCompletedGame(value: unknown): value is PokerGameState {
         !showdown.awards.every(
           (award, i) =>
             object(award) &&
-            JSON.stringify(award.pot) === JSON.stringify(outcome.pots[i]) &&
+            stable(award.pot) === stable(outcome.pots[i]) &&
             Array.isArray(award.winnerIds) &&
             award.winnerIds.length > 0 &&
             award.winnerIds.every((id) =>
@@ -257,11 +278,9 @@ export function isCompletedGame(value: unknown): value is PokerGameState {
         )
       )
         return false;
-      const resolved = resolveShowdown(
-        contributions,
-        game.board,
-        game.dealerSeat,
-      );
+      const resolved = matchesCurrent
+        ? resolveShowdown(contributions, game.board, game.dealerSeat)
+        : resolveLegacyShowdown(contributions, game.board, game.dealerSeat);
       if (
         Object.keys(showdown.evaluations).length !==
         Object.keys(resolved.evaluations).length
