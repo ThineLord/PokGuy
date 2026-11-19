@@ -241,4 +241,40 @@ describe("table size selection", () => {
       container.querySelector('.seat[data-seat="0"] .dealer-button'),
     ).toBeInTheDocument();
   });
+
+  it("labels table amounts in big blinds when one blind is more than one chip", () => {
+    const data = defaultData();
+    data.settings = {
+      ...data.settings,
+      seatCount: 2,
+      smallBlind: 1,
+      bigBlind: 2,
+      autoAi: false,
+      animations: false,
+    };
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const { container } = render(<Home />);
+    expect(container.querySelector(".pot-pill strong")).toHaveTextContent(
+      "1.5 BB",
+    );
+    expect(
+      container.querySelector('.seat[data-seat="0"] .seat-meta'),
+    ).toHaveTextContent("99.5 BB");
+    expect(
+      container.querySelector('.seat[data-seat="0"] .seat-bet'),
+    ).toHaveTextContent("投入 0.5");
+    expect(screen.getByRole("button", { name: /^跟注/ })).toHaveTextContent(
+      "0.5",
+    );
+    expect(container.querySelector(".info-strip")).toHaveTextContent(
+      /跟注\s*0\.5 BB/,
+    );
+    const wager = screen.getByLabelText("下注总额");
+    expect(wager).toHaveValue(2.5);
+    fireEvent.change(wager, { target: { value: "3" } });
+    fireEvent.click(screen.getByRole("button", { name: /^加注/ }));
+    expect(
+      container.querySelector('.seat[data-seat="0"] .seat-bet'),
+    ).toHaveTextContent("投入 3");
+  });
 });
