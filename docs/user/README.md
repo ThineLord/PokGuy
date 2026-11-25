@@ -29,7 +29,7 @@ Settings, statistics, notes, the most recent 100 hands and up to 500 training re
 
 The full backup includes settings, AI profiles/habits, all retained completed hands, cash/scenario/legacy statistics, notes, decision reviews, language and theme. Active hands and the in-memory cash/scenario return snapshot are excluded. The separate **Export hand history** file is for inspecting hand records; it is not a full restorable backup. Older settings exports are explicitly recognized and replace only settings/profiles while preserving the active hand and current records.
 
-If saving fails, a **Changes are not saved** warning stays visible. Use **Retry save** after freeing storage, or **Export full backup** to rescue the current in-memory data before closing. A failed restore keeps the current in-memory data; a rollback problem keeps the rescue warning until a complete retry succeeds. Browser unload warnings are best-effort, so export rather than relying on the warning.
+If saving fails because storage rejected the write, a **Changes are not saved** warning stays visible. Use **Retry save** after freeing storage, or **Export full backup** to rescue the current in-memory data before closing. If another tab saved newer data and this edit overlaps it, the warning says those saved hands, statistics, and training records were kept. Export this page's unsaved copy before reloading; retrying does not replace the newer data. A failed restore keeps the current in-memory data; a rollback problem keeps the rescue warning until a complete retry succeeds. Browser unload warnings are best-effort, so export rather than relying on the warning.
 
 ### Statistics, reviews and mobile details
 
@@ -56,7 +56,7 @@ Connect both devices to a trusted Wi-Fi network and open the terminal's network 
 - Cash-table and single-hand practice only; no full tournament management, real-player matchmaking or real-money functions.
 - AI estimates use sampled unknown cards and training heuristics, not opponent-range solving, GTO or guaranteed profit.
 - No automatic cloud sync, installable offline PWA or sound assets. The sound setting is reserved for future work.
-- Browser storage can fail and multiple tabs can overwrite each other's latest saved data. Use one active tab and keep backups.
+- Browser storage can still fail. Before an ordinary settings, notes, or settlement save, the tab re-reads what is already stored. Hands, statistics, and training records saved by another tab stay there, and this tab's edit is kept when the two changes do not cover the same data. If they do, including when each tab committed a different hand, this tab does not write. The unsaved edit remains on the page and can be exported; retrying does not replace the newer saved data, and reload shows the saved copy. Tabs do not sync in the background, and an in-progress hand stays in the tab that dealt it. Two saves at the same instant are not a lock. **Confirm restore** still replaces this device's saved data, including data written by another tab. Cancel does not write.
 - Responsive browser tests do not certify behavior on physical iPhone/iPad hardware. Hosted deployment has a separate verification boundary.
 
 See [release notes](../releases/0.3.2.md) for the version's scope and [GitHub issues](https://github.com/ThineLord/PokGuy/issues) to report a problem. Include the version, browser, reproduction steps and expected result; do not attach private hand-history exports unless you intend to share them publicly.

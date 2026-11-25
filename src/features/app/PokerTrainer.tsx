@@ -56,8 +56,9 @@ import {
   EMPTY_STATS,
   loadDataWithRecovery,
   normalizeSettings,
-  saveData,
+  STORAGE_KEY,
 } from "../../storage/storage";
+import { commitLocalData, resolveLocalWrite } from "../../storage/localWrite";
 import type {
   AppSettings,
   PersistedData,
@@ -1415,7 +1416,7 @@ function SettingsView({
   data: PersistedData;
   updateSettings: (patch: Partial<AppSettings>) => void;
   updateProfile: (id: string, patch: Partial<PokerPersonality>) => void;
-  replaceData: (data: PersistedData) => void;
+  replaceData: (recipe: (data: PersistedData) => PersistedData) => void;
   onRestore: (backup: Backup, restart: boolean) => boolean;
 }) {
   const { aiDescription, aiName, locale, profileLabel, t } = useI18n();
@@ -1727,12 +1728,12 @@ function SettingsView({
             className="danger-button"
             onClick={() => {
               if (window.confirm(t("确定重置所有统计？牌局历史不会删除。")))
-                replaceData({
-                  ...data,
+                replaceData((current) => ({
+                  ...current,
                   stats: { ...EMPTY_STATS, byPosition: {} },
                   scenarioStats: { ...EMPTY_STATS, byPosition: {} },
                   legacyStats: { ...EMPTY_STATS, byPosition: {} },
-                });
+                }));
             }}
           >
             {t("重置统计")}
@@ -1741,7 +1742,11 @@ function SettingsView({
             className="danger-button"
             onClick={() => {
               if (window.confirm(t("确定清除全部历史牌局？此操作无法撤销。")))
-                replaceData({ ...data, recentHands: [], playerNotes: {} });
+                replaceData((current) => ({
+                  ...current,
+                  recentHands: [],
+                  playerNotes: {},
+                }));
             }}
           >
             {t("清除历史牌局")}
@@ -1912,9 +1917,13 @@ function PokerTrainerApp() {
     setLocale,
   } = useI18n();
   const [data, setData] = useState<PersistedData>(() => defaultData());
+  const dataRef = useRef(data);
+  const acknowledgedRaw = useRef<string | null>(null);
   const { mode, setMode } = useTheme();
   const restoreFault = useRef(false);
-  const [saveFailed, setSaveFailed] = useState(false);
+  const [saveBlock, setSaveBlock] = useState<null | "failed" | "conflict">(
+    null,
+  );
   const exportBackup = useBackupExport(data);
   const [view, setView] = useState<View>("table");
   const [game, setGame] = useState<PokerGameState | null>(null);
@@ -1940,10 +1949,14 @@ function PokerTrainerApp() {
     setFeedback("");
   }, [locale]);
 
-  const persist = useCallback(
-    (next: PersistedData) => {
-      setData(next);
-      if (typeof window === "undefined") return;
+  const commitFromMemory = useCallback(
+    (recipe: (current: PersistedData) => PersistedData) => {
+      const next = recipe(dataRef.current);
+      if (typeof window === "undefined") {
+        dataRef.current = next;
+        setData(next);
+        return next;
+      }
       if (restoreFault.current) {
         let restored = false;
         try {
@@ -1956,21 +1969,47 @@ function PokerTrainerApp() {
           /* Keep the rescue state visible. */
         }
         restoreFault.current = !restored;
-        setSaveFailed(!restored);
-      } else setSaveFailed(!saveData(next, browserStorage));
+        dataRef.current = next;
+        setData(next);
+        if (restored) {
+          try {
+            acknowledgedRaw.current = window.localStorage.getItem(STORAGE_KEY);
+          } catch {
+            acknowledgedRaw.current = null;
+          }
+          setSaveBlock(null);
+        } else setSaveBlock("failed");
+        return next;
+      }
+      const result = commitLocalData(
+        next,
+        acknowledgedRaw.current,
+        browserStorage,
+      );
+      if (result.status === "saved") {
+        acknowledgedRaw.current = result.raw;
+        dataRef.current = result.data;
+        setData(result.data);
+        setSaveBlock(null);
+        return result.data;
+      }
+      dataRef.current = next;
+      setData(next);
+      setSaveBlock(result.status);
+      return next;
     },
     [locale, mode],
   );
 
   useEffect(() => {
-    if (!saveFailed) return;
+    if (!saveBlock) return;
     const warn = (event: BeforeUnloadEvent) => {
       event.preventDefault();
       event.returnValue = "";
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [saveFailed]);
+  }, [saveBlock]);
   const startCashHand = useCallback(
     (source: PersistedData, stacks?: Record<string, number>, button = 0) => {
       const funded = buildPlayers(source, stacks);
@@ -2008,7 +2047,15 @@ function PokerTrainerApp() {
   };
 
   useEffect(() => {
+    let raw: string | null = null;
+    try {
+      raw = browserStorage.getItem(STORAGE_KEY);
+    } catch {
+      raw = null;
+    }
+    acknowledgedRaw.current = raw;
     const loaded = loadDataWithRecovery(browserStorage);
+    dataRef.current = loaded.data;
     setData(loaded.data);
     startCashHand(loaded.data, undefined, 0);
     if (loaded.recovered) setRecoveryNotice(true);
@@ -2018,9 +2065,10 @@ function PokerTrainerApp() {
   useEffect(() => {
     if (!game?.settled || savedHand.current === game.handId) return;
     savedHand.current = game.handId;
-    const next = appendCompletedHand(data, game, HERO_ID, aiTags);
-    persist(next);
-  }, [aiTags, data, game, persist]);
+    commitFromMemory((current) =>
+      appendCompletedHand(current, game, HERO_ID, aiTags),
+    );
+  }, [aiTags, game, commitFromMemory]);
 
   const hero = game?.players.find((player) => player.id === HERO_ID);
   const isScenarioHand = game?.handId.startsWith("scenario-") ?? false;
@@ -2240,10 +2288,10 @@ function PokerTrainerApp() {
       setGame(next);
       setError("");
       setFeedback(data.settings.hintStrength === "off" ? "" : message);
-      persist({
-        ...data,
-        trainingRecords: [record, ...data.trainingRecords].slice(0, 500),
-      });
+      commitFromMemory((current) => ({
+        ...current,
+        trainingRecords: [record, ...current.trainingRecords].slice(0, 500),
+      }));
     } catch (reason) {
       setError(
         reason instanceof Error
@@ -2430,37 +2478,64 @@ function PokerTrainerApp() {
     Boolean(hero) &&
     (hero?.stack ?? 0) + CHIP_EPSILON < heroRebuyTarget;
   const updateSettings = (patch: Partial<AppSettings>) =>
-    persist({
-      ...data,
+    commitFromMemory((current) => ({
+      ...current,
       settings: normalizeSettings(
-        { ...data.settings, ...patch },
-        data.settings,
-        new Set(data.aiProfiles.map((profile) => profile.id)),
+        { ...current.settings, ...patch },
+        current.settings,
+        new Set(current.aiProfiles.map((profile) => profile.id)),
       ),
-    });
-  const replaceData = (next: PersistedData) => persist(next);
+    }));
+  const replaceData = (recipe: (current: PersistedData) => PersistedData) =>
+    commitFromMemory(recipe);
   const importBackup = (backup: Backup, restart: boolean) => {
+    let payload = backup;
+    if (!restart) {
+      const current = dataRef.current;
+      const desired: PersistedData = {
+        ...current,
+        settings: backup.data.settings,
+        aiProfiles: backup.data.aiProfiles,
+      };
+      const resolved = resolveLocalWrite(
+        desired,
+        acknowledgedRaw.current,
+        browserStorage,
+      );
+      if (resolved.status === "conflict") {
+        setSaveBlock("conflict");
+        return false;
+      }
+      if (resolved.status !== "ready") return false;
+      payload = { ...backup, data: resolved.data };
+    }
     let result: ReturnType<typeof restoreBackup>;
     try {
-      result = restoreBackup(backup, window.localStorage);
+      result = restoreBackup(payload, window.localStorage);
     } catch {
       result = "failed";
     }
     if (result !== "saved") {
       if (result === "rollback-failed") {
         restoreFault.current = true;
-        setSaveFailed(true);
+        setSaveBlock("failed");
       }
       return false;
     }
-    setData(backup.data);
+    try {
+      acknowledgedRaw.current = window.localStorage.getItem(STORAGE_KEY);
+    } catch {
+      acknowledgedRaw.current = null;
+    }
+    dataRef.current = payload.data;
+    setData(payload.data);
     restoreFault.current = false;
-    setSaveFailed(false);
+    setSaveBlock(null);
     setLocale(backup.preferences.locale);
     setMode(backup.preferences.theme);
     if (restart) {
       cashBeforeScenario.current = null;
-      startCashHand(backup.data);
+      startCashHand(payload.data);
     }
     return true;
   };
@@ -2566,11 +2641,26 @@ function PokerTrainerApp() {
             </p>
           </div>
         )}
-        {saveFailed && (
+        {saveBlock && (
           <section className="recovery-message" role="alert">
-            <strong>{t("更改尚未保存。关闭或刷新页面可能丢失数据。")}</strong>
+            <strong>
+              {t(
+                saveBlock === "conflict"
+                  ? "另一个标签页已保存更新的数据。这次没有写入，已保存的牌局、统计和训练记录仍保留。"
+                  : "更改尚未保存。关闭或刷新页面可能丢失数据。",
+              )}
+            </strong>
+            {saveBlock === "conflict" && (
+              <p>
+                {t(
+                  "本页未保存的修改仍在。请先导出完整备份。重试不会覆盖较新的数据；刷新后显示已保存的内容。",
+                )}
+              </p>
+            )}
             <div className="button-grid">
-              <button onClick={() => persist(data)}>{t("重试保存")}</button>
+              <button onClick={() => commitFromMemory((current) => current)}>
+                {t("重试保存")}
+              </button>
               <button onClick={exportBackup}>{t("导出完整备份")}</button>
             </div>
           </section>
@@ -2604,11 +2694,10 @@ function PokerTrainerApp() {
                   preferredCount={data.settings.seatCount}
                   currentCount={game.players.length}
                   onStart={(seatCount) => {
-                    const next = {
-                      ...data,
-                      settings: { ...data.settings, seatCount },
-                    };
-                    persist(next);
+                    const next = commitFromMemory((current) => ({
+                      ...current,
+                      settings: { ...current.settings, seatCount },
+                    }));
                     cashBeforeScenario.current = null;
                     startCashHand(next, undefined, 0);
                   }}
@@ -3057,10 +3146,10 @@ function PokerTrainerApp() {
           <HistoryView
             data={data}
             onNote={(id, note) =>
-              persist({
-                ...data,
-                playerNotes: { ...data.playerNotes, [id]: note },
-              })
+              commitFromMemory((current) => ({
+                ...current,
+                playerNotes: { ...current.playerNotes, [id]: note },
+              }))
             }
           />
         )}
@@ -3070,12 +3159,12 @@ function PokerTrainerApp() {
             data={data}
             updateSettings={updateSettings}
             updateProfile={(id, patch) =>
-              persist({
-                ...data,
-                aiProfiles: data.aiProfiles.map((profile) =>
+              commitFromMemory((current) => ({
+                ...current,
+                aiProfiles: current.aiProfiles.map((profile) =>
                   profile.id === id ? { ...profile, ...patch } : profile,
                 ),
-              })
+              }))
             }
             replaceData={replaceData}
             onRestore={importBackup}
