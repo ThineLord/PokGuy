@@ -19,6 +19,7 @@ import {
   reasonWithBlindUnits,
 } from "./blindDisplay";
 import { recommendedHintAction } from "./recommendedAction";
+import { displayedTrainingOuts } from "./trainingOuts";
 import { decideAIAction } from "../../ai/decision/decide";
 import { getPersonality } from "../../ai/personalities/presets";
 import type { PokerPersonality } from "../../ai/types";
@@ -2289,6 +2290,15 @@ function PokerTrainerApp() {
         : roundChips(current),
     );
   }, [game, hero]);
+  const trainingOuts =
+    game && !game.settled && hero && assessment
+      ? displayedTrainingOuts({
+          street: game.street,
+          holeCards: hero.holeCards,
+          board: game.board,
+          drawStrength: assessment.drawStrength,
+        })
+      : null;
   const hintAction =
     assessment && game
       ? recommendedHintAction({
@@ -2747,10 +2757,9 @@ function PokerTrainerApp() {
                     {(assessment.equityEstimate * 100).toFixed(0)}%
                   </span>
                 )}
-                {!game.settled && data.settings.showOuts && assessment && (
+                {data.settings.showOuts && trainingOuts !== null && (
                   <span>
-                    <small>{t("估算补牌张数")}</small>≈{" "}
-                    {Math.round(assessment.drawStrength * 16)}
+                    <small>{t("估算补牌张数")}</small>≈ {trainingOuts}
                   </span>
                 )}
                 {!game.settled && data.settings.showRecommendedAction && (
