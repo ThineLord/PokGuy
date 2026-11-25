@@ -1,7 +1,5 @@
-import {
-  amountToCall,
-  legalActionsFor,
-} from "@/src/engine/betting/actionValidator";
+import { legalActionsFor } from "@/src/engine/betting/actionValidator";
+import { callPrice } from "@/src/engine/betting/callPrice";
 import {
   act,
   startHand,
@@ -21,17 +19,12 @@ function hintFor(
   heroId: string,
   equity: number,
 ) {
-  const hero = game.players.find((player) => player.id === heroId);
-  if (!hero) throw new Error("missing hero");
-  const pot = game.players.reduce(
-    (sum, player) => sum + player.totalContribution,
-    0,
-  );
+  const price = callPrice(game, heroId);
   return recommendedHintAction({
     equity,
     currentBet: game.currentBet,
-    toCall: amountToCall(game, hero),
-    pot,
+    toCall: price.payable,
+    callOdds: price.odds,
     legal: legalActionsFor(game, heroId),
   });
 }
@@ -95,5 +88,27 @@ describe("recommended action hint", () => {
     expect(hintFor(game, "hero", 0.9)).toBe("raise");
     const called = act(game, "hero", { type: "call" });
     expect(called.settled).toBe(false);
+  });
+
+  it("uses the 45% short-stack price instead of the nominal gap or raw pot", () => {
+    let game = startHand({
+      ...blinds,
+      players: [
+        { id: "hero", name: "Hero", seat: 0, stack: 10, kind: "human" },
+        { id: "button", name: "Button", seat: 1, stack: 100, kind: "ai" },
+      ],
+      dealerSeat: 1,
+    });
+    game = act(game, "button", { type: "all-in" });
+    const price = callPrice(game, "hero");
+    const pot = game.players.reduce(
+      (sum, player) => sum + player.totalContribution,
+      0,
+    );
+    expect(price.payable).toBe(9);
+    expect(price.odds).toBeCloseTo(0.45);
+    expect(price.odds).not.toBeCloseTo(9 / (pot + 9));
+    expect(hintFor(game, "hero", 0.42)).toBe("call");
+    expect(hintFor(game, "hero", 0.1)).toBe("fold");
   });
 });

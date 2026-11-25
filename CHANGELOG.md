@@ -4,6 +4,8 @@ Application releases use `vMAJOR.MINOR.PATCH`. Browser storage schemas are versi
 
 ## Unreleased
 
+- Call controls, table call labels, and newly recorded review context show the payable call, capped by the player's stack. Immediate pot odds divide the part of that call an opposing contribution already covers by the pots the player can win. The caller's own still-unmatched chips are subtracted from the risk, and the ratio is not clamped. Folded chips in those pots count. Unreachable side pots do not. Hints, call grading, and the AI pot-odds decision use that price. Total-pot display, betting, and settlement are unchanged.
+
 ## [0.3.2] — 2026-11-19
 
 - Optional action hints recommend only a legal action. When an opponent is already all-in and a further raise is forbidden, a strong hand suggests a call; a strong hand that can still raise or bet still suggests that action. Reference sizing is omitted when a bet or raise is not legal.

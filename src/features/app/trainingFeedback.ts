@@ -1,4 +1,4 @@
-import { amountToCall } from "../../engine/betting/actionValidator";
+import { callPrice } from "../../engine/betting/callPrice";
 import type { PokerAction } from "../../engine/betting/types";
 import type { PokerGameState } from "../../engine/state/gameState";
 import type { TrainingRecord } from "../../storage/types";
@@ -17,12 +17,13 @@ export function evaluateTrainingDecision(
     (sum, player) => sum + player.totalContribution,
     0,
   );
-  const toCall = amountToCall(game, hero);
+  const price = callPrice(game, hero.id);
+  const toCall = price.payable;
   const paid =
     action.type === "all-in"
       ? hero.stack
       : action.type === "call"
-        ? Math.min(hero.stack, toCall)
+        ? toCall
         : action.type === "bet" || action.type === "raise"
           ? Math.max(
               0,
@@ -52,7 +53,7 @@ export function evaluateTrainingDecision(
     paid > 0 &&
     !aggressive &&
     equity !== null &&
-    paid / (pot + paid) > equity + 0.08
+    price.odds > equity + 0.08
   ) {
     grade = "偏松";
     reason = "low-equity-call";

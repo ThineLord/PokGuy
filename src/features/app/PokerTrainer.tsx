@@ -22,10 +22,10 @@ import { decideAIAction } from "../../ai/decision/decide";
 import { getPersonality } from "../../ai/personalities/presets";
 import type { PokerPersonality } from "../../ai/types";
 import {
-  amountToCall,
   legalActionsFor,
   validateAction,
 } from "../../engine/betting/actionValidator";
+import { callPrice } from "../../engine/betting/callPrice";
 import type { PokerAction, PokerActionType } from "../../engine/betting/types";
 import { parseCards, rankLabel, type Card } from "../../engine/cards/cards";
 import type { HandEvaluation } from "../../engine/evaluator/evaluator";
@@ -1993,7 +1993,11 @@ function PokerTrainerApp() {
     game?.outcome?.termination ??
     (game?.outcome?.reason === "folds" ? "uncontested" : "river-showdown");
   const pot = game ? tablePot(game) : 0;
-  const toCall = game && hero ? amountToCall(game, hero) : 0;
+  const heroCall =
+    game && hero
+      ? callPrice(game, hero.id)
+      : { payable: 0, contestable: 0, odds: 0 };
+  const toCall = heroCall.payable;
   const liveOpponentCount = game
     ? Math.max(
         1,
@@ -2052,6 +2056,7 @@ function PokerTrainerApp() {
         const legalActions = Object.entries(validations)
           .filter(([, result]) => result.legal)
           .map(([action]) => action as PokerActionType);
+        const actorCall = callPrice(game, actor.id);
         const opponentStacks = game.players
           .filter((player) => player.id !== actor.id && isContender(player))
           .map((player) => player.stack);
@@ -2065,7 +2070,8 @@ function PokerTrainerApp() {
             board: game.board,
             street: game.street,
             pot,
-            toCall: amountToCall(game, actor),
+            toCall: actorCall.payable,
+            callOdds: actorCall.odds,
             minRaiseTo:
               game.currentBet === 0
                 ? game.bigBlind
@@ -2252,7 +2258,7 @@ function PokerTrainerApp() {
           equity: assessment.equityEstimate,
           currentBet: game.currentBet,
           toCall,
-          pot,
+          callOdds: heroCall.odds,
           legal,
         })
       : null;
@@ -2693,8 +2699,8 @@ function PokerTrainerApp() {
                 {!game.settled && data.settings.showPotOdds && (
                   <span>
                     <small>{t("底池赔率")}</small>
-                    {toCall
-                      ? `${((toCall / (pot + toCall)) * 100).toFixed(1)}%`
+                    {toCall > 0 && heroCall.odds > 0
+                      ? `${(heroCall.odds * 100).toFixed(1)}%`
                       : "0%"}
                   </span>
                 )}
