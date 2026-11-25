@@ -105,6 +105,8 @@ const ENGLISH: Record<string, string> = {
   逐街复盘: "Street-by-street replay",
   到: "to",
   起始状态: "Starting state",
+  终局公共牌: "Final board",
+  公共牌已发完: "Public cards dealt",
   盲注: "Blinds",
   上一步: "Previous",
   暂停: "Pause",
