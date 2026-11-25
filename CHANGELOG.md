@@ -4,6 +4,7 @@ Application releases use `vMAJOR.MINOR.PATCH`. Browser storage schemas are versi
 
 ## Unreleased
 
+- Starting stacks, blinds, and the AI delay in Settings keep unfinished text while they are typed. Leaving the field or pressing Enter saves a valid amount, and that amount remains after reload. An empty field, a value outside the allowed range, a blind that is not a 0.01 chip increment, or a small blind that is not below the big blind keeps the previous amounts and shows those amounts.
 - Call controls, table call labels, and newly recorded review context show the payable call, capped by the player's stack. Immediate pot odds divide the part of that call an opposing contribution already covers by the pots the player can win. The caller's own still-unmatched chips are subtracted from the risk, and the ratio is not clamped. Folded chips in those pots count. Unreachable side pots do not. Hints, call grading, and the AI pot-odds decision use that price. Total-pot display, betting, and settlement are unchanged.
 - Only the latest backup-file selection controls the restore preview, its status, and the payload offered for confirmation. A slower earlier read cannot replace that preview, reopen it after cancel or a completed restore, or change saved data before confirmation.
 

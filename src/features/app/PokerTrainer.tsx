@@ -4,6 +4,7 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -1337,6 +1338,62 @@ function StatsView({ data }: { data: PersistedData }) {
   );
 }
 
+function SettingsNumberInput({
+  label,
+  value,
+  min,
+  max,
+  step,
+  hint,
+  onCommit,
+}: {
+  label: string;
+  value: number;
+  min: string;
+  max?: string;
+  step?: string;
+  hint?: string;
+  onCommit: (value: number) => number;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  // Leave the browser's number field alone while typing. Writing the sanitized
+  // value back on each key drops a pending decimal point, so 0.25 becomes 250.
+  const commit = () => {
+    const input = inputRef.current;
+    if (!input) return;
+    const next = input.value.trim() === "" ? Number.NaN : input.valueAsNumber;
+    const stored = Number.isFinite(next) ? onCommit(next) : value;
+    if (input.value === "" || input.valueAsNumber !== stored)
+      input.value = String(stored);
+  };
+  useLayoutEffect(() => {
+    const input = inputRef.current;
+    if (!input || document.activeElement === input) return;
+    if (input.value === "" || input.valueAsNumber !== value)
+      input.value = String(value);
+  }, [value]);
+  return (
+    <label>
+      {label}
+      <input
+        ref={inputRef}
+        type="number"
+        min={min}
+        max={max}
+        step={step}
+        defaultValue={value}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter") return;
+          event.preventDefault();
+          event.currentTarget.blur();
+        }}
+      />
+      {hint ? <small className="form-helper">{hint}</small> : null}
+    </label>
+  );
+}
+
 function SettingsView({
   data,
   updateSettings,
@@ -1362,12 +1419,19 @@ function SettingsView({
     if (Number.isFinite(value))
       updateSettings({ [key]: value } as Partial<AppSettings>);
   };
-  const restoreInvalidNumber = (
-    key: keyof AppSettings,
-    input: HTMLInputElement,
+  const commitTableNumber = (
+    key: "startingStackBb" | "smallBlind" | "bigBlind" | "aiDelayMs",
+    next: number,
   ) => {
-    if (!Number.isFinite(input.valueAsNumber))
-      input.value = String(data.settings[key]);
+    const normalized = normalizeSettings(
+      { ...data.settings, [key]: next },
+      data.settings,
+      new Set(data.aiProfiles.map((candidate) => candidate.id)),
+    );
+    // Normalization keeps the previous amount when the text is unusable, and
+    // that snapshot is what remains in storage.
+    numberSetting(key, next);
+    return normalized[key];
   };
   const toggles: [keyof AppSettings, string][] = [
     ["animations", t("短动画")],
@@ -1451,73 +1515,36 @@ function SettingsView({
               ))}
             </select>
           </label>
-          <label>
-            {t("初始筹码（BB）")}
-            <input
-              type="number"
-              min="20"
-              max="500"
-              value={data.settings.startingStackBb}
-              onChange={(event) =>
-                numberSetting(
-                  "startingStackBb",
-                  event.currentTarget.valueAsNumber,
-                )
-              }
-              onBlur={(event) =>
-                restoreInvalidNumber("startingStackBb", event.currentTarget)
-              }
-            />
-          </label>
-          <label>
-            {t("小盲")}
-            <input
-              type="number"
-              min="0.01"
-              step="0.01"
-              value={data.settings.smallBlind}
-              onChange={(event) =>
-                numberSetting("smallBlind", event.currentTarget.valueAsNumber)
-              }
-              onBlur={(event) =>
-                restoreInvalidNumber("smallBlind", event.currentTarget)
-              }
-            />
-          </label>
-          <label>
-            {t("大盲")}
-            <input
-              type="number"
-              min="0.02"
-              step="0.01"
-              value={data.settings.bigBlind}
-              onChange={(event) =>
-                numberSetting("bigBlind", event.currentTarget.valueAsNumber)
-              }
-              onBlur={(event) =>
-                restoreInvalidNumber("bigBlind", event.currentTarget)
-              }
-            />
-          </label>
-          <label>
-            {t("AI 思考延迟（ms）")}
-            <input
-              type="number"
-              min="0"
-              max="3000"
-              step="50"
-              value={data.settings.aiDelayMs}
-              onChange={(event) =>
-                numberSetting("aiDelayMs", event.currentTarget.valueAsNumber)
-              }
-              onBlur={(event) =>
-                restoreInvalidNumber("aiDelayMs", event.currentTarget)
-              }
-            />
-            <small className="form-helper">
-              {t("开启动画时，机器人会至少留出约一秒观察时间。")}
-            </small>
-          </label>
+          <SettingsNumberInput
+            label={t("初始筹码（BB）")}
+            min="20"
+            max="500"
+            value={data.settings.startingStackBb}
+            onCommit={(next) => commitTableNumber("startingStackBb", next)}
+          />
+          <SettingsNumberInput
+            label={t("小盲")}
+            min="0.01"
+            step="0.01"
+            value={data.settings.smallBlind}
+            onCommit={(next) => commitTableNumber("smallBlind", next)}
+          />
+          <SettingsNumberInput
+            label={t("大盲")}
+            min="0.02"
+            step="0.01"
+            value={data.settings.bigBlind}
+            onCommit={(next) => commitTableNumber("bigBlind", next)}
+          />
+          <SettingsNumberInput
+            label={t("AI 思考延迟（ms）")}
+            min="0"
+            max="3000"
+            step="50"
+            hint={t("开启动画时，机器人会至少留出约一秒观察时间。")}
+            value={data.settings.aiDelayMs}
+            onCommit={(next) => commitTableNumber("aiDelayMs", next)}
+          />
           <label>
             {t("动画速度")}
             <select
