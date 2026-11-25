@@ -32,12 +32,16 @@ export function DataManagement({
   const { t, locale } = useI18n();
   const { mode } = useTheme();
   const input = useRef<HTMLInputElement>(null);
+  const backupRead = useRef(0);
   const [preview, setPreview] = useState<ReturnType<typeof parseBackup> | null>(
     null,
   );
   const [message, setMessage] = useState("");
   const exportBackup = useBackupExport(data);
   const preferences: Preferences = { locale, theme: mode };
+  const retireBackupRead = () => {
+    backupRead.current += 1;
+  };
   return (
     <div className="stack">
       <p>
@@ -64,13 +68,17 @@ export function DataManagement({
           onChange={async (event) => {
             const file = event.target.files?.[0];
             event.target.value = "";
+            const read = ++backupRead.current;
             setPreview(null);
             setMessage("");
             if (!file) return;
             try {
               if (file.size > MAX_BACKUP_BYTES) throw new Error("size");
-              setPreview(parseBackup(await file.text(), data, preferences));
+              const text = await file.text();
+              if (read !== backupRead.current) return;
+              setPreview(parseBackup(text, data, preferences));
             } catch {
+              if (read !== backupRead.current) return;
               setMessage("文件无效、不兼容或超过 10 MB。未修改现有数据。");
             }
           }}
@@ -95,12 +103,10 @@ export function DataManagement({
           <div className="button-grid">
             <button
               onClick={() => {
-                if (
-                  onRestore(
-                    prepareRestore(preview, data, preferences),
-                    !preview.legacy,
-                  )
-                ) {
+                const accepted = prepareRestore(preview, data, preferences);
+                const restart = !preview.legacy;
+                retireBackupRead();
+                if (onRestore(accepted, restart)) {
                   setPreview(null);
                   setMessage("备份已恢复并保存。");
                 } else
@@ -113,6 +119,7 @@ export function DataManagement({
             </button>
             <button
               onClick={() => {
+                retireBackupRead();
                 setPreview(null);
                 setMessage("");
               }}
