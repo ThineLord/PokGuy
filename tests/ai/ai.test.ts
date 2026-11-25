@@ -112,6 +112,29 @@ describe("AI personalities", () => {
     }
   });
 
+  it("uses immediate call odds for the pot-odds decision", () => {
+    const rock = getPersonality("rock");
+    const facing = {
+      ...observation(),
+      legalActions: ["fold", "call"] as AIObservation["legalActions"],
+      pot: 101,
+      toCall: 9,
+    };
+    expect(
+      decideAIAction({ ...facing, callOdds: 0.01 }, rock, 3).reasoningTags,
+    ).toContain("good-pot-odds");
+    expect(
+      decideAIAction({ ...facing, callOdds: 0.99 }, rock, 3).reasoningTags,
+    ).not.toContain("good-pot-odds");
+    expect(
+      decideAIAction(
+        { ...observation(), callOdds: 3 / (10 + 3) },
+        getPersonality("tag"),
+        77,
+      ),
+    ).toEqual(decideAIAction(observation(), getPersonality("tag"), 77));
+  });
+
   it("ignores any extraneous hidden opponent cards", () => {
     const clean = observation();
     const contaminated = {

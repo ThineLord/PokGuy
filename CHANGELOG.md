@@ -4,6 +4,11 @@ Application releases use `vMAJOR.MINOR.PATCH`. Browser storage schemas are versi
 
 ## Unreleased
 
+## [0.3.3] — 2026-11-25
+
+- Call controls, table call labels, and newly recorded review context show the payable call, capped by the player's stack. Immediate pot odds use the pots that player can win after calling, including folded chips in those pots and excluding unreachable side pots and uncalled chips. Hints, call grading, and the AI pot-odds decision use that price. Total-pot display, betting, and settlement are unchanged.
+- [English release notes](docs/releases/0.3.3.md) · [中文更新说明](docs/releases/0.3.3.zh-CN.md).
+
 ## [0.3.2] — 2026-11-19
 
 - Optional action hints recommend only a legal action. When an opponent is already all-in and a further raise is forbidden, a strong hand suggests a call; a strong hand that can still raise or bet still suggests that action. Reference sizing is omitted when a bet or raise is not legal.
@@ -60,3 +65,4 @@ The [historical changelog](https://github.com/ThineLord/PokGuy/blob/v0.3.0/docs/
 [0.3.0]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.0
 [0.3.1]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.1
 [0.3.2]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.2
+[0.3.3]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.3

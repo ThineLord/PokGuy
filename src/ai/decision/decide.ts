@@ -61,9 +61,12 @@ export function decideAIAction(
     120,
   );
   const potOdds =
-    observation.toCall <= 0
-      ? 0
-      : observation.toCall / (observation.pot + observation.toCall);
+    typeof observation.callOdds === "number" &&
+    Number.isFinite(observation.callOdds)
+      ? Math.max(0, observation.callOdds)
+      : observation.toCall <= 0
+        ? 0
+        : observation.toCall / (observation.pot + observation.toCall);
   const spr =
     observation.pot > 0 ? observation.effectiveStack / observation.pot : 20;
   const positionEdge =

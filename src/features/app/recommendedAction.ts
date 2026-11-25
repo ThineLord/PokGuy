@@ -6,13 +6,12 @@ export function recommendedHintAction(input: {
   equity: number | null | undefined;
   currentBet: number;
   toCall: number;
-  pot: number;
+  callOdds: number;
   legal: Record<string, Pick<ActionValidation, "legal">> | null;
 }): HintAction | null {
   if (input.equity == null || !Number.isFinite(input.equity)) return null;
   const allowed = (action: HintAction) => input.legal?.[action]?.legal === true;
-  const potOdds =
-    input.toCall > 0 ? input.toCall / (input.pot + input.toCall) : 0;
+  const potOdds = input.toCall > 0 ? Math.max(0, input.callOdds) : 0;
   if (input.equity > 0.62) {
     if (input.currentBet === 0 && allowed("bet")) return "bet";
     if (input.currentBet !== 0 && allowed("raise")) return "raise";

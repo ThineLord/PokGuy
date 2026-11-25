@@ -48,6 +48,8 @@ export interface AIObservation {
   street: Street;
   pot: number;
   toCall: number;
+  // Break-even equity of the payable call. When omitted, toCall / (pot + toCall).
+  callOdds?: number;
   minRaiseTo: number | null;
   maxRaiseTo: number;
   currentBet: number;
