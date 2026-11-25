@@ -48,7 +48,8 @@ export interface AIObservation {
   street: Street;
   pot: number;
   toCall: number;
-  // Break-even equity of the payable call. When omitted, toCall / (pot + toCall).
+  // Break-even equity of the payable call after removing the caller's own
+  // still-unmatched chips from the risk. When omitted, toCall / (pot + toCall).
   callOdds?: number;
   minRaiseTo: number | null;
   maxRaiseTo: number;

@@ -1,4 +1,7 @@
-import { amountToCall } from "@/src/engine/betting/actionValidator";
+import {
+  amountToCall,
+  legalActionsFor,
+} from "@/src/engine/betting/actionValidator";
 import { callPrice } from "@/src/engine/betting/callPrice";
 import {
   act,
@@ -216,6 +219,64 @@ describe("payable call price", () => {
     expect(game.players.reduce((sum, player) => sum + player.stack, 0)).toBe(
       310,
     );
+  });
+
+  it("prices a short-blind nominal call from matched risk instead of clamping", () => {
+    let game = startHand({
+      ...blinds,
+      players: [
+        { id: "btn", name: "Button", seat: 0, stack: 100, kind: "human" },
+        { id: "sb", name: "SB", seat: 1, stack: 0.1, kind: "ai" },
+        { id: "bb", name: "BB", seat: 2, stack: 0.2, kind: "ai" },
+        { id: "utg", name: "UTG", seat: 3, stack: 100, kind: "ai" },
+      ],
+      dealerSeat: 0,
+      handId: "hand-short-blind-call",
+    });
+    const utg = game.players.find((player) => player.id === "utg")!;
+    const opening = callPrice(game, "utg");
+    expect(game.actingPlayerId).toBe("utg");
+    expect(game.currentBet).toBe(1);
+    expect(legalActionsFor(game, "utg").call.toCall).toBe(1);
+    expect(amountToCall(game, utg)).toBe(1);
+    expect(opening.payable).toBe(1);
+    expect(opening.contestable).toBeCloseTo(0.5);
+    expect(opening.odds).toBeCloseTo(0.2 / 0.5);
+    expect(opening.odds).not.toBeCloseTo(1 / 0.5);
+    expect(opening.odds).not.toBeCloseTo(1);
+
+    game = act(game, "utg", { type: "call" });
+    const folded = act(game, "btn", { type: "fold" });
+    expect(folded.settled).toBe(true);
+    expect(folded.outcome?.uncalledReturns).toEqual({ utg: 0.8 });
+    expect(
+      folded.outcome?.pots.reduce((sum, pot) => sum + pot.amount, 0),
+    ).toBeCloseTo(0.5);
+    expect(
+      folded.players.reduce((sum, player) => sum + player.stack, 0),
+    ).toBeCloseTo(200.3);
+
+    const kept = callPrice(game, "btn");
+    expect(game.actingPlayerId).toBe("btn");
+    expect(legalActionsFor(game, "btn").call.toCall).toBe(1);
+    expect(kept.payable).toBe(1);
+    expect(kept.contestable).toBeCloseTo(2.3);
+    expect(kept.odds).toBeCloseTo(1 / 2.3);
+    expect(kept.odds).not.toBeCloseTo(1);
+    const called = act(game, "btn", { type: "call" });
+    expect(
+      called.players.find((player) => player.id === "btn")?.totalContribution,
+    ).toBe(1);
+    expect(
+      called.players.find((player) => player.id === "utg")?.totalContribution,
+    ).toBe(1);
+    expect(called.outcome?.uncalledReturns?.utg).toBeUndefined();
+    expect(
+      called.players.reduce(
+        (sum, player) => sum + player.stack + player.totalContribution,
+        0,
+      ),
+    ).toBeCloseTo(200.3);
   });
 
   it("keeps an older nominal to-call record readable", () => {

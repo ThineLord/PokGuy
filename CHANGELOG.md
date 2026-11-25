@@ -4,10 +4,7 @@ Application releases use `vMAJOR.MINOR.PATCH`. Browser storage schemas are versi
 
 ## Unreleased
 
-## [0.3.3] — 2026-11-25
-
-- Call controls, table call labels, and newly recorded review context show the payable call, capped by the player's stack. Immediate pot odds use the pots that player can win after calling, including folded chips in those pots and excluding unreachable side pots and uncalled chips. Hints, call grading, and the AI pot-odds decision use that price. Total-pot display, betting, and settlement are unchanged.
-- [English release notes](docs/releases/0.3.3.md) · [中文更新说明](docs/releases/0.3.3.zh-CN.md).
+- Call controls, table call labels, and newly recorded review context show the payable call, capped by the player's stack. Immediate pot odds divide the part of that call an opposing contribution already covers by the pots the player can win. The caller's own still-unmatched chips are subtracted from the risk, and the ratio is not clamped. Folded chips in those pots count. Unreachable side pots do not. Hints, call grading, and the AI pot-odds decision use that price. Total-pot display, betting, and settlement are unchanged.
 
 ## [0.3.2] — 2026-11-19
 
@@ -65,4 +62,3 @@ The [historical changelog](https://github.com/ThineLord/PokGuy/blob/v0.3.0/docs/
 [0.3.0]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.0
 [0.3.1]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.1
 [0.3.2]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.2
-[0.3.3]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.3
