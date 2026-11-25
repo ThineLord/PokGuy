@@ -69,6 +69,7 @@ import { evaluateTrainingDecision } from "./trainingFeedback";
 import { LanguageProvider, useI18n } from "./i18n";
 import { ArchitecturalBackdrop, PokGuyMark } from "./PokGuyIdentity";
 import { ThemeProvider, ThemeSelect, ThemeSettings, useTheme } from "./theme";
+import { replayTimeline } from "./replayTimeline";
 import {
   handNeedsReview,
   needsReview,
@@ -856,25 +857,27 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
     streetLabel,
     t,
   } = useI18n();
+  const frames = replayTimeline(hand.game);
+  const lastStep = Math.max(0, frames.length - 1);
   const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const actions = hand.game.actions;
   useEffect(() => {
     if (!playing) return;
     const timer = window.setInterval(
       () =>
         setStep((value) => {
-          if (value >= actions.length) {
+          if (value >= lastStep) {
             setPlaying(false);
-            return value;
+            return lastStep;
           }
           return value + 1;
         }),
       700,
     );
     return () => window.clearInterval(timer);
-  }, [actions.length, playing]);
-  const current = actions[Math.max(0, step - 1)];
+  }, [lastStep, playing]);
+  const frame = frames[Math.min(step, lastStep)] ?? frames[0];
+  const current = frame?.kind === "action" ? frame.action : undefined;
   return (
     <section className="panel replay-panel">
       <div className="panel-heading">
@@ -888,8 +891,8 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
         </span>
       </div>
       <div className="replay-board">
-        {(current?.board ?? []).map((card, index) => (
-          <CardView card={card} key={index} />
+        {(frame?.board ?? []).map((card, index) => (
+          <CardView card={card} key={`${card.rank}-${card.suit}-${index}`} />
         ))}
       </div>
       <div className="replay-event">
@@ -915,6 +918,11 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
               {formatBigBlinds(current.potAfter, hand.game.bigBlind)} BB
             </small>
           </>
+        ) : frame?.kind === "runout" ? (
+          <>
+            <strong>{t("终局公共牌")}</strong>
+            <small>{t("公共牌已发完")}</small>
+          </>
         ) : (
           <>
             <strong>{t("起始状态")}</strong>
@@ -925,17 +933,19 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
         )}
       </div>
       <div className="replay-controls">
-        <button onClick={() => setStep(Math.max(0, step - 1))}>
+        <button onClick={() => setStep((value) => Math.max(0, value - 1))}>
           {t("上一步")}
         </button>
         <button onClick={() => setPlaying((value) => !value)}>
           {playing ? t("暂停") : t("自动播放")}
         </button>
-        <button onClick={() => setStep(Math.min(actions.length, step + 1))}>
+        <button
+          onClick={() => setStep((value) => Math.min(lastStep, value + 1))}
+        >
           {t("下一步")}
         </button>
         <span>
-          {step}/{actions.length}
+          {Math.min(step, lastStep)}/{lastStep}
         </span>
       </div>
       {hand.game.outcome?.showdown && (
@@ -1210,7 +1220,7 @@ function HistoryView({
       </section>
       {hand && (
         <div>
-          <ReplayPanel hand={hand} />
+          <ReplayPanel key={hand.id} hand={hand} />
           <ReviewPanel hand={hand} records={data.trainingRecords} />
           <label className="note-field">
             {t("玩家笔记")}
