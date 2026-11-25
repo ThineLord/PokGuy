@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { appendCompletedHand, defaultData } from "../../src/storage/storage";
 import { act, startHand } from "../../src/engine/state/gameState";
 import { createBackup } from "../../src/storage/backup";
@@ -142,6 +142,131 @@ test("restore failure retains the previous dataset @webkit", async ({
   expect(await page.evaluate((key) => localStorage.getItem(key), key)).toBe(
     before,
   );
+});
+
+function backupFile(playerName: string, fileName: string) {
+  const data = populated();
+  data.settings.playerName = playerName;
+  return {
+    name: fileName,
+    mimeType: "application/json",
+    buffer: Buffer.from(
+      JSON.stringify(createBackup(data, { locale: "zh-CN", theme: "dark" })),
+    ),
+  };
+}
+
+async function delayFileText(page: Page, fileName: string) {
+  await page.evaluate((name) => {
+    const original = Blob.prototype.text;
+    const target = window as Window & {
+      __backupReadStarted?: boolean;
+      __releaseBackupRead?: () => Promise<void>;
+    };
+    Blob.prototype.text = function (this: Blob) {
+      if (!(this instanceof File) || this.name !== name)
+        return original.call(this);
+      target.__backupReadStarted = true;
+      return new Promise((resolve, reject) => {
+        target.__releaseBackupRead = () =>
+          original.call(this).then(resolve, reject);
+      });
+    };
+  }, fileName);
+}
+
+async function releaseDelayedFileText(page: Page) {
+  await page.evaluate(async () => {
+    const release = (
+      window as Window & { __releaseBackupRead?: () => Promise<void> }
+    ).__releaseBackupRead;
+    if (!release) throw new Error("backup read was not pending");
+    await release();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) =>
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => resolve(undefined)),
+      ),
+    );
+  });
+}
+
+test("a delayed earlier backup read cannot reopen a cancelled restore preview @webkit", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /设置/ }).click();
+  await delayFileText(page, "backup-a.json");
+  await page
+    .getByLabel("选择备份文件")
+    .setInputFiles(backupFile("Stale Alpha", "backup-a.json"));
+  await page.waitForFunction(
+    () =>
+      (window as Window & { __backupReadStarted?: boolean })
+        .__backupReadStarted === true,
+  );
+  const preview = page.getByLabel("恢复预览");
+  await expect(preview).toHaveCount(0);
+  await page
+    .getByLabel("选择备份文件")
+    .setInputFiles(backupFile("Fresh Bravo", "backup-b.json"));
+  await expect(preview).toContainText("Fresh Bravo");
+  await expect(preview).not.toContainText("Stale Alpha");
+  expect(
+    await page.evaluate((storageKey) => localStorage.getItem(storageKey), key),
+  ).toBeNull();
+  await page.getByRole("button", { name: "取消", exact: true }).click();
+  await expect(preview).toHaveCount(0);
+  const beforeRelease = await page.evaluate(
+    (storageKey) => localStorage.getItem(storageKey),
+    key,
+  );
+  await releaseDelayedFileText(page);
+  await expect(preview).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "确认恢复" })).toHaveCount(0);
+  await expect(page.getByText("Stale Alpha")).toHaveCount(0);
+  const afterRelease = await page.evaluate(
+    (storageKey) => localStorage.getItem(storageKey),
+    key,
+  );
+  expect(afterRelease).toBe(beforeRelease);
+  expect(afterRelease ?? "").not.toContain("Stale Alpha");
+});
+
+test("a delayed earlier backup read cannot contradict a newer invalid file @webkit", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /设置/ }).click();
+  await delayFileText(page, "backup-a.json");
+  await page
+    .getByLabel("选择备份文件")
+    .setInputFiles(backupFile("Stale Alpha", "backup-a.json"));
+  await page.waitForFunction(
+    () =>
+      (window as Window & { __backupReadStarted?: boolean })
+        .__backupReadStarted === true,
+  );
+  await page.getByLabel("选择备份文件").setInputFiles({
+    name: "backup-b.json",
+    mimeType: "application/json",
+    buffer: Buffer.from("[]"),
+  });
+  const error = page.getByText(
+    "文件无效、不兼容或超过 10 MB。未修改现有数据。",
+  );
+  await expect(error).toBeVisible();
+  await expect(page.getByLabel("恢复预览")).toHaveCount(0);
+  await releaseDelayedFileText(page);
+  await expect(error).toBeVisible();
+  await expect(page.getByLabel("恢复预览")).toHaveCount(0);
+  await expect(page.getByText("Stale Alpha")).toHaveCount(0);
+  expect(
+    (await page.evaluate(
+      (storageKey) => localStorage.getItem(storageKey),
+      key,
+    )) ?? "",
+  ).not.toContain("Stale Alpha");
 });
 
 test("legacy settings confirmation preserves the active hand @webkit", async ({
