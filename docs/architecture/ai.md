@@ -38,7 +38,15 @@ PokGuy 的 AI 用于单机训练，不追求求解器级最优。它强调长期
 
 流程先计算价值、赔率门槛、位置修正和受控随机扰动，再根据个性选择 fold/check/call/bet/raise/all-in。最终动作仍会通过统一规则验证器；若建议因边界状态失效，控制层只降级到合法的 check/call/fold，不会绕过引擎。
 
-`AIDecision.reasoningTags` 只在牌局结束后的复盘中展示，例如 `strong-made-hand`、`good-pot-odds`、`semi-bluff`、`position-advantage`、`stack-pressure` 和 `board-too-dangerous`。
+三个已在设置页保存的意识参数只在各自相关的局面里做有界修正，不改写上述流程：
+
+- `foldToPressure` 以 0.5 为中性点。只有存在应付跟注时，它才把继续所需胜率从 0 到 1 移动 0.16。高于中性点更倾向弃牌，低于中性点更倾向跟注。没有跟注额时结果不变。已经越过价值加注门槛的强牌不会因此弃牌。
+- `stackAwareness` 在有效筹码相对底池较短（SPR < 4），或跟注额达到有效筹码的 40% 时生效：轻跟注最多再要求 0.10 的胜率。胜率估计至少 0.58，或翻后成牌达到顺子时，价值加注门槛最多降低 0.12。SPR 在 6 到 14 且跟注不深时，0 和 1 的决策相同。更深的筹码只把一个已经选择的下注尺度最多缩小 22%，更浅则最多放大 28%，尺度仍落在最小加注和最大加注之间。
+- `boardTextureAwareness` 只读取公共牌的危险度，使用与手牌评估相同的牌面启发式，不混入任何底牌。翻前没有公共牌面，参数不参与。湿润牌面提高边际跟注和价值下注门槛，并降低持续下注频率；干燥牌面略微放宽。单项胜率和价值位移封顶为 0.08。
+
+这些修正不扩大合法动作，也不把其他玩家未公开的底牌写入观察。
+
+`AIDecision.reasoningTags` 只在牌局结束后的复盘中展示，例如 `strong-made-hand`、`good-pot-odds`、`semi-bluff`、`position-advantage`、`stack-pressure` 和 `board-too-dangerous`。滑条实际改变行动时，还可能出现 `folded-to-pressure`、`respected-stack-depth`、`committed-short-stack`、`sized-to-stack-depth`、`cautious-board-texture` 和 `dry-board-continue`。
 
 ## 习惯统计与适应
 

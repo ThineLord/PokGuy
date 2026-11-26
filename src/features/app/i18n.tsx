@@ -377,6 +377,27 @@ const DECISION_TAGS: Record<string, { "zh-CN": string; en: string }> = {
   },
   "high-fold-equity": { "zh-CN": "高弃牌率收益", en: "High fold equity" },
   "continuation-bet": { "zh-CN": "持续下注", en: "Continuation bet" },
+  "folded-to-pressure": { "zh-CN": "面对压力弃牌", en: "Folded to pressure" },
+  "committed-short-stack": {
+    "zh-CN": "短筹码承诺",
+    en: "Committed a short stack",
+  },
+  "respected-stack-depth": {
+    "zh-CN": "尊重筹码深度",
+    en: "Respected stack depth",
+  },
+  "sized-to-stack-depth": {
+    "zh-CN": "按筹码深度调整尺度",
+    en: "Sized to stack depth",
+  },
+  "cautious-board-texture": {
+    "zh-CN": "顾及湿润牌面",
+    en: "Cautious on a wet board",
+  },
+  "dry-board-continue": {
+    "zh-CN": "干燥牌面继续",
+    en: "Continued on a dry board",
+  },
 };
 
 const PROFILE_LABELS: Record<string, { "zh-CN": string; en: string }> = {
