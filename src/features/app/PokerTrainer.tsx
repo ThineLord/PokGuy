@@ -18,6 +18,7 @@ import {
   formatRecordedHandProfit,
   reasonWithBlindUnits,
 } from "./blindDisplay";
+import { pokerSeatLabels } from "./seatLabels";
 import { recommendedHintAction } from "./recommendedAction";
 import { displayedTrainingOuts } from "./trainingOuts";
 import { decideAIAction } from "../../ai/decision/decide";
@@ -413,6 +414,7 @@ function PokerTable({
     player.kind === "ai"
       ? aiName(player.personalityId, player.name)
       : player.name;
+  const seatedLabels = pokerSeatLabels(game.players, aiName);
   const reveal = game.settled && game.outcome?.reason === "showdown";
   const lastRecord = game.actions.at(-1);
   const lastActorId = lastRecord?.playerId;
@@ -446,10 +448,7 @@ function PokerTable({
         .filter(([, amount]) => amount > 0)
         .map(([id]) => id);
   const winnerNames = winnerIds
-    .map((id) => {
-      const player = game.players.find((candidate) => candidate.id === id);
-      return player ? displayName(player) : undefined;
-    })
+    .map((id) => seatedLabels.get(id))
     .filter(Boolean)
     .join(" / ");
   const [showShuffle, setShowShuffle] = useState(true);
@@ -740,13 +739,8 @@ function ShowdownBreakdown({ game }: { game: PokerGameState }) {
   const showdown = game.outcome?.showdown;
   if (!showdown) return null;
 
-  const playerName = (id: string) => {
-    const player = game.players.find((candidate) => candidate.id === id);
-    if (!player) return id;
-    return player.kind === "ai"
-      ? aiName(player.personalityId, player.name)
-      : player.name;
-  };
+  const seatedLabels = pokerSeatLabels(game.players, aiName);
+  const playerName = (id: string) => seatedLabels.get(id) ?? id;
   const winnerIds = new Set(
     showdown.awards.flatMap((award) => award.winnerIds),
   );
@@ -887,6 +881,7 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
   }, [lastStep, playing]);
   const frame = frames[Math.min(step, lastStep)] ?? frames[0];
   const current = frame?.kind === "action" ? frame.action : undefined;
+  const seatedLabels = pokerSeatLabels(hand.game.players, aiName);
   return (
     <section className="panel replay-panel">
       <div className="panel-heading">
@@ -907,17 +902,8 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
       <div className="replay-event">
         {current ? (
           <>
-            <strong>
-              {(() => {
-                const player = hand.game.players.find(
-                  (player) => player.id === current.playerId,
-                );
-                return player?.kind === "ai"
-                  ? aiName(player.personalityId, player.name)
-                  : player?.name;
-              })()}
-            </strong>{" "}
-            · {streetLabel(current.street)} · {actionLabel(current.action.type)}
+            <strong>{seatedLabels.get(current.playerId)}</strong> ·{" "}
+            {streetLabel(current.street)} · {actionLabel(current.action.type)}
             {current.action.amount
               ? ` ${t("到")} ${formatBigBlinds(current.action.amount, hand.game.bigBlind)} BB`
               : ""}
@@ -962,14 +948,7 @@ function ReplayPanel({ hand }: { hand: StoredHand }) {
           <strong>{t("摊牌")}</strong>
           {Object.keys(hand.game.outcome.showdown.evaluations).map((id) => (
             <span key={id}>
-              {(() => {
-                const player = hand.game.players.find(
-                  (candidate) => candidate.id === id,
-                );
-                return player?.kind === "ai"
-                  ? aiName(player.personalityId, player.name)
-                  : player?.name;
-              })()}
+              {seatedLabels.get(id)}
               {locale === "zh-CN" ? "：" : ": "}
               {categoryLabel(
                 hand.game.outcome?.showdown?.evaluations[id].category ?? "",
