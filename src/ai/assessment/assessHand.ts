@@ -22,6 +22,11 @@ export function preflopStrength([a, b]: [Card, Card]): number {
   return clamp(score);
 }
 
+export function publicBoardDanger(board: Card[]): number | null {
+  if (board.length < 3) return null;
+  return texture(board).danger;
+}
+
 function texture(cards: Card[]): { draw: number; danger: number; nut: number } {
   const suits = new Map<string, number>();
   cards.forEach((card) =>

@@ -16,7 +16,7 @@ On desktop, `F/K/C/R/A` activate Fold/Check/Call/Raise/All-in when the correspon
 
 ## Settings and data
 
-Settings include AI personalities, training hints, language, light/dark/system appearance, card backs and animation speed. Eight AI personalities provide different playing tendencies; their feedback and Monte Carlo estimates are approximate, not solver recommendations.
+Settings include AI personalities, training hints, language, light/dark/system appearance, card backs and animation speed. Eight AI personalities provide different playing tendencies; their feedback and Monte Carlo estimates are approximate, not solver recommendations. Fold to pressure changes a marginal call only when a bet is owed. Stack awareness changes a marginal commitment on a short or committing stack, and on a deep stack it only resizes a bet that was already chosen. Board-texture awareness reads the public board from the flop on: a wet board tightens a marginal continue, and a dry board allows a slightly thinner continue. Preflop play ignores that slider.
 
 Settings, statistics, notes, the most recent 100 hands and up to 500 training records are stored in LocalStorage. Storage is separate for each device, browser and site address; changing a port also changes the origin. Clearing site data removes saved records. Reloading starts a new cash session rather than restoring a live hand.
 

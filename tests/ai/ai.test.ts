@@ -1,9 +1,10 @@
 // @vitest-environment node
 import { adaptPersonality, smoothRate } from "@/src/ai/adaptation/adapt";
+import { publicBoardDanger } from "@/src/ai/assessment/assessHand";
 import { decideAIAction } from "@/src/ai/decision/decide";
 import { estimateEquity, simulationDeck } from "@/src/ai/equity/monteCarlo";
 import { getPersonality, PERSONALITIES } from "@/src/ai/personalities/presets";
-import type { AIObservation } from "@/src/ai/types";
+import type { AIObservation, PokerPersonality } from "@/src/ai/types";
 import {
   legalActionsFor,
   validateAction,
@@ -162,6 +163,318 @@ describe("AI personalities", () => {
     const station = actionsFor("station");
     expect(aggressiveCount(maniac)).toBeGreaterThan(aggressiveCount(rock) + 3);
     expect(foldCount(station)).toBeLessThan(foldCount(rock));
+  });
+});
+
+function withTrait(
+  patch: Partial<PokerPersonality>,
+  id = "tag",
+): PokerPersonality {
+  return { ...getPersonality(id), ...patch };
+}
+
+function traitSpot(patch: Partial<AIObservation> = {}): AIObservation {
+  return {
+    heroHoleCards: parseCards("7C 6D") as AIObservation["heroHoleCards"],
+    board: [],
+    street: "preflop",
+    pot: 15,
+    toCall: 10,
+    minRaiseTo: 20,
+    maxRaiseTo: 100,
+    currentBet: 10,
+    heroStreetContribution: 0,
+    heroStack: 100,
+    effectiveStack: 100,
+    position: 0.5,
+    opponents: 1,
+    allInOpponents: 0,
+    legalActions: ["fold", "call", "raise", "all-in"],
+    wasPreflopAggressor: false,
+    ...patch,
+  };
+}
+
+describe("advertised trait sliders", () => {
+  it("keeps the saved profile values for the three traits", () => {
+    expect(getPersonality("tag")).toMatchObject({
+      foldToPressure: 0.56,
+      stackAwareness: 0.65,
+      boardTextureAwareness: 0.65,
+    });
+    expect(getPersonality("rock").foldToPressure).toBe(0.76);
+    expect(getPersonality("station")).toMatchObject({
+      foldToPressure: 0.2,
+      boardTextureAwareness: 0.36,
+    });
+    expect(getPersonality("grinder")).toMatchObject({
+      stackAwareness: 0.94,
+      boardTextureAwareness: 0.9,
+    });
+  });
+
+  it("reads public board danger and ignores a preflop board", () => {
+    expect(publicBoardDanger([])).toBeNull();
+    expect(publicBoardDanger(parseCards("AH KH"))).toBeNull();
+    const wet = publicBoardDanger(parseCards("AH KH QH"));
+    const dry = publicBoardDanger(parseCards("QD 7C 2S"));
+    expect(wet).not.toBeNull();
+    expect(dry).not.toBeNull();
+    expect(wet!).toBeGreaterThan(dry!);
+  });
+
+  it("folds a marginal hand to a real bet and ignores fold-to-pressure when nothing is owed", () => {
+    const priced = traitSpot();
+    const loose = decideAIAction(priced, withTrait({ foldToPressure: 0 }), 4);
+    const tight = decideAIAction(priced, withTrait({ foldToPressure: 1 }), 4);
+    expect(loose.action).toBe("call");
+    expect(tight.action).toBe("fold");
+    expect(tight.reasoningTags).toContain("folded-to-pressure");
+    expect(loose.reasoningTags).not.toContain("folded-to-pressure");
+
+    const free = traitSpot({
+      toCall: 0,
+      currentBet: 0,
+      minRaiseTo: 2,
+      legalActions: ["check", "bet", "all-in"],
+    });
+    expect(decideAIAction(free, withTrait({ foldToPressure: 0 }), 4)).toEqual(
+      decideAIAction(free, withTrait({ foldToPressure: 1 }), 4),
+    );
+
+    const monster = traitSpot({
+      heroHoleCards: parseCards("AH AD") as AIObservation["heroHoleCards"],
+      pot: 12,
+      toCall: 4,
+      currentBet: 4,
+      minRaiseTo: 12,
+    });
+    const monsterLoose = decideAIAction(
+      monster,
+      withTrait({ foldToPressure: 0 }),
+      4,
+    );
+    const monsterTight = decideAIAction(
+      monster,
+      withTrait({ foldToPressure: 1 }),
+      4,
+    );
+    expect(monsterTight).toEqual(monsterLoose);
+    expect(monsterTight.action).toBe("raise");
+  });
+
+  it("changes short-stack commitment and leaves an ordinary stack unchanged", () => {
+    const short = traitSpot({
+      pot: 20.3,
+      toCall: 10,
+      currentBet: 10,
+      effectiveStack: 22,
+      heroStack: 22,
+      maxRaiseTo: 22,
+    });
+    const unaware = decideAIAction(short, withTrait({ stackAwareness: 0 }), 4);
+    const aware = decideAIAction(short, withTrait({ stackAwareness: 1 }), 4);
+    expect(unaware.action).toBe("call");
+    expect(aware.action).toBe("fold");
+    expect(aware.reasoningTags).toContain("respected-stack-depth");
+    expect(unaware.reasoningTags).not.toContain("respected-stack-depth");
+
+    const kings = traitSpot({
+      heroHoleCards: parseCards("KH KD") as AIObservation["heroHoleCards"],
+      board: parseCards("2C 7D 9S"),
+      street: "flop",
+      pot: 30,
+      toCall: 8,
+      currentBet: 8,
+      minRaiseTo: 16,
+      effectiveStack: 40,
+      heroStack: 40,
+      maxRaiseTo: 40,
+    });
+    const flat = decideAIAction(kings, withTrait({ stackAwareness: 0 }), 2);
+    const commit = decideAIAction(kings, withTrait({ stackAwareness: 1 }), 2);
+    expect(flat.action).toBe("call");
+    expect(commit.action).toBe("raise");
+    expect(commit.reasoningTags).toContain("committed-short-stack");
+    expect(flat.reasoningTags).not.toContain("committed-short-stack");
+    expect(["fold", "call"]).toContain(
+      decideAIAction(
+        { ...kings, legalActions: ["fold", "call"] },
+        withTrait({ stackAwareness: 1 }),
+        2,
+      ).action,
+    );
+
+    const ordinary = traitSpot({
+      pot: 10,
+      toCall: 3,
+      currentBet: 3,
+      minRaiseTo: 9,
+    });
+    expect(
+      decideAIAction(ordinary, withTrait({ stackAwareness: 0 }), 4),
+    ).toEqual(decideAIAction(ordinary, withTrait({ stackAwareness: 1 }), 4));
+
+    const deep = traitSpot({
+      heroHoleCards: parseCards("AS KH") as AIObservation["heroHoleCards"],
+      pot: 8,
+      toCall: 0,
+      currentBet: 0,
+      minRaiseTo: 2,
+      maxRaiseTo: 200,
+      effectiveStack: 200,
+      heroStack: 200,
+      legalActions: ["check", "bet", "all-in"],
+    });
+    const deepUnaware = decideAIAction(
+      deep,
+      withTrait({ stackAwareness: 0 }),
+      1,
+    );
+    const deepAware = decideAIAction(deep, withTrait({ stackAwareness: 1 }), 1);
+    expect(deepUnaware.action).toBe("bet");
+    expect(deepAware.action).toBe("bet");
+    expect(deepAware.amount).toBeLessThan(deepUnaware.amount ?? 0);
+    expect(deepAware.amount).toBeGreaterThanOrEqual(
+      (deepUnaware.amount ?? 0) * 0.75,
+    );
+    expect(deepAware.reasoningTags).toContain("sized-to-stack-depth");
+    expect(deepUnaware.reasoningTags).not.toContain("sized-to-stack-depth");
+  });
+
+  it("tightens a wet public board, continues thinner on a dry one, and ignores texture preflop", () => {
+    const wetCall = traitSpot({
+      heroHoleCards: parseCards("TC 9D") as AIObservation["heroHoleCards"],
+      board: parseCards("AH KH QH"),
+      street: "flop",
+      pot: 18.57,
+      toCall: 10,
+      currentBet: 10,
+      minRaiseTo: 20,
+    });
+    const looseCall = decideAIAction(
+      wetCall,
+      withTrait({ boardTextureAwareness: 0 }),
+      2,
+    );
+    const tightCall = decideAIAction(
+      wetCall,
+      withTrait({ boardTextureAwareness: 1 }),
+      2,
+    );
+    expect(looseCall.action).toBe("call");
+    expect(tightCall.action).toBe("fold");
+    expect(tightCall.reasoningTags).toContain("cautious-board-texture");
+    expect(tightCall.reasoningTags).not.toContain("folded-to-pressure");
+
+    const wetBet = traitSpot({
+      heroHoleCards: parseCards("8C 7D") as AIObservation["heroHoleCards"],
+      board: parseCards("AH KH QH"),
+      street: "flop",
+      pot: 8,
+      toCall: 0,
+      currentBet: 0,
+      minRaiseTo: 2,
+      legalActions: ["check", "bet", "all-in"],
+      wasPreflopAggressor: true,
+    });
+    expect(
+      decideAIAction(wetBet, withTrait({ boardTextureAwareness: 0 }), 11)
+        .action,
+    ).toBe("bet");
+    const checked = decideAIAction(
+      wetBet,
+      withTrait({ boardTextureAwareness: 1 }),
+      11,
+    );
+    expect(checked.action).toBe("check");
+    expect(checked.reasoningTags).toContain("cautious-board-texture");
+
+    const dryBet = traitSpot({
+      heroHoleCards: parseCards("8H 6D") as AIObservation["heroHoleCards"],
+      board: parseCards("QD 7C 2S"),
+      street: "flop",
+      pot: 8,
+      toCall: 0,
+      currentBet: 0,
+      minRaiseTo: 2,
+      legalActions: ["check", "bet", "all-in"],
+      wasPreflopAggressor: true,
+    });
+    expect(
+      decideAIAction(dryBet, withTrait({ boardTextureAwareness: 0 }), 10)
+        .action,
+    ).toBe("check");
+    const thin = decideAIAction(
+      dryBet,
+      withTrait({ boardTextureAwareness: 1 }),
+      10,
+    );
+    expect(thin.action).toBe("bet");
+    expect(thin.reasoningTags).toContain("dry-board-continue");
+
+    const preflop = traitSpot({
+      heroHoleCards: parseCards("8C 7D") as AIObservation["heroHoleCards"],
+      pot: 8,
+      toCall: 0,
+      currentBet: 0,
+      minRaiseTo: 2,
+      legalActions: ["check", "bet", "all-in"],
+      wasPreflopAggressor: true,
+    });
+    expect(
+      decideAIAction(preflop, withTrait({ boardTextureAwareness: 0 }), 11),
+    ).toEqual(
+      decideAIAction(preflop, withTrait({ boardTextureAwareness: 1 }), 11),
+    );
+  });
+
+  it("keeps hidden opponent cards out of the three trait decisions", () => {
+    const hidden = parseCards("3S 4S");
+    const spots = [
+      traitSpot(),
+      traitSpot({
+        heroHoleCards: parseCards("TC 9D") as AIObservation["heroHoleCards"],
+        board: parseCards("AH KH QH"),
+        street: "flop",
+        pot: 18.57,
+        toCall: 10,
+        currentBet: 10,
+        minRaiseTo: 20,
+      }),
+      traitSpot({
+        heroHoleCards: parseCards("KH KD") as AIObservation["heroHoleCards"],
+        board: parseCards("2C 7D 9S"),
+        street: "flop",
+        pot: 30,
+        toCall: 8,
+        currentBet: 8,
+        minRaiseTo: 16,
+        effectiveStack: 40,
+        heroStack: 40,
+        maxRaiseTo: 40,
+      }),
+    ];
+    const patches = [
+      { foldToPressure: 0 },
+      { foldToPressure: 1 },
+      { stackAwareness: 0 },
+      { stackAwareness: 1 },
+      { boardTextureAwareness: 0 },
+      { boardTextureAwareness: 1 },
+    ];
+    for (const spot of spots) {
+      for (const patch of patches) {
+        const personality = withTrait(patch);
+        expect(
+          decideAIAction(
+            { ...spot, opponentHoleCards: hidden } as AIObservation,
+            personality,
+            4,
+          ),
+        ).toEqual(decideAIAction(spot, personality, 4));
+      }
+    }
   });
 });
 
