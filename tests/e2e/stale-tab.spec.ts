@@ -524,4 +524,59 @@ test.describe("stale same-origin tabs", () => {
     expect(JSON.parse(beforeAutosave!).recentHands[0].id).toBe(committed.id);
     await context.close();
   });
+
+  test("a player-name autosave on the rescue page keeps a newer hand without retry @webkit", async ({
+    browser,
+  }) => {
+    const context = await browser.newContext();
+    const tabA = await context.newPage();
+    const tabB = await context.newPage();
+    await openApp(tabA);
+    await openApp(tabB);
+    await tabB.getByRole("button", { name: "设置" }).click();
+    await tabB
+      .getByRole("combobox", { name: "外观模式" })
+      .selectOption("light");
+    await expect
+      .poll(() => tabB.evaluate(() => localStorage.getItem("pokguy-theme")))
+      .toBe("light");
+    await installDataWriteFault(tabB);
+    await tabB.getByLabel("选择备份文件").setInputFiles(faultBackup());
+    await expect(tabB.getByLabel("恢复预览")).toBeVisible();
+    await tabB.getByRole("button", { name: "确认恢复" }).click();
+    await expect(tabB.getByRole("alert")).toContainText("更改尚未保存");
+    await expect(tabB.getByRole("alert")).not.toContainText("重试不会覆盖");
+    expect(
+      await tabB.evaluate(() => localStorage.getItem("pokguy-theme")),
+    ).toBe("dark");
+    await clearStorageFault(tabB);
+
+    const committed = await completeTwoPlayerFold(tabA);
+    const beforeAutosave = await tabB.evaluate(
+      (storageKey) => localStorage.getItem(storageKey),
+      key,
+    );
+    expect(JSON.parse(beforeAutosave!).recentHands[0].id).toBe(committed.id);
+    expect(JSON.parse(beforeAutosave!).recentHands).toHaveLength(1);
+
+    await tabB.getByLabel("玩家名称").fill("Rescue Tab");
+    await expect(tabB.getByLabel("玩家名称")).toHaveValue("Rescue Tab");
+    await expect(tabB.getByRole("alert")).toContainText("另一个标签页");
+    await expect(tabB.getByRole("alert")).toContainText("重试不会覆盖");
+    expect(
+      await tabB.evaluate(
+        (storageKey) => localStorage.getItem(storageKey),
+        key,
+      ),
+    ).toBe(beforeAutosave);
+
+    const autosaveBackup = await readBackup(tabB);
+    expect(autosaveBackup.format).toBe("pokguy-backup");
+    expect(autosaveBackup.formatVersion).toBe(1);
+    expect(autosaveBackup.data.version).toBe(2);
+    expect(autosaveBackup.data.settings.playerName).toBe("Rescue Tab");
+    expect(autosaveBackup.data.recentHands).toEqual([]);
+    expect(JSON.parse(beforeAutosave!).recentHands[0].id).toBe(committed.id);
+    await context.close();
+  });
 });
