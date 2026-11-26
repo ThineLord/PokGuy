@@ -159,6 +159,42 @@ export function restoreBackup(
     return failed ? "rollback-failed" : "failed";
   }
 }
+
+export interface RestoreKeySnapshot {
+  locale: string | null;
+  theme: string | null;
+  data: string | null;
+}
+
+// The three keys a full restore writes. A rescue retry may repair them only
+// while this snapshot is still current.
+export function readRestoreKeySnapshot(
+  storage: Pick<Storage, "getItem">,
+): RestoreKeySnapshot | null {
+  try {
+    return {
+      locale: storage.getItem("riverlab-locale"),
+      theme: storage.getItem("pokguy-theme"),
+      data: storage.getItem(STORAGE_KEY),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function restoreSnapshotMatches(
+  baseline: RestoreKeySnapshot | null,
+  storage: Pick<Storage, "getItem">,
+): boolean {
+  if (!baseline) return false;
+  const observed = readRestoreKeySnapshot(storage);
+  if (!observed) return false;
+  return (
+    observed.locale === baseline.locale &&
+    observed.theme === baseline.theme &&
+    observed.data === baseline.data
+  );
+}
 export function downloadJson(filename: string, value: unknown) {
   const url = URL.createObjectURL(
     new Blob([JSON.stringify(value, null, 2)], { type: "application/json" }),

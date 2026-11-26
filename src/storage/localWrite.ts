@@ -1,4 +1,9 @@
-import { defaultData, migrateData, STORAGE_KEY } from "./storage";
+import {
+  defaultData,
+  migrateData,
+  normalizeSettings,
+  STORAGE_KEY,
+} from "./storage";
 import type { PersistedData } from "./types";
 
 // Ordinary saves compare the caller's edit with the snapshot this tab last
@@ -45,6 +50,16 @@ function canonical(value: unknown): string {
 
 function same(left: unknown, right: unknown): boolean {
   return canonical(left) === canonical(right);
+}
+
+// Two tabs can each submit a legal settings field and still produce an illegal
+// combination, such as a small blind that is no longer below the saved big
+// blind. Refuse that write so the already saved pair stays in place.
+function legalSettings(settings: PersistedData["settings"]): boolean {
+  return same(
+    settings,
+    normalizeSettings(settings, settings, new Set(settings.selectedAiIds)),
+  );
 }
 
 function pick<T>(
@@ -96,7 +111,7 @@ function mergeFromAcknowledged(
     stored.settings,
     next.settings,
   );
-  if (!settings) return null;
+  if (!settings || !legalSettings(settings)) return null;
   const playerNotes = mergeRecord(
     acknowledged.playerNotes,
     stored.playerNotes,

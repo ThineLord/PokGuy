@@ -253,6 +253,100 @@ describe("local write protection", () => {
     expect(storage.getItem(STORAGE_KEY)).toBe(raw);
   });
 
+  it("refuses a merged blind pair that is no longer legal and keeps the saved pair", () => {
+    const base = defaultData();
+    const stored = {
+      ...base,
+      settings: { ...base.settings, bigBlind: 0.6 },
+    };
+    const raw = JSON.stringify(stored);
+    const storage = memoryStorage(raw);
+    const staleSmallBlind = commitLocalData(
+      {
+        ...base,
+        settings: { ...base.settings, smallBlind: 0.75 },
+      },
+      JSON.stringify(base),
+      storage,
+    );
+    expect(staleSmallBlind.status).toBe("conflict");
+    expect(storage.raw()).toBe(raw);
+    expect(JSON.parse(storage.raw()!).settings).toMatchObject({
+      smallBlind: 0.5,
+      bigBlind: 0.6,
+    });
+
+    const reversed = memoryStorage(
+      JSON.stringify({
+        ...base,
+        settings: { ...base.settings, smallBlind: 0.75 },
+      }),
+    );
+    const before = reversed.raw();
+    const staleBigBlind = commitLocalData(
+      {
+        ...base,
+        settings: { ...base.settings, bigBlind: 0.6 },
+      },
+      JSON.stringify(base),
+      reversed,
+    );
+    expect(staleBigBlind.status).toBe("conflict");
+    expect(reversed.raw()).toBe(before);
+    expect(JSON.parse(reversed.raw()!).settings).toMatchObject({
+      smallBlind: 0.75,
+      bigBlind: 1,
+    });
+  });
+
+  it("merges compatible blind and settings edits that stay legal together", () => {
+    const base = defaultData();
+    const stored = {
+      ...base,
+      settings: { ...base.settings, bigBlind: 2, playerName: "From A" },
+    };
+    const raw = JSON.stringify(stored);
+    const storage = memoryStorage(raw);
+    const merged = commitLocalData(
+      {
+        ...base,
+        settings: { ...base.settings, smallBlind: 0.75 },
+        playerNotes: { later: "from the old page" },
+      },
+      JSON.stringify(base),
+      storage,
+    );
+    expect(merged.status).toBe("saved");
+    if (merged.status !== "saved") return;
+    expect(merged.data.settings).toMatchObject({
+      smallBlind: 0.75,
+      bigBlind: 2,
+      playerName: "From A",
+    });
+    expect(merged.data.playerNotes.later).toBe("from the old page");
+
+    const wideBlind = 100_000_000_000;
+    const wideRaw = JSON.stringify({
+      ...base,
+      settings: { ...base.settings, bigBlind: wideBlind },
+    });
+    const overflow = memoryStorage(wideRaw);
+    const refused = commitLocalData(
+      {
+        ...base,
+        settings: { ...base.settings, startingStackBb: 500 },
+      },
+      JSON.stringify(base),
+      overflow,
+    );
+    expect(refused.status).toBe("conflict");
+    expect(overflow.raw()).toBe(wideRaw);
+    expect(JSON.parse(overflow.raw()!).settings).toMatchObject({
+      startingStackBb: 100,
+      bigBlind: wideBlind,
+    });
+  });
+
   it("reports a storage failure without replacing the previous value", () => {
     const raw = JSON.stringify(completed("hand-a"));
     const storage = {

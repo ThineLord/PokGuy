@@ -65,7 +65,14 @@ import type {
   StoredHand,
   TrainingRecord,
 } from "../../storage/types";
-import { createBackup, restoreBackup, type Backup } from "../../storage/backup";
+import {
+  createBackup,
+  readRestoreKeySnapshot,
+  restoreBackup,
+  restoreSnapshotMatches,
+  type Backup,
+  type RestoreKeySnapshot,
+} from "../../storage/backup";
 import { DataManagement, useBackupExport } from "./DataManagement";
 import { evaluateTrainingDecision } from "./trainingFeedback";
 import { LanguageProvider, useI18n } from "./i18n";
@@ -1921,6 +1928,7 @@ function PokerTrainerApp() {
   const acknowledgedRaw = useRef<string | null>(null);
   const { mode, setMode } = useTheme();
   const restoreFault = useRef(false);
+  const rescueBaseline = useRef<RestoreKeySnapshot | null>(null);
   const [saveBlock, setSaveBlock] = useState<null | "failed" | "conflict">(
     null,
   );
@@ -1958,6 +1966,17 @@ function PokerTrainerApp() {
         return next;
       }
       if (restoreFault.current) {
+        // Repair the three restore keys only while they still match the
+        // post-failure snapshot. A newer dataset, or any other external write,
+        // stays on disk; this page keeps the unsaved copy for export.
+        if (
+          !restoreSnapshotMatches(rescueBaseline.current, window.localStorage)
+        ) {
+          dataRef.current = next;
+          setData(next);
+          setSaveBlock("conflict");
+          return next;
+        }
         let restored = false;
         try {
           restored =
@@ -1972,13 +1991,18 @@ function PokerTrainerApp() {
         dataRef.current = next;
         setData(next);
         if (restored) {
+          rescueBaseline.current = null;
           try {
             acknowledgedRaw.current = window.localStorage.getItem(STORAGE_KEY);
           } catch {
             acknowledgedRaw.current = null;
           }
           setSaveBlock(null);
-        } else setSaveBlock("failed");
+        } else {
+          const observed = readRestoreKeySnapshot(window.localStorage);
+          if (observed) rescueBaseline.current = observed;
+          setSaveBlock("failed");
+        }
         return next;
       }
       const result = commitLocalData(
@@ -2518,6 +2542,7 @@ function PokerTrainerApp() {
     if (result !== "saved") {
       if (result === "rollback-failed") {
         restoreFault.current = true;
+        rescueBaseline.current = readRestoreKeySnapshot(window.localStorage);
         setSaveBlock("failed");
       }
       return false;
@@ -2530,6 +2555,7 @@ function PokerTrainerApp() {
     dataRef.current = payload.data;
     setData(payload.data);
     restoreFault.current = false;
+    rescueBaseline.current = null;
     setSaveBlock(null);
     setLocale(backup.preferences.locale);
     setMode(backup.preferences.theme);

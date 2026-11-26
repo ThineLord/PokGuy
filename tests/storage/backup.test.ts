@@ -2,7 +2,9 @@ import {
   createBackup,
   parseBackup,
   prepareRestore,
+  readRestoreKeySnapshot,
   restoreBackup,
+  restoreSnapshotMatches,
 } from "@/src/storage/backup";
 import {
   appendCompletedHand,
@@ -153,6 +155,44 @@ it("recognizes settings-only exports explicitly and preserves history", () => {
   expect(result.backup.data.settings.playerName).toBe("Restored");
   expect(result.backup.data.recentHands).toEqual(data.recentHands);
 });
+it("matches an untouched restore snapshot and fails closed when a key changes or cannot be read", () => {
+  const values = new Map<string, string>([
+    ["riverlab-locale", "zh-CN"],
+    ["pokguy-theme", "light"],
+    [STORAGE_KEY, JSON.stringify(defaultData())],
+  ]);
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      values.set(key, value);
+    },
+  };
+  const baseline = readRestoreKeySnapshot(storage);
+  expect(baseline).toEqual({
+    locale: "zh-CN",
+    theme: "light",
+    data: values.get(STORAGE_KEY),
+  });
+  expect(restoreSnapshotMatches(baseline, storage)).toBe(true);
+  storage.setItem(STORAGE_KEY, JSON.stringify(sample()));
+  expect(restoreSnapshotMatches(baseline, storage)).toBe(false);
+  expect(restoreSnapshotMatches(null, storage)).toBe(false);
+  expect(
+    readRestoreKeySnapshot({
+      getItem: () => {
+        throw new Error("denied");
+      },
+    }),
+  ).toBeNull();
+  expect(
+    restoreSnapshotMatches(baseline, {
+      getItem: () => {
+        throw new Error("denied");
+      },
+    }),
+  ).toBe(false);
+});
+
 it("rolls back preferences after a quota error and permits a successful retry", () => {
   const old = defaultData();
   const values = new Map([
