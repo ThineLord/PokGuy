@@ -62,6 +62,10 @@ const ENGLISH: Record<string, string> = {
     "Restore did not complete. Export your current backup, free storage space and retry.",
   "更改尚未保存。关闭或刷新页面可能丢失数据。":
     "Changes are not saved. Closing or refreshing may lose data.",
+  "另一个标签页已保存更新的数据。这次没有写入，已保存的牌局、统计和训练记录仍保留。":
+    "Another tab saved newer data. This change was not written. Saved hands, statistics, and training records remain.",
+  "本页未保存的修改仍在。请先导出完整备份。重试不会覆盖较新的数据；刷新后显示已保存的内容。":
+    "This page still has the unsaved changes. Export a full backup first. Retrying does not replace the newer data; reload shows what was saved.",
   重试保存: "Retry save",
 
   外观: "Appearance",
