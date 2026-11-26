@@ -23,6 +23,27 @@ async function storedBlinds(page: Page) {
   }, key);
 }
 
+function customOpponentBackup() {
+  const data = defaultData();
+  data.aiProfiles = data.aiProfiles.map((profile) =>
+    profile.id === "trapper"
+      ? {
+          ...profile,
+          id: "custom-opponent",
+          name: "Custom Opponent",
+          description: "Replaces the unselected trapper profile.",
+        }
+      : profile,
+  );
+  return {
+    name: "custom-opponent.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(
+      JSON.stringify(createBackup(data, { locale: "zh-CN", theme: "dark" })),
+    ),
+  };
+}
+
 function faultBackup() {
   const data = defaultData();
   data.settings = { ...data.settings, playerName: "Backup Hero" };
@@ -59,6 +80,28 @@ async function installDataWriteFault(page: Page) {
 async function clearStorageFault(page: Page) {
   await page.evaluate(() => {
     (window as unknown as { restoreStorage: () => void }).restoreStorage();
+  });
+}
+
+async function storedOpponents(page: Page) {
+  return page.evaluate((storageKey) => {
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    return {
+      raw,
+      name: data.settings.playerName as string,
+      selected: data.settings.selectedAiIds as string[],
+      profiles: data.aiProfiles.map((profile: { id: string }) => profile.id),
+    };
+  }, key);
+}
+
+async function importBackupFile(page: Page, backup: unknown) {
+  await page.getByLabel("选择备份文件").setInputFiles({
+    name: "exported-backup.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify(backup)),
   });
 }
 
@@ -406,6 +449,104 @@ test.describe("stale same-origin tabs", () => {
       });
     await expect(tabB.getByRole("alert")).toHaveCount(0);
     await expect(tabA.getByRole("alert")).toHaveCount(0);
+    await context.close();
+  });
+
+  test("a stale add does not select a profile the other tab replaced @webkit", async ({
+    browser,
+  }) => {
+    const context = await browser.newContext();
+    const tabA = await context.newPage();
+    const tabB = await context.newPage();
+    await openApp(tabA);
+    await openApp(tabB);
+    await tabB.getByRole("button", { name: "设置" }).click();
+    await tabB.getByRole("button", { name: /西尔瓦 · 陷阱型/ }).click();
+    await expect(
+      tabB.getByRole("button", { name: "加入对手池" }),
+    ).toBeVisible();
+
+    await tabA.getByRole("button", { name: "设置" }).click();
+    await tabA.getByLabel("选择备份文件").setInputFiles(customOpponentBackup());
+    await expect(tabA.getByLabel("恢复预览")).toBeVisible();
+    await tabA.getByRole("button", { name: "确认恢复" }).click();
+    await expect(tabA.getByLabel("恢复预览")).toHaveCount(0);
+    const saved = await storedOpponents(tabA);
+    expect(saved?.profiles).toContain("custom-opponent");
+    expect(saved?.profiles).not.toContain("trapper");
+    expect(saved?.selected).not.toContain("trapper");
+    expect(saved?.selected).not.toContain("custom-opponent");
+
+    await tabB.getByRole("button", { name: "加入对手池" }).click();
+    await expect(tabB.getByRole("alert")).toContainText("另一个标签页");
+    expect(await storedOpponents(tabB)).toEqual(saved);
+    await tabB
+      .getByRole("alert")
+      .getByRole("button", { name: "重试保存" })
+      .click();
+    await expect(tabB.getByRole("alert")).toContainText("重试不会覆盖");
+    expect(await storedOpponents(tabB)).toEqual(saved);
+
+    const backup = await readBackup(tabB);
+    expect(backup.format).toBe("pokguy-backup");
+    expect(backup.data.settings.selectedAiIds).toContain("trapper");
+    expect(
+      backup.data.aiProfiles.map((profile: { id: string }) => profile.id),
+    ).toContain("trapper");
+    await importBackupFile(tabB, backup);
+    await expect(tabB.getByLabel("恢复预览")).toBeVisible();
+    await expect(
+      tabB.getByText("文件无效、不兼容或超过 10 MB。未修改现有数据。"),
+    ).toHaveCount(0);
+    expect(await storedOpponents(tabB)).toEqual(saved);
+    await context.close();
+  });
+
+  test("a disjoint edit keeps a legal custom profile and its backup previews @webkit", async ({
+    browser,
+  }) => {
+    const context = await browser.newContext();
+    const tabA = await context.newPage();
+    const tabB = await context.newPage();
+    await openApp(tabA);
+    await openApp(tabB);
+    await tabA.getByRole("button", { name: "设置" }).click();
+    await tabA.getByLabel("选择备份文件").setInputFiles(customOpponentBackup());
+    await expect(tabA.getByLabel("恢复预览")).toBeVisible();
+    await tabA.getByRole("button", { name: "确认恢复" }).click();
+    await expect(tabA.getByLabel("恢复预览")).toHaveCount(0);
+
+    await tabB.getByRole("button", { name: "设置" }).click();
+    await tabB.getByLabel("玩家名称").fill("Stale Hero");
+    await expect
+      .poll(() => storedOpponents(tabB))
+      .toMatchObject({
+        name: "Stale Hero",
+        selected: ["tag", "lag", "rock", "station", "grinder"],
+      });
+    const saved = await storedOpponents(tabB);
+    expect(saved?.profiles).toContain("custom-opponent");
+    expect(saved?.profiles).not.toContain("trapper");
+    expect(saved?.selected).not.toContain("trapper");
+    await expect(tabB.getByRole("alert")).toHaveCount(0);
+
+    const download = tabB.waitForEvent("download");
+    await tabB.getByRole("button", { name: "导出完整备份" }).click();
+    const stream = await (await download).createReadStream();
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream!) chunks.push(chunk);
+    const backup = JSON.parse(Buffer.concat(chunks).toString());
+    expect(backup.data.settings.playerName).toBe("Stale Hero");
+    expect(backup.data.settings.selectedAiIds).not.toContain("trapper");
+    expect(
+      backup.data.aiProfiles.map((profile: { id: string }) => profile.id),
+    ).toContain("custom-opponent");
+    await importBackupFile(tabB, backup);
+    await expect(tabB.getByLabel("恢复预览")).toBeVisible();
+    await expect(tabB.getByLabel("恢复预览")).toContainText("Stale Hero");
+    await expect(
+      tabB.getByText("文件无效、不兼容或超过 10 MB。未修改现有数据。"),
+    ).toHaveCount(0);
     await context.close();
   });
 

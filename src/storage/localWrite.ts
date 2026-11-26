@@ -1,9 +1,4 @@
-import {
-  defaultData,
-  migrateData,
-  normalizeSettings,
-  STORAGE_KEY,
-} from "./storage";
+import { defaultData, migrateData, STORAGE_KEY } from "./storage";
 import type { PersistedData } from "./types";
 
 // Ordinary saves compare the caller's edit with the snapshot this tab last
@@ -52,14 +47,12 @@ function same(left: unknown, right: unknown): boolean {
   return canonical(left) === canonical(right);
 }
 
-// Two tabs can each submit a legal settings field and still produce an illegal
-// combination, such as a small blind that is no longer below the saved big
-// blind. Refuse that write so the already saved pair stays in place.
-function legalSettings(settings: PersistedData["settings"]): boolean {
-  return same(
-    settings,
-    normalizeSettings(settings, settings, new Set(settings.selectedAiIds)),
-  );
+// Two tabs can each submit a legal field and still produce a result that
+// migration or import would rewrite. That includes blinds that are no longer
+// ordered, and selected opponents that are absent from the finally merged
+// profiles. Refuse that write so the already saved data stays in place.
+function stableForImport(data: PersistedData): boolean {
+  return same(data, migrateData(data));
 }
 
 function pick<T>(
@@ -111,14 +104,18 @@ function mergeFromAcknowledged(
     stored.settings,
     next.settings,
   );
-  if (!settings || !legalSettings(settings)) return null;
+  if (!settings) return null;
   const playerNotes = mergeRecord(
     acknowledged.playerNotes,
     stored.playerNotes,
     next.playerNotes,
   );
   if (!playerNotes) return null;
-  return { ...merged, settings, playerNotes };
+  const result = { ...merged, settings, playerNotes };
+  // selectedAiIds are checked against the real IDs in the merged profiles,
+  // because that is the set migration and import use.
+  if (!stableForImport(result)) return null;
+  return result;
 }
 
 function acknowledgedData(raw: string | null): PersistedData | null {

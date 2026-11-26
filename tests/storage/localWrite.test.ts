@@ -1,4 +1,4 @@
-import { createBackup, restoreBackup } from "@/src/storage/backup";
+import { createBackup, parseBackup, restoreBackup } from "@/src/storage/backup";
 import { commitLocalData, resolveLocalWrite } from "@/src/storage/localWrite";
 import {
   appendCompletedHand,
@@ -52,6 +52,55 @@ function completed(handId: string): PersistedData {
 
 function storedHands(raw: string | null) {
   return JSON.parse(raw ?? "{}").recentHands?.length ?? 0;
+}
+
+const previewPreferences = { locale: "zh-CN" as const, theme: "dark" as const };
+
+function replaceTrapper(data: PersistedData): PersistedData {
+  return {
+    ...data,
+    aiProfiles: data.aiProfiles.map((profile) =>
+      profile.id === "trapper"
+        ? {
+            ...profile,
+            id: "custom-opponent",
+            name: "Custom Opponent",
+            description: "Replaces the unselected trapper profile.",
+          }
+        : profile,
+    ),
+  };
+}
+
+function customOnly(data: PersistedData): PersistedData {
+  const aiProfiles = data.aiProfiles.map((profile, index) => ({
+    ...profile,
+    id: `custom-${index}`,
+    name: `Custom ${index}`,
+  }));
+  return {
+    ...data,
+    aiProfiles,
+    settings: {
+      ...data.settings,
+      selectedAiIds: [aiProfiles[0].id, aiProfiles[1].id],
+    },
+  };
+}
+
+function expectPreview(data: PersistedData) {
+  const preview = parseBackup(
+    JSON.stringify(createBackup(data, previewPreferences)),
+    defaultData(),
+    previewPreferences,
+  );
+  expect(preview.legacy).toBe(false);
+  expect(preview.backup.data.settings.selectedAiIds).toEqual(
+    data.settings.selectedAiIds,
+  );
+  expect(preview.backup.data.aiProfiles.map((profile) => profile.id)).toEqual(
+    data.aiProfiles.map((profile) => profile.id),
+  );
 }
 
 describe("local write protection", () => {
@@ -345,6 +394,150 @@ describe("local write protection", () => {
       startingStackBb: 100,
       bigBlind: wideBlind,
     });
+  });
+
+  it("refuses a merged selection that names a profile the saved list no longer includes", () => {
+    const base = defaultData();
+    const stored = replaceTrapper(base);
+    const raw = JSON.stringify(stored);
+    const storage = memoryStorage(raw);
+    const acknowledged = JSON.stringify(base);
+    const staleAdd = commitLocalData(
+      {
+        ...base,
+        settings: {
+          ...base.settings,
+          selectedAiIds: [...base.settings.selectedAiIds, "trapper"],
+        },
+      },
+      acknowledged,
+      storage,
+    );
+    expect(staleAdd.status).toBe("conflict");
+    expect(storage.raw()).toBe(raw);
+    const preserved = JSON.parse(storage.raw()!);
+    expect(preserved.settings.selectedAiIds).not.toContain("trapper");
+    expect(preserved.settings.selectedAiIds).toEqual(
+      base.settings.selectedAiIds,
+    );
+    expect(
+      preserved.aiProfiles.map((profile: { id: string }) => profile.id),
+    ).toEqual(stored.aiProfiles.map((profile) => profile.id));
+    expectPreview(stored);
+    expect(() =>
+      parseBackup(
+        JSON.stringify(
+          createBackup(
+            {
+              ...stored,
+              settings: {
+                ...stored.settings,
+                selectedAiIds: [...stored.settings.selectedAiIds, "trapper"],
+              },
+            },
+            previewPreferences,
+          ),
+        ),
+        defaultData(),
+        previewPreferences,
+      ),
+    ).toThrow("backup-invalid-data");
+
+    const selected = {
+      ...base,
+      settings: {
+        ...base.settings,
+        selectedAiIds: [...base.settings.selectedAiIds, "trapper"],
+      },
+    };
+    const selectedRaw = JSON.stringify(selected);
+    const reverse = memoryStorage(selectedRaw);
+    const staleReplace = commitLocalData(
+      replaceTrapper(base),
+      acknowledged,
+      reverse,
+    );
+    expect(staleReplace.status).toBe("conflict");
+    expect(reverse.raw()).toBe(selectedRaw);
+    expectPreview(selected);
+  });
+
+  it("merges a still-present opponent and a disjoint custom-profile edit", () => {
+    const base = defaultData();
+    const stored = replaceTrapper(base);
+    const acknowledged = JSON.stringify(base);
+    const added = commitLocalData(
+      {
+        ...base,
+        settings: {
+          ...base.settings,
+          selectedAiIds: [...base.settings.selectedAiIds, "recreational"],
+        },
+      },
+      acknowledged,
+      memoryStorage(JSON.stringify(stored)),
+    );
+    expect(added.status).toBe("saved");
+    if (added.status !== "saved") return;
+    expect(added.data.settings.selectedAiIds).toEqual([
+      ...base.settings.selectedAiIds,
+      "recreational",
+    ]);
+    expect(added.data.aiProfiles.map((profile) => profile.id)).toEqual(
+      stored.aiProfiles.map((profile) => profile.id),
+    );
+    expect(added.data.aiProfiles.map((profile) => profile.id)).not.toContain(
+      "trapper",
+    );
+    expectPreview(added.data);
+
+    const named = commitLocalData(
+      {
+        ...base,
+        settings: { ...base.settings, playerName: "Stale Hero" },
+        playerNotes: { later: "from the old page" },
+      },
+      acknowledged,
+      memoryStorage(JSON.stringify(stored)),
+    );
+    expect(named.status).toBe("saved");
+    if (named.status !== "saved") return;
+    expect(named.data.settings.playerName).toBe("Stale Hero");
+    expect(named.data.settings.selectedAiIds).toEqual(
+      base.settings.selectedAiIds,
+    );
+    expect(named.data.aiProfiles.map((profile) => profile.id)).toContain(
+      "custom-opponent",
+    );
+    expect(named.data.playerNotes.later).toBe("from the old page");
+    expectPreview(named.data);
+  });
+
+  it("keeps a legal custom-only pool when the other edit does not touch it", () => {
+    const base = defaultData();
+    const stored = customOnly(base);
+    const raw = JSON.stringify(stored);
+    const storage = memoryStorage(raw);
+    const merged = commitLocalData(
+      {
+        ...base,
+        settings: { ...base.settings, playerName: "Custom Hero" },
+        playerNotes: { later: "from the old page" },
+      },
+      JSON.stringify(base),
+      storage,
+    );
+    expect(merged.status).toBe("saved");
+    if (merged.status !== "saved") return;
+    expect(merged.data.settings.playerName).toBe("Custom Hero");
+    expect(merged.data.settings.selectedAiIds).toEqual(
+      stored.settings.selectedAiIds,
+    );
+    expect(merged.data.aiProfiles.map((profile) => profile.id)).toEqual(
+      stored.aiProfiles.map((profile) => profile.id),
+    );
+    expect(merged.data.playerNotes.later).toBe("from the old page");
+    expectPreview(merged.data);
   });
 
   it("reports a storage failure without replacing the previous value", () => {
