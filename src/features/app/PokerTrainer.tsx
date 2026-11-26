@@ -1653,13 +1653,22 @@ function SettingsView({
             <div className="profile-editor-heading">
               <div>
                 <h3>{aiName(profile.id, profile.name)}</h3>
-                {habit && (
-                  <small>
-                    {t("实际")} {habit.hands} {t("手")} · VPIP{" "}
-                    {(habit.vpip * 100).toFixed(0)}% · PFR{" "}
-                    {(habit.pfr * 100).toFixed(0)}% · AF{" "}
-                    {habit.aggressionFactor.toFixed(1)}
-                  </small>
+                {habit && habit.hands > 0 ? (
+                  <>
+                    <small>
+                      {locale === "zh-CN"
+                        ? `已记录 ${habit.hands} 手`
+                        : `${habit.hands} ${habit.hands === 1 ? "hand" : "hands"} recorded`}
+                    </small>
+                    <small>
+                      {t("估计值（含初始值）")} · VPIP{" "}
+                      {(habit.vpip * 100).toFixed(0)}% · PFR{" "}
+                      {(habit.pfr * 100).toFixed(0)}% · AF{" "}
+                      {habit.aggressionFactor.toFixed(1)}
+                    </small>
+                  </>
+                ) : (
+                  <small>{t("尚无此对手的牌局记录。")}</small>
                 )}
               </div>
               <button
