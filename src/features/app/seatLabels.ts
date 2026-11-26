@@ -23,12 +23,17 @@ export function disambiguatedSeatLabels<T extends SeatLabelPlayer>(
   for (const entry of named) {
     counts.set(entry.name, (counts.get(entry.name) ?? 0) + 1);
   }
+  // Reserve raw names first: a custom name can itself look like a seat label.
+  const used = new Set(counts.keys());
   return new Map(
     named.map(({ player, name }) => {
       if ((counts.get(name) ?? 0) < 2) return [player.id, name];
       const position = player.positionLabel.trim();
       const qualifier = position || String(player.seat);
-      return [player.id, `${name} · ${qualifier}`];
+      let label = `${name} · ${qualifier}`;
+      while (used.has(label)) label += ` · ${player.seat}`;
+      used.add(label);
+      return [player.id, label];
     }),
   );
 }

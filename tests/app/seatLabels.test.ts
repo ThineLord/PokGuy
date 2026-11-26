@@ -33,6 +33,23 @@ describe("disambiguated seat labels", () => {
     expect(labels.get("co")).toBe("Kai · LAG");
   });
 
+  it("keeps user names even when they match generated labels", () => {
+    const labels = disambiguatedSeatLabels(
+      [
+        seat("sb", 1, "Lin · TAG", "SB"),
+        seat("bb", 2, "Lin · TAG", "BB"),
+        seat("hero", 0, "Lin · TAG · SB", "BTN"),
+        seat("co", 3, "Lin · TAG · SB · 1", "CO"),
+      ],
+      (player) => player.name,
+    );
+
+    expect(labels.get("hero")).toBe("Lin · TAG · SB");
+    expect(labels.get("co")).toBe("Lin · TAG · SB · 1");
+    expect(labels.get("bb")).toBe("Lin · TAG · BB");
+    expect(new Set(labels.values()).size).toBe(4);
+  });
+
   it("uses the stored seat when a shared name has no position", () => {
     const labels = disambiguatedSeatLabels(
       [
