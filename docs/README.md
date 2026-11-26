@@ -6,7 +6,7 @@
 | -------------- | ------------------------------- | ------------------------------------- |
 | Users          | [User README](user/README.md)   | [用户 README](user/README.zh-CN.md)   |
 | Agents         | [Agent README](agent/README.md) | [Agent README](agent/README.zh-CN.md) |
-| Latest release | [0.3.2](releases/0.3.2.md)      | [0.3.2](releases/0.3.2.zh-CN.md)      |
+| Latest release | [0.3.3](releases/0.3.3.md)      | [0.3.3](releases/0.3.3.zh-CN.md)      |
 
 ## Development
 

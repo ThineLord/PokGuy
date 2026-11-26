@@ -4,6 +4,8 @@ Application releases use `vMAJOR.MINOR.PATCH`. Browser storage schemas are versi
 
 ## Unreleased
 
+## [0.3.3] — 2026-11-26
+
 - Opponent profiles show the number of recorded hands separately from VPIP, PFR, and AF estimates, which include starting values. Profiles with no recorded hands show an empty state in both languages.
 - When two seats share a display name, history replay actions and showdown player, hand, and pot labels append that hand's stored position, in both languages. A display name used by only one seat stays as short as before. Saved profiles, identities, schema 2 hands, settlement, and hidden cards stay the same.
 - Fold to pressure, stack awareness, and board-texture awareness change marginal AI actions in the situation each slider describes. Fold to pressure shifts a call only when a bet is owed, around a neutral midpoint, and a clear value raise still continues. Stack awareness folds more light continues and commits more strong hands only on a short or committing stack; an ordinary stack depth is unchanged, and a deeper stack only resizes a bet that was already chosen. Board-texture awareness reads the public board from the flop onward: a wet board tightens a marginal continue, a dry board allows a slightly thinner continue, and preflop play ignores that slider. Saved profiles, storage schema 2, and `riverlab-poker-v2` stay the same.
@@ -16,6 +18,7 @@ Application releases use `vMAJOR.MINOR.PATCH`. Browser storage schemas are versi
 - Call controls, table call labels, and newly recorded review context show the payable call, capped by the player's stack. Immediate pot odds divide the part of that call an opposing contribution already covers by the pots the player can win. The caller's own still-unmatched chips are subtracted from the risk, and the ratio is not clamped. Folded chips in those pots count. Unreachable side pots do not. Hints, call grading, and the AI pot-odds decision use that price. Total-pot display, betting, and settlement are unchanged.
 - Only the latest backup-file selection controls the restore preview, its status, and the payload offered for confirmation. A slower earlier read cannot replace that preview, reopen it after cancel or a completed restore, or change saved data before confirmation.
 - Saved-hand replay opens on the starting position, shows each recorded action once, and can reach the public runout board, including a forced runout with no actions. Earlier frames keep later board cards hidden, and a postflop hand keeps its starting board. Choosing another hand, including with the review filter, stops autoplay and restarts that hand at its first step.
+- [English release notes](docs/releases/0.3.3.md) · [中文更新说明](docs/releases/0.3.3.zh-CN.md).
 
 ## [0.3.2] — 2026-11-19
 
@@ -72,4 +75,5 @@ The [historical changelog](https://github.com/ThineLord/PokGuy/blob/v0.3.0/docs/
 [0.2.0]: https://github.com/ThineLord/PokGuy/releases/tag/v0.2.0
 [0.3.0]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.0
 [0.3.1]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.1
+[0.3.3]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.3
 [0.3.2]: https://github.com/ThineLord/PokGuy/releases/tag/v0.3.2
